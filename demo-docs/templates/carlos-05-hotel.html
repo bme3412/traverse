@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Reservation - Carlos Mendes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .document {
+            width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #003580;
+        }
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #003580;
+        }
+        .company-info {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #003580;
+            margin-bottom: 10px;
+        }
+        .confirmation {
+            background: #f0f8ff;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #003580;
+            font-size: 14px;
+        }
+        .section {
+            margin: 25px 0;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #003580;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .info-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .hotel-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .hotel-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #003580;
+            margin-bottom: 10px;
+        }
+        .price-summary {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .total-row {
+            border-top: 2px solid #003580;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .disclaimer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div>
+                <div class="logo">Booking.com</div>
+                <div style="font-size: 14px; color: #666;">Your travel companion</div>
+            </div>
+            <div class="company-info">
+                Booking.com B.V.<br>
+                Herengracht 597<br>
+                1017 CE Amsterdam<br>
+                The Netherlands
+            </div>
+        </div>
+
+        <div class="title">Booking Confirmation</div>
+
+        <div class="confirmation">
+            <strong>Booking Reference:</strong> 2845-9631-7428<br>
+            <strong>Guest Name:</strong> Carlos Roberto Mendes<br>
+            <strong>Total Stay:</strong> 21 nights (April 1 - 22, 2026)
+        </div>
+
+        <div class="section">
+            <div class="section-title">Reservation 1: Tokyo (Days 1-6, 19-21)</div>
+            <div class="hotel-card">
+                <div class="hotel-name">Shibuya Excel Hotel Tokyu</div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                    📍 1-12-2 Dogenzaka, Shibuya-ku, Tokyo 150-0043, Japan
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-in:</div>
+                    <div>April 1, 2026 - 15:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-out:</div>
+                    <div>April 7, 2026 - 11:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Room Type:</div>
+                    <div>Standard Single Room</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nights:</div>
+                    <div>6 nights</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Price per night:</div>
+                    <div>¥12,500</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Reservation 2: Hakone (Days 7-8)</div>
+            <div class="hotel-card">
+                <div class="hotel-name">Hakone Yumoto Onsen Ryokan</div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                    📍 683 Yumoto, Hakone-machi, Ashigarashimo-gun, Kanagawa 250-0311, Japan
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-in:</div>
+                    <div>April 7, 2026 - 15:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-out:</div>
+                    <div>April 9, 2026 - 10:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Room Type:</div>
+                    <div>Traditional Japanese Room with Private Onsen</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nights:</div>
+                    <div>2 nights</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Price per night:</div>
+                    <div>¥18,000</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Reservation 3: Kyoto (Days 9-14)</div>
+            <div class="hotel-card">
+                <div class="hotel-name">Kyoto Granvia Hotel</div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                    📍 JR Kyoto Station Building, Shiokoji Sagaru, Karasuma-dori, Shimogyo-ku, Kyoto 600-8216, Japan
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-in:</div>
+                    <div>April 9, 2026 - 15:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-out:</div>
+                    <div>April 15, 2026 - 12:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Room Type:</div>
+                    <div>Standard Double Room</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nights:</div>
+                    <div>6 nights</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Price per night:</div>
+                    <div>¥14,000</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Reservation 4: Osaka (Days 15-18)</div>
+            <div class="hotel-card">
+                <div class="hotel-name">Hotel Monterey Grasmere Osaka</div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                    📍 2-2-9 Umeda, Kita-ku, Osaka 530-0001, Japan
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-in:</div>
+                    <div>April 15, 2026 - 15:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-out:</div>
+                    <div>April 19, 2026 - 11:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Room Type:</div>
+                    <div>Standard Single Room</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nights:</div>
+                    <div>4 nights</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Price per night:</div>
+                    <div>¥11,000</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Reservation 5: Tokyo - Final Days (Days 19-21)</div>
+            <div class="hotel-card">
+                <div class="hotel-name">Shibuya Excel Hotel Tokyu</div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                    📍 1-12-2 Dogenzaka, Shibuya-ku, Tokyo 150-0043, Japan
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-in:</div>
+                    <div>April 19, 2026 - 15:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Check-out:</div>
+                    <div>April 22, 2026 - 11:00</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Room Type:</div>
+                    <div>Standard Single Room</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nights:</div>
+                    <div>3 nights</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Price per night:</div>
+                    <div>¥12,500</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="price-summary">
+            <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #003580;">Price Summary</div>
+            <div class="price-row">
+                <div>Tokyo (9 nights × ¥12,500):</div>
+                <div>¥112,500</div>
+            </div>
+            <div class="price-row">
+                <div>Hakone (2 nights × ¥18,000):</div>
+                <div>¥36,000</div>
+            </div>
+            <div class="price-row">
+                <div>Kyoto (6 nights × ¥14,000):</div>
+                <div>¥84,000</div>
+            </div>
+            <div class="price-row">
+                <div>Osaka (4 nights × ¥11,000):</div>
+                <div>¥44,000</div>
+            </div>
+            <div class="price-row total-row">
+                <div>Total Amount Paid:</div>
+                <div>¥276,500</div>
+            </div>
+            <div style="font-size: 12px; color: #666; margin-top: 10px; text-align: right;">
+                (Approx. R$ 1,602 BRL at current exchange rate)
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #f0f8ff; border-radius: 8px; font-size: 13px;">
+            <strong>Important Information:</strong><br>
+            • All reservations are fully paid and non-refundable<br>
+            • Confirmation emails sent to carlos.mendes@example.com<br>
+            • Cancellation protection insurance included<br>
+            • Free WiFi and breakfast included at all properties
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employment Letter - Priya Sharma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+        .letter {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px 60px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .letterhead {
+            border-bottom: 3px solid #6366f1;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .company-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #6366f1;
+        }
+        .company-tagline {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+        .company-details {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .ref-date {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+        .ref-number {
+            color: #666;
+        }
+        .date {
+            color: #333;
+            font-weight: 600;
+        }
+        .letter-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            text-decoration: underline;
+        }
+        .letter-body {
+            line-height: 1.8;
+            color: #333;
+            font-size: 14px;
+        }
+        .letter-body p {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+        .employee-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-left: 4px solid #6366f1;
+            margin: 25px 0;
+        }
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .detail-label {
+            font-weight: 700;
+            min-width: 200px;
+            color: #333;
+        }
+        .detail-value {
+            color: #000;
+            font-weight: 600;
+        }
+        .signature-section {
+            margin-top: 50px;
+        }
+        .signature {
+            margin-top: 60px;
+        }
+        .signature-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: #333;
+        }
+        .signature-title {
+            font-size: 13px;
+            color: #666;
+            margin-top: 3px;
+        }
+        .company-stamp {
+            position: absolute;
+            right: 80px;
+            bottom: 120px;
+            width: 120px;
+            height: 120px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: rgba(99, 102, 241, 0.5);
+            font-size: 10px;
+            font-weight: bold;
+            transform: rotate(-15deg);
+            padding: 10px;
+        }
+        .footer-note {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="letter">
+        <div class="letterhead">
+            <div class="company-logo">
+                <div class="logo-icon">NT</div>
+                <div>
+                    <div class="company-name">नोवाटेक सॉल्यूशंस प्राइवेट लिमिटेड</div>
+                    <div class="company-tagline">NovaTech Solutions Pvt. Ltd.</div>
+                </div>
+            </div>
+            <div class="company-details">
+                पंजीकृत कार्यालय: ३०५, टेक टावर, बांद्रा-कुर्ला कॉम्प्लेक्स, मुंबई - ४०००५१, महाराष्ट्र<br>
+                <em>Registered Office: 305, Tech Tower, Bandra-Kurla Complex, Mumbai - 400051, Maharashtra</em><br>
+                दूरभाष / Tel: +91-000000-00000 | ईमेल / Email: hr@novatech-example.com | CIN: U72900MH2015PTC123456
+            </div>
+        </div>
+
+        <div class="ref-date">
+            <div class="ref-number">
+                <strong>संदर्भ संख्या / Ref. No:</strong> NT/HR/2026/SYNTH-0089
+            </div>
+            <div class="date">
+                <strong>दिनांक / Date:</strong> १५ फरवरी २०२६ / 15 February 2026
+            </div>
+        </div>
+
+        <div class="letter-title">
+            रोजगार एवं वेतन प्रमाण पत्र<br>
+            <span style="font-size: 14px;">(Employment and Salary Certificate)</span>
+        </div>
+
+        <div class="letter-body">
+            <p>
+                <strong>प्रति / To,</strong><br>
+                वीज़ा अधिकारी<br>
+                जर्मनी के संघीय गणराज्य का दूतावास<br>
+                नई दिल्ली, भारत
+            </p>
+
+            <p>
+                <strong>विषय:</strong> सुश्री प्रिया शर्मा के रोजगार और वेतन विवरण का प्रमाण पत्र
+            </p>
+
+            <p>
+                <strong>महोदय / महोदया,</strong>
+            </p>
+
+            <p>
+                यह प्रमाणित किया जाता है कि <strong>सुश्री प्रिया शर्मा</strong> (जन्म तिथि: १५ जून १९९२) हमारी कंपनी, नोवाटेक सॉल्यूशंस प्राइवेट लिमिटेड में <strong>स्थायी कर्मचारी</strong> के रूप में कार्यरत हैं। वह <strong>०१ मार्च २०२० से</strong> हमारे साथ कार्य कर रही हैं और वर्तमान में <strong>वरिष्ठ सॉफ्टवेयर इंजीनियर</strong> के पद पर हैं।
+            </p>
+
+            <div class="employee-details">
+                <div class="detail-row">
+                    <span class="detail-label">कर्मचारी का नाम / Employee Name:</span>
+                    <span class="detail-value">सुश्री प्रिया शर्मा / Ms. Priya Sharma</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">कर्मचारी आईडी / Employee ID:</span>
+                    <span class="detail-value">NT-EMP-SYNTH-2891</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">पदनाम / Designation:</span>
+                    <span class="detail-value">वरिष्ठ सॉफ्टवेयर इंजीनियर / Senior Software Engineer</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">रोजगार का प्रकार / Employment Type:</span>
+                    <span class="detail-value">स्थायी कर्मचारी (पूर्णकालिक) / Permanent Employee (Full-time)</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">कार्यभार संभालने की तिथि / Date of Joining:</span>
+                    <span class="detail-value">०१ मार्च २०२० / 01 March 2020</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">विभाग / Department:</span>
+                    <span class="detail-value">सॉफ्टवेयर विकास / Software Development</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">मासिक सकल वेतन / Monthly Gross Salary:</span>
+                    <span class="detail-value">₹८५,००० (पचासी हजार रुपये मात्र) / ₹85,000 (Eighty-Five Thousand Rupees Only)</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">वार्षिक सकल वेतन / Annual Gross Salary:</span>
+                    <span class="detail-value">₹१०,२०,००० / ₹10,20,000</span>
+                </div>
+            </div>
+
+            <p>
+                सुश्री शर्मा को <strong>१० मार्च २०२६ से २५ मार्च २०२६ तक</strong> (कुल १५ दिन) जर्मनी में आयोजित यूरोपीय सॉफ्टवेयर आर्किटेक्चर शिखर सम्मेलन २०२६ (European Software Architecture Summit 2026) में भाग लेने के लिए अवकाश स्वीकृत किया गया है। यह व्यावसायिक यात्रा उनके पेशेवर विकास और हमारी कंपनी के लिए महत्वपूर्ण है।
+            </p>
+
+            <p>
+                सुश्री शर्मा एक समर्पित और कुशल कर्मचारी हैं। हम पुष्टि करते हैं कि उन्हें जर्मनी से वापसी के बाद उनके पद पर बनाए रखा जाएगा। उनका रोजगार सुरक्षित है और वह अपनी यात्रा के बाद अपने कर्तव्यों को फिर से शुरू करेंगी।
+            </p>
+
+            <p>
+                यदि आपको कोई अतिरिक्त जानकारी या स्पष्टीकरण की आवश्यकता है, तो कृपया बेझिझक हमसे संपर्क करें।
+            </p>
+
+            <div class="signature-section">
+                <p>
+                    धन्यवाद एवं सादर,<br>
+                    <em>Thanking you,</em>
+                </p>
+
+                <div class="signature">
+                    <div style="font-family: 'Brush Script MT', cursive; font-size: 22px; color: #333; margin-bottom: 5px;">
+                        राजीव मेहता / Rajeev Mehta
+                    </div>
+                    <div class="signature-name">श्री राजीव मेहता / Mr. Rajeev Mehta</div>
+                    <div class="signature-title">मानव संसाधन निदेशक / Director - Human Resources</div>
+                    <div class="signature-title">नोवाटेक सॉल्यूशंस प्राइवेट लिमिटेड / NovaTech Solutions Pvt. Ltd.</div>
+                    <div class="signature-title" style="margin-top: 8px;">
+                        संपर्क / Contact: +91-000000-00000<br>
+                        ईमेल / Email: rajeev.mehta@novatech-example.com
+                    </div>
+                </div>
+            </div>
+
+            <div class="company-stamp">
+                नोवाटेक सॉल्यूशंस<br>
+                प्रा. लि.<br>
+                मुंबई<br>
+                NOVATECH<br>
+                SOLUTIONS<br>
+                PVT. LTD.
+            </div>
+        </div>
+
+        <div class="footer-note">
+            यह एक कंप्यूटर-जनित दस्तावेज़ है। किसी भी सत्यापन के लिए, कृपया ऊपर दिए गए संपर्क विवरण का उपयोग करें।<br>
+            <em>This is a computer-generated document. For any verification, please use the contact details provided above.</em>
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY<br>
+            नमूना दस्तावेज़ — केवल प्रदर्शन उद्देश्यों के लिए सिंथेटिक डेटा
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Booking - Priya Sharma</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f4f8;
+            padding: 40px 20px;
+        }
+        .booking {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #0066cc 0%, #0099ff 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .airline-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            font-size: 36px;
+        }
+        .airline-name {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .booking-status {
+            background: #00cc66;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .booking-ref {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .ref-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .ref-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0066cc;
+            letter-spacing: 2px;
+        }
+        .passenger-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .info-item {
+            font-size: 13px;
+        }
+        .info-label {
+            color: #666;
+            margin-bottom: 3px;
+        }
+        .info-value {
+            color: #000;
+            font-weight: 600;
+        }
+        .flight-segment {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .segment-type {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0066cc;
+        }
+        .flight-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        .route {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .airport {
+            flex: 1;
+            text-align: center;
+        }
+        .airport-code {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0066cc;
+        }
+        .airport-name {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .arrow {
+            flex: 0 0 100px;
+            text-align: center;
+            font-size: 24px;
+            color: #999;
+        }
+        .flight-details {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .detail-box {
+            text-align: center;
+        }
+        .detail-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        .detail-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .detail-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+        }
+        .price-summary {
+            background: #eff6ff;
+            border: 2px solid #0066cc;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .price-label {
+            color: #666;
+        }
+        .price-value {
+            font-weight: 600;
+            color: #333;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #0066cc;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+            padding: 15px;
+            border-top: 2px solid #c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="booking">
+        <div class="header">
+            <div class="airline-logo">
+                <div class="logo-icon">✈️</div>
+                <div class="airline-name">SkyConnect Airways</div>
+            </div>
+            <div class="booking-status">✓ CONFIRMED</div>
+        </div>
+
+        <div class="content">
+            <div class="booking-ref">
+                <div class="ref-label">Booking Reference</div>
+                <div class="ref-number">SYNTH7K9P</div>
+            </div>
+
+            <div class="passenger-info">
+                <div class="section-title">👤 Passenger Information</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Passenger Name</div>
+                        <div class="info-value">SHARMA/PRIYA MS</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Ticket Number</div>
+                        <div class="info-value">125-SYNTH8472691</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Booking Date</div>
+                        <div class="info-value">February 10, 2026</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">E-ticket Status</div>
+                        <div class="info-value">ISSUED</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">✈️ Flight Itinerary</div>
+
+            <!-- Outbound Flight -->
+            <div class="flight-segment">
+                <div class="segment-header">
+                    <div class="segment-type">🛫 OUTBOUND FLIGHT</div>
+                    <div class="flight-number">SC 8142</div>
+                </div>
+
+                <div class="route">
+                    <div class="airport">
+                        <div class="airport-code">BOM</div>
+                        <div class="airport-name">Mumbai</div>
+                        <div class="airport-name">Chhatrapati Shivaji Maharaj International</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="airport">
+                        <div class="airport-code">BER</div>
+                        <div class="airport-name">Berlin</div>
+                        <div class="airport-name">Berlin Brandenburg Airport</div>
+                    </div>
+                </div>
+
+                <div class="flight-details">
+                    <div class="detail-box">
+                        <div class="detail-icon">📅</div>
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">10 Mar 2026</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="detail-icon">🕐</div>
+                        <div class="detail-label">Departure</div>
+                        <div class="detail-value">02:15 AM</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="detail-icon">🕐</div>
+                        <div class="detail-label">Arrival</div>
+                        <div class="detail-value">07:45 AM</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="detail-icon">⏱️</div>
+                        <div class="detail-label">Duration</div>
+                        <div class="detail-value">9h 30m</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return Flight -->
+            <div class="flight-segment">
+                <div class="segment-header">
+                    <div class="segment-type">🛬 RETURN FLIGHT</div>
+                    <div class="flight-number">SC 8143</div>
+                </div>
+
+                <div class="route">
+                    <div class="airport">
+                        <div class="airport-code">BER</div>
+                        <div class="airport-name">Berlin</div>
+                        <div class="airport-name">Berlin Brandenburg Airport</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="airport">
+                        <div class="airport-code">BOM</div>
+                        <div class="airport-name">Mumbai</div>
+                        <div class="airport-name">Chhatrapati Shivaji Maharaj International</div>
+                    </div>
+                </div>
+
+                <div class="flight-details">
+                    <div class="detail-box">
+                        <div class="detail-icon">📅</div>
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">25 Mar 2026</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="detail-icon">🕐</div>
+                        <div class="detail-label">Departure</div>
+                        <div class="detail-value">10:30 AM</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="detail-icon">🕐</div>
+                        <div class="detail-label">Arrival</div>
+                        <div class="detail-value">11:45 PM</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="detail-icon">⏱️</div>
+                        <div class="detail-label">Duration</div>
+                        <div class="detail-value">9h 15m</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="price-summary">
+                <div class="section-title">💰 Price Breakdown</div>
+                <div class="price-row">
+                    <span class="price-label">Base Fare (1 Adult)</span>
+                    <span class="price-value">₹68,500</span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">Taxes & Fees</span>
+                    <span class="price-value">₹12,300</span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">Travel Insurance (Optional)</span>
+                    <span class="price-value">₹1,200</span>
+                </div>
+                <div class="total-row">
+                    <span>TOTAL AMOUNT PAID</span>
+                    <span style="color: #0066cc;">₹82,000</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>Important Information:</strong><br>
+            • Please arrive at the airport at least 3 hours before international departure<br>
+            • Valid passport and visa required for travel to Germany<br>
+            • Carry a printed or digital copy of this e-ticket<br>
+            • Baggage allowance: 23kg checked + 7kg cabin<br>
+            • For any changes or cancellations, contact: booking@skyconnect-example.com or +91-000000-00000
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

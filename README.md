@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Traverse
+
+**Three AI agents that review your visa application the way an experienced immigration team would.**
+
+Upload documents in any language. Traverse's Research, Document Intelligence, and Advisory agents coordinate to catch the errors that cause preventable rejections — across documents, across languages, for any corridor in the world.
+
+## Architecture
+
+```
+User Input (corridor + documents)
+        │
+        ▼
+┌──────────────────────────────────────────────┐
+│          ORCHESTRATOR (TypeScript)            │
+│  Plans analysis, delegates to agents,        │
+│  handles data passing, streams to UI         │
+└────┬───────────────┬───────────────┬─────────┘
+     │               │               │
+     ▼               ▼               ▼
+┌──────────┐  ┌─────────────┐  ┌──────────┐
+│ RESEARCH │  │  DOCUMENT   │  │ ADVISORY │
+│  AGENT   │  │INTELLIGENCE │  │  AGENT   │
+│          │  │   AGENT     │  │          │
+│Web Search│  │Vision       │  │Thinking  │
+│Thinking  │  │Thinking     │  │Structured│
+│          │  │             │  │Output    │
+└──────────┘  └─────────────┘  └──────────┘
+```
+
+All three agents use **Claude Opus 4.6** with adaptive thinking — dynamically allocating reasoning depth based on complexity.
+
+## How It Works
+
+1. **Research Agent** — Searches live government sources for current visa requirements for your specific corridor
+2. **Document Intelligence Agent** — Reads your uploaded documents in any language using multimodal vision, detects cross-lingual contradictions, assesses narrative coherence
+3. **Advisory Agent** — Synthesizes everything into prioritized, actionable guidance
+
+## Tech Stack
+
+- Next.js (App Router) + TypeScript
+- Tailwind CSS + shadcn/ui
+- Anthropic SDK (`claude-opus-4-6`) — web search, vision, adaptive thinking
+- Vercel (deployment)
+- No database — stateless, documents processed in-memory
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
+cp .env.example .env.local
+# Add your Anthropic API key to .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Privacy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **No database.** No user data stored anywhere.
+- **No accounts.** No login, no signup, no tracking cookies.
+- **In-memory only.** Documents are base64-encoded in the browser, sent to the API route, processed, and discarded.
+- **No server-side file storage.**
 
-## Learn More
+## Demo Documents
 
-To learn more about Next.js, take a look at the following resources:
+The `demo-docs/` directory contains synthetic documents for demonstration purposes. All data is fictional — no real PII anywhere.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT

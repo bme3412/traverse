@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Travel Itinerary - Priya Sharma</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+        .itinerary {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 35px 40px;
+            text-align: center;
+        }
+        .header-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        .header-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .traveler-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            font-size: 13px;
+        }
+        .info-item {
+            display: flex;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 120px;
+        }
+        .info-value {
+            color: #000;
+            font-weight: 600;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #059669;
+            margin: 30px 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .day-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .day-header {
+            background: #f9fafb;
+            padding: 15px 20px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .day-date {
+            font-size: 16px;
+            font-weight: 700;
+            color: #059669;
+        }
+        .day-type {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .type-travel {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .type-conference {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .type-networking {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        .type-tourism {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+        .day-activities {
+            padding: 20px;
+        }
+        .activity {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .activity:before {
+            content: "•";
+            position: absolute;
+            left: 10px;
+            color: #059669;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .activity-time {
+            font-weight: 600;
+            color: #059669;
+            font-size: 13px;
+        }
+        .activity-desc {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 3px;
+        }
+        .summary-box {
+            background: #ecfdf5;
+            border: 2px solid #059669;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .summary-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            font-size: 13px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .summary-label {
+            color: #666;
+        }
+        .summary-value {
+            font-weight: 700;
+            color: #000;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+            padding: 15px;
+            border-top: 2px solid #c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="itinerary">
+        <div class="header">
+            <div class="header-icon">🗓️</div>
+            <div class="header-title">DETAILED TRAVEL ITINERARY</div>
+            <div class="header-subtitle">Germany Business Trip - March 10-25, 2026</div>
+        </div>
+
+        <div class="content">
+            <div class="traveler-info">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Traveler Name:</span>
+                        <span class="info-value">Ms. Priya Sharma</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Passport No:</span>
+                        <span class="info-value">P 8542167</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Trip Duration:</span>
+                        <span class="info-value">15 Days (14 Nights)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Primary Purpose:</span>
+                        <span class="info-value">Business Conference</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">📍 Day-by-Day Schedule</div>
+
+            <!-- Day 1 -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 1 - Tuesday, March 10, 2026</div>
+                    <div class="day-type type-travel">Travel</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">02:15 AM</div>
+                        <div class="activity-desc">Departure from Mumbai (BOM) - SkyConnect Airways SC 8142</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">07:45 AM</div>
+                        <div class="activity-desc">Arrival at Berlin Brandenburg Airport (BER)</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">10:00 AM</div>
+                        <div class="activity-desc">Check-in at Grand Europa Hotel, Unter den Linden</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Afternoon</div>
+                        <div class="activity-desc">Rest and recovery from overnight flight, hotel amenities</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Evening</div>
+                        <div class="activity-desc">Informal dinner, explore nearby Brandenburg Gate area</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 2 -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 2 - Wednesday, March 11, 2026</div>
+                    <div class="day-type type-networking">Pre-Conference</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">10:00 AM</div>
+                        <div class="activity-desc">Pre-conference workshop: "Introduction to Cloud-Native Architecture"</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">01:00 PM</div>
+                        <div class="activity-desc">Lunch with international attendees - networking session</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">03:00 PM</div>
+                        <div class="activity-desc">Conference registration and materials pickup at Berlin Convention Center</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">06:00 PM</div>
+                        <div class="activity-desc">Welcome reception - meet speakers and fellow participants</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 3 -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 3 - Thursday, March 12, 2026</div>
+                    <div class="day-type type-networking">Networking</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">10:00 AM</div>
+                        <div class="activity-desc">Visit to Zalando SE headquarters - tech company tour arranged by conference</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">02:00 PM</div>
+                        <div class="activity-desc">Meeting with German software architecture consultants for potential collaboration</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Evening</div>
+                        <div class="activity-desc">Informal meetup with Indian diaspora tech professionals in Berlin</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day 4-6: Conference -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 4 - Friday, March 13, 2026</div>
+                    <div class="day-type type-conference">Conference Day 1</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">09:00 AM</div>
+                        <div class="activity-desc">Opening Keynote: "The Future of Distributed Systems"</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">11:00 AM - 05:00 PM</div>
+                        <div class="activity-desc">Technical sessions: Enterprise Architecture track</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">06:00 PM</div>
+                        <div class="activity-desc">Evening networking dinner with speakers</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 5 - Saturday, March 14, 2026</div>
+                    <div class="day-type type-conference">Conference Day 2</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">09:00 AM - 01:00 PM</div>
+                        <div class="activity-desc">Hands-on workshops: Microservices Architecture Patterns</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">02:00 PM - 05:00 PM</div>
+                        <div class="activity-desc">Technical sessions: Cloud Systems track</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Evening</div>
+                        <div class="activity-desc">Conference gala dinner at historic venue</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 6 - Sunday, March 15, 2026</div>
+                    <div class="day-type type-conference">Conference Day 3</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">09:00 AM - 12:00 PM</div>
+                        <div class="activity-desc">Panel discussions on Emerging Technologies and AI in Architecture</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">12:00 PM - 02:00 PM</div>
+                        <div class="activity-desc">Networking summit and closing ceremony</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Afternoon</div>
+                        <div class="activity-desc">Free time - explore Museum Island area</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekend Tourism -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 7 - Monday, March 16, 2026</div>
+                    <div class="day-type type-tourism">Tourism</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">Full Day</div>
+                        <div class="activity-desc">Cultural tourism: Berlin Wall Memorial, East Side Gallery, Checkpoint Charlie</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Evening</div>
+                        <div class="activity-desc">Traditional German dinner at local restaurant</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 8 - Tuesday, March 17, 2026</div>
+                    <div class="day-type type-tourism">Tourism</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">Full Day</div>
+                        <div class="activity-desc">Potsdam day trip: Sanssouci Palace and gardens (UNESCO World Heritage Site)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post-Conference -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 9 - Wednesday, March 18, 2026</div>
+                    <div class="day-type type-networking">Business Meetings</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">10:00 AM</div>
+                        <div class="activity-desc">Meeting with SAP representatives at Potsdamer Platz office</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">02:00 PM</div>
+                        <div class="activity-desc">Visit to Berlin Tech Hub for startup ecosystem exploration</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Evening</div>
+                        <div class="activity-desc">Follow-up dinner with conference contacts from Munich</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 10 - Thursday, March 19, 2026</div>
+                    <div class="day-type type-networking">Professional Development</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">10:00 AM</div>
+                        <div class="activity-desc">Post-conference workshop: "Advanced Kubernetes Patterns"</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Afternoon</div>
+                        <div class="activity-desc">Work session: Prepare trip report and learnings documentation</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 11 - Friday, March 20, 2026</div>
+                    <div class="day-type type-tourism">Cultural Tourism</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">Full Day</div>
+                        <div class="activity-desc">Museum visits: Pergamon Museum, Neues Museum, Alte Nationalgalerie</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 12-13 - Weekend, March 21-22, 2026</div>
+                    <div class="day-type type-tourism">Weekend Tourism</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">Saturday</div>
+                        <div class="activity-desc">Explore Charlottenburg Palace and gardens, shopping at KaDeWe</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Sunday</div>
+                        <div class="activity-desc">Tiergarten park, Reichstag building visit (pre-booked), Sunday brunch at Prenzlauer Berg</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 14 - Monday, March 23, 2026</div>
+                    <div class="day-type type-networking">Final Meetings</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">11:00 AM</div>
+                        <div class="activity-desc">Final meeting with Berlin-based technology partners</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Afternoon</div>
+                        <div class="activity-desc">Shopping for gifts and souvenirs</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Evening</div>
+                        <div class="activity-desc">Farewell dinner at traditional German restaurant</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 15 - Tuesday, March 24, 2026</div>
+                    <div class="day-type type-travel">Pre-Departure</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">Morning</div>
+                        <div class="activity-desc">Final sightseeing: Brandenburg Gate, Unter den Linden</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">11:00 AM</div>
+                        <div class="activity-desc">Check-out from Grand Europa Hotel</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Afternoon</div>
+                        <div class="activity-desc">Packing and preparation for departure</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">Evening</div>
+                        <div class="activity-desc">Rest before overnight flight</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-date">Day 16 - Wednesday, March 25, 2026</div>
+                    <div class="day-type type-travel">Return Travel</div>
+                </div>
+                <div class="day-activities">
+                    <div class="activity">
+                        <div class="activity-time">10:30 AM</div>
+                        <div class="activity-desc">Departure from Berlin (BER) - SkyConnect Airways SC 8143</div>
+                    </div>
+                    <div class="activity">
+                        <div class="activity-time">11:45 PM</div>
+                        <div class="activity-desc">Arrival at Mumbai (BOM)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-box">
+                <div class="summary-title">Trip Summary</div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-label">Total Days:</span>
+                        <span class="summary-value">16 Days (15 Nights)</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Conference Days:</span>
+                        <span class="summary-value">3 Days (March 13-15)</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Business Meetings:</span>
+                        <span class="summary-value">5 Days</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Tourism/Cultural:</span>
+                        <span class="summary-value">5 Days</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Travel Days:</span>
+                        <span class="summary-value">3 Days</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Accommodation:</span>
+                        <span class="summary-value">Grand Europa Hotel (15 nights)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>Important Notes:</strong><br>
+            • All conference sessions and workshops have been pre-registered<br>
+            • Business meetings have been confirmed with respective companies<br>
+            • Cultural site visits require advance booking (already completed)<br>
+            • Travel insurance valid for entire duration (€30,000 coverage)<br>
+            • Emergency contact in India: +91-000000-00000 (NovaTech HR Department)
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

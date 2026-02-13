@@ -1,65 +1,100 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { TravelForm } from "@/components/travel-form";
+import { TravelDetails } from "@/lib/types";
+import { useDemoContext, fetchDemoDocument } from "@/lib/demo-context";
 
 export default function Home() {
+  const router = useRouter();
+  const { pendingLoad, clearPending, setDemoDocuments } = useDemoContext();
+  const [prefilledData, setPrefilledData] = useState<TravelDetails | null>(null);
+  const [pendingDocs, setPendingDocs] = useState<{ name: string; language: string; image: string }[]>([]);
+
+  useEffect(() => {
+    if (pendingLoad) {
+      setPrefilledData(pendingLoad.travelDetails);
+      setPendingDocs(pendingLoad.documents);
+      clearPending();
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+  }, [pendingLoad, clearPending]);
+
+  const handleTravelSubmit = async (travelDetails: TravelDetails) => {
+    const docsWithImages = pendingDocs.filter((d) => d.image);
+    if (docsWithImages.length > 0) {
+      try {
+        const fetched = await Promise.all(
+          docsWithImages.map((doc, i) => fetchDemoDocument(doc, i))
+        );
+        setDemoDocuments(fetched);
+      } catch {
+        // Error handled silently - demo docs are optional
+      }
+    }
+
+    const params = new URLSearchParams({
+      passports: JSON.stringify(travelDetails.passports),
+      destination: travelDetails.destination,
+      purpose: travelDetails.purpose,
+      depart: travelDetails.dates.depart,
+      return: travelDetails.dates.return,
+      travelers: travelDetails.travelers.toString(),
+      event: travelDetails.event || "",
+    });
+    router.push(`/analyze?${params.toString()}`);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="mx-auto max-w-5xl px-6">
+      {/* ── Hero ── */}
+      <section className="pt-8 pb-6 text-center">
+        {/* 1. Problem statement */}
+        <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-bold tracking-tight leading-[1.15] text-foreground max-w-3xl mx-auto">
+          Every year, millions of visa applications are rejected for preventable errors.
+        </h1>
+
+        {/* 2. Stats bar */}
+        <div className="mt-6 flex items-center justify-center gap-0">
+          <div className="px-8 py-1">
+            <p className="stat-number text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">37,830+</p>
+            <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider font-mono">Travel corridors</p>
+          </div>
+          <div className="w-px h-10 bg-border" />
+          <div className="px-8 py-1">
+            <p className="stat-number text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">100+</p>
+            <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider font-mono">languages</p>
+          </div>
+          <div className="w-px h-10 bg-border" />
+          <div className="px-8 py-1">
+            <p className="stat-number text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">1.5B</p>
+            <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider font-mono">visas / year</p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* 3. Value proposition */}
+        <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          AI that reviews travel documents like an expert — for{" "}
+          <span className="text-blue-400">every applicant</span>,{" "}
+          <span className="text-purple-400">every corridor</span>,{" "}
+          <span className="text-emerald-400">every language</span>.
+        </p>
+
+        {/* 4. Subtext */}
+        <p className="mt-3 text-sm text-muted-foreground/70 max-w-xl mx-auto">
+          Upload your documents in any language. Traverse&apos;s Research,
+          Document Intelligence, and Advisory systems work together to catch
+          the errors that cause preventable rejections.
+        </p>
+      </section>
+
+      {/* ── Form ── */}
+      <div className="relative rounded-lg p-px mb-8 border border-border bg-card">
+        <div className="rounded-[calc(0.5rem-1px)] bg-card backdrop-blur-sm p-6 sm:p-8">
+          <TravelForm onSubmit={handleTravelSubmit} isLoading={false} prefilledData={prefilledData} />
         </div>
-      </main>
+      </div>
     </div>
   );
 }

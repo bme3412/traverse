@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Declaração de Renda - Carlos Mendes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .document {
+            width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .info-row {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .info-value {
+            color: #000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+        thead {
+            background: #333;
+            color: white;
+        }
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .total-row {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+        .signature-section {
+            margin-top: 60px;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 300px;
+            margin: 60px auto 10px;
+        }
+        .disclaimer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div class="title">Declaração de Rendimentos de Autônomo</div>
+            <div class="subtitle">Ano Base: 2025</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Dados do Profissional</div>
+            <div class="info-row">
+                <div class="info-label">Nome Completo:</div>
+                <div class="info-value">Carlos Roberto Mendes</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">CPF:</div>
+                <div class="info-value">123.456.789-00</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Profissão:</div>
+                <div class="info-value">Fotógrafo Autônomo / Freelance Photographer</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Endereço:</div>
+                <div class="info-value">Rua Augusta, 1234 - São Paulo, SP</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Inscrição Municipal:</div>
+                <div class="info-value">MEI 12.345.678/0001-90</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Resumo de Rendimentos - 2025</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mês</th>
+                        <th>Tipo de Serviço</th>
+                        <th>Valor Bruto (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Janeiro</td>
+                        <td>Fotografia de Casamento e Eventos</td>
+                        <td>12.500,00</td>
+                    </tr>
+                    <tr>
+                        <td>Fevereiro</td>
+                        <td>Ensaios Corporativos</td>
+                        <td>8.200,00</td>
+                    </tr>
+                    <tr>
+                        <td>Março</td>
+                        <td>Fotografia de Produtos</td>
+                        <td>9.800,00</td>
+                    </tr>
+                    <tr>
+                        <td>Abril</td>
+                        <td>Eventos Corporativos</td>
+                        <td>11.300,00</td>
+                    </tr>
+                    <tr>
+                        <td>Maio</td>
+                        <td>Casamentos e Aniversários</td>
+                        <td>14.200,00</td>
+                    </tr>
+                    <tr>
+                        <td>Junho</td>
+                        <td>Fotografia Editorial - Revistas</td>
+                        <td>10.600,00</td>
+                    </tr>
+                    <tr>
+                        <td>Julho</td>
+                        <td>Workshops e Cursos</td>
+                        <td>7.400,00</td>
+                    </tr>
+                    <tr>
+                        <td>Agosto</td>
+                        <td>Fotografia de Casamento</td>
+                        <td>13.500,00</td>
+                    </tr>
+                    <tr>
+                        <td>Setembro</td>
+                        <td>Ensaios Corporativos e Produtos</td>
+                        <td>9.900,00</td>
+                    </tr>
+                    <tr>
+                        <td>Outubro</td>
+                        <td>Eventos e Casamentos</td>
+                        <td>15.800,00</td>
+                    </tr>
+                    <tr>
+                        <td>Novembro</td>
+                        <td>Fotografia Editorial</td>
+                        <td>11.200,00</td>
+                    </tr>
+                    <tr>
+                        <td>Dezembro</td>
+                        <td>Eventos de Fim de Ano</td>
+                        <td>16.400,00</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="2">Total Anual Bruto</td>
+                        <td>R$ 140.800,00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Média Mensal</td>
+                        <td>R$ 11.733,33</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Observações</div>
+            <p style="font-size: 13px; line-height: 1.6; text-align: justify;">
+                Declaro que os valores acima representam minha renda como fotógrafo autônomo durante o ano de 2025.
+                Atuo como Microempreendedor Individual (MEI) e presto serviços de fotografia profissional para eventos,
+                empresas, e publicações editoriais. Todos os rendimentos estão devidamente registrados e declarados
+                à Receita Federal do Brasil conforme legislação vigente.
+            </p>
+            <p style="font-size: 13px; line-height: 1.6; text-align: justify; margin-top: 15px;">
+                Esta declaração é emitida para fins de comprovação de renda para solicitação de visto de turismo
+                para o Japão, viagem programada para abril de 2026.
+            </p>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-line"></div>
+            <div style="font-weight: 600; font-size: 14px;">Carlos Roberto Mendes</div>
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">CPF: 123.456.789-00</div>
+            <div style="font-size: 12px; color: #666;">São Paulo, 20 de Janeiro de 2026</div>
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

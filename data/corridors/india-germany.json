@@ -1,0 +1,152 @@
+{
+  "corridor": "India → Germany",
+  "visaType": "Schengen Business Visa (Type C)",
+  "visaRequired": true,
+  "items": [
+    {
+      "name": "Valid Passport",
+      "description": "Indian passport with at least 2 blank pages",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Passport must be valid until at least September 25, 2026 (6 months after return)"
+    },
+    {
+      "name": "Business Invitation Letter",
+      "description": "Official invitation from German company on letterhead stating purpose, duration, and financial responsibility",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": true
+    },
+    {
+      "name": "Employment Proof",
+      "description": "Employment certificate from employer on company letterhead stating position, salary, and leave approval",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": true
+    },
+    {
+      "name": "Bank Statements",
+      "description": "Bank statements for last 6 months showing sufficient funds (min €45-50/day)",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "For 15-day stay: minimum €675-750 recommended"
+    },
+    {
+      "name": "Income Tax Returns",
+      "description": "IT returns (Form 16 or ITR acknowledgment) for the last 3 years",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": true
+    },
+    {
+      "name": "Travel Itinerary",
+      "description": "Confirmed flight reservations showing entry and exit from Schengen area",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Flight bookings for March 10-25, 2026"
+    },
+    {
+      "name": "Accommodation Proof",
+      "description": "Hotel bookings or invitation letter with accommodation details for entire stay",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Bookings covering all 15 nights (March 10-25, 2026)"
+    },
+    {
+      "name": "Travel Insurance",
+      "description": "Travel medical insurance covering min €30,000 for entire Schengen area and full stay duration",
+      "required": true,
+      "source": "Schengen visa requirements",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Coverage required: March 10-25, 2026"
+    },
+    {
+      "name": "Cover Letter",
+      "description": "Personal cover letter explaining trip purpose, itinerary, and ties to India",
+      "required": false,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "medium",
+      "uploadable": true
+    },
+    {
+      "name": "Completed Visa Application Form",
+      "description": "Schengen visa application form — filled online or on paper at VFS appointment",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": false
+    },
+    {
+      "name": "Biometric Passport Photos",
+      "description": "Two biometric photos (35x45mm, white background) — bring to VFS appointment",
+      "required": true,
+      "source": "Germany Embassy New Delhi",
+      "confidence": "high",
+      "uploadable": false
+    },
+    {
+      "name": "VFS Appointment",
+      "description": "In-person appointment at VFS Global Visa Application Centre for biometrics and document submission",
+      "required": true,
+      "source": "VFS Global India",
+      "confidence": "high",
+      "uploadable": false
+    }
+  ],
+  "fees": {
+    "visa": "€80 (≈₹7,200)",
+    "service": "VFS Global: ₹2,260 + taxes"
+  },
+  "processingTime": "15-20 working days",
+  "applyAt": "VFS Global Visa Application Centre",
+  "importantNotes": [
+    "Business visa does not permit paid employment in Germany",
+    "Apply no more than 6 months and no less than 15 working days before travel",
+    "All documents not in English or German must be translated and notarized",
+    "Schengen visa allows travel throughout Schengen area"
+  ],
+  "sources": [
+    {"name": "German Embassy New Delhi", "url": "https://india.diplo.de/in-en/service/visa", "dateAccessed": "2026-02-11"},
+    {"name": "VFS Global India", "url": "https://visa.vfsglobal.com/ind/en/deu", "dateAccessed": "2026-02-11"}
+  ],
+  "applicationWindow": {
+    "earliest": "6 months before travel",
+    "latest": "15 working days before travel"
+  },
+  "commonRejectionReasons": [
+    "Insufficient bank balance or irregular transaction history",
+    "Weak ties to home country (no property, unstable employment)",
+    "Incomplete or inconsistent supporting documents",
+    "Travel insurance not covering full Schengen area or trip duration"
+  ],
+  "healthRequirements": [],
+  "financialThresholds": {
+    "dailyMinimum": "€45-50/day",
+    "totalRecommended": "€675-750",
+    "currency": "EUR",
+    "notes": "6 months of bank statements required; consistent balance preferred over sudden deposits"
+  },
+  "alternativeVisaTypes": [],
+  "postArrivalRegistration": {
+    "required": true,
+    "deadline": "within 14 days of arrival",
+    "where": "Local registration office (Einwohnermeldeamt / Bürgeramt)"
+  },
+  "documentLanguage": {
+    "accepted": ["English", "German"],
+    "translationRequired": true,
+    "certifiedTranslation": true
+  }
+}

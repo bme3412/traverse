@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrato Bancário - Carlos Mendes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .document {
+            width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #ff6200;
+        }
+        .bank-logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff6200;
+        }
+        .bank-info {
+            text-align: right;
+            font-size: 11px;
+            color: #666;
+        }
+        .statement-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6200;
+            margin-bottom: 20px;
+        }
+        .account-info {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #ff6200;
+        }
+        .info-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .info-value {
+            color: #000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        thead {
+            background: #ff6200;
+            color: white;
+        }
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+        .credit {
+            color: #008000;
+            font-weight: 600;
+        }
+        .debit {
+            color: #c00;
+        }
+        .balance {
+            font-weight: 600;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff5ed;
+            border: 1px solid #ff6200;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .summary-label {
+            font-weight: 600;
+        }
+        .summary-value {
+            font-weight: bold;
+            color: #ff6200;
+        }
+        .disclaimer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div>
+                <div class="bank-logo">Itaú</div>
+                <div style="font-size: 14px; color: #666;">Banco Itaú Unibanco S.A.</div>
+            </div>
+            <div class="bank-info">
+                Av. Paulista, 1450<br>
+                São Paulo, SP<br>
+                Brasil<br>
+                www.itau.com.br
+            </div>
+        </div>
+
+        <div class="statement-title">Extrato da Conta Corrente</div>
+
+        <div class="account-info">
+            <div class="info-row">
+                <div class="info-label">Titular:</div>
+                <div class="info-value">CARLOS ROBERTO MENDES</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Agência:</div>
+                <div class="info-value">0341</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Conta:</div>
+                <div class="info-value">78654-3</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Período:</div>
+                <div class="info-value">01 Janeiro 2026 - 31 Janeiro 2026</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Moeda:</div>
+                <div class="info-value">Real Brasileiro (BRL)</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Débito (R$)</th>
+                    <th>Crédito (R$)</th>
+                    <th>Saldo (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01 Jan</td>
+                    <td>Saldo Anterior</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td class="balance">48.500,00</td>
+                </tr>
+                <tr>
+                    <td>05 Jan</td>
+                    <td>Depósito - Fotografia Casamento Silva</td>
+                    <td>-</td>
+                    <td class="credit">8.500,00</td>
+                    <td class="balance">57.000,00</td>
+                </tr>
+                <tr>
+                    <td>08 Jan</td>
+                    <td>Aluguel Apartamento</td>
+                    <td class="debit">2.800,00</td>
+                    <td>-</td>
+                    <td class="balance">54.200,00</td>
+                </tr>
+                <tr>
+                    <td>10 Jan</td>
+                    <td>Equipamento Fotográfico - Loja Canon</td>
+                    <td class="debit">4.200,00</td>
+                    <td>-</td>
+                    <td class="balance">50.000,00</td>
+                </tr>
+                <tr>
+                    <td>12 Jan</td>
+                    <td>Depósito - Ensaio Fotográfico Corporativo</td>
+                    <td>-</td>
+                    <td class="credit">3.200,00</td>
+                    <td class="balance">53.200,00</td>
+                </tr>
+                <tr>
+                    <td>15 Jan</td>
+                    <td>Supermercado Pão de Açúcar</td>
+                    <td class="debit">680,00</td>
+                    <td>-</td>
+                    <td class="balance">52.520,00</td>
+                </tr>
+                <tr>
+                    <td>18 Jan</td>
+                    <td>Pagamento Passagem Aérea - Japão</td>
+                    <td class="debit">6.450,00</td>
+                    <td>-</td>
+                    <td class="balance">46.070,00</td>
+                </tr>
+                <tr>
+                    <td>20 Jan</td>
+                    <td>Depósito - Sessão Fotográfica Revista</td>
+                    <td>-</td>
+                    <td class="credit">5.800,00</td>
+                    <td class="balance">51.870,00</td>
+                </tr>
+                <tr>
+                    <td>22 Jan</td>
+                    <td>Seguro Viagem - Allianz</td>
+                    <td class="debit">420,00</td>
+                    <td>-</td>
+                    <td class="balance">51.450,00</td>
+                </tr>
+                <tr>
+                    <td>25 Jan</td>
+                    <td>Reserva Hotel Tóquio</td>
+                    <td class="debit">4.100,00</td>
+                    <td>-</td>
+                    <td class="balance">47.350,00</td>
+                </tr>
+                <tr>
+                    <td>28 Jan</td>
+                    <td>Depósito - Workshop Fotografia</td>
+                    <td>-</td>
+                    <td class="credit">2.400,00</td>
+                    <td class="balance">49.750,00</td>
+                </tr>
+                <tr>
+                    <td>31 Jan</td>
+                    <td>Saldo Final</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td class="balance">49.750,00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <div class="summary-row">
+                <div class="summary-label">Saldo Inicial:</div>
+                <div class="summary-value">R$ 48.500,00</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Total de Créditos:</div>
+                <div class="summary-value">R$ 19.900,00</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Total de Débitos:</div>
+                <div class="summary-value">R$ 18.650,00</div>
+            </div>
+            <div class="summary-row" style="border-top: 2px solid #ff6200; padding-top: 10px; margin-top: 10px;">
+                <div class="summary-label">Saldo Final:</div>
+                <div class="summary-value" style="font-size: 16px;">R$ 49.750,00</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; font-size: 11px; color: #666; text-align: center;">
+            Taxa de Câmbio (aprox.): R$ 5,80 = ¥1000 JPY | Saldo Final ≈ ¥8,577,000
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

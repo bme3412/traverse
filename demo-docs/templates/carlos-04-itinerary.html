@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Itinerary - Carlos Mendes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .document {
+            width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #c41230;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+        .trip-summary {
+            background: #f0f8ff;
+            padding: 20px;
+            margin: 30px 0;
+            border-left: 4px solid #c41230;
+        }
+        .summary-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .summary-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .day-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .day-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #c41230;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #c41230;
+        }
+        .activity {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        .time {
+            font-weight: 600;
+            color: #c41230;
+            margin-right: 10px;
+        }
+        .disclaimer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div class="title">Japan Travel Itinerary</div>
+            <div class="subtitle">Photography Journey Through Japan</div>
+        </div>
+
+        <div class="trip-summary">
+            <div class="summary-row">
+                <div class="summary-label">Traveler:</div>
+                <div>Carlos Roberto Mendes</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Passport:</div>
+                <div>FA 582916 (Brazil)</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Trip Duration:</div>
+                <div>21 days (April 1 - 22, 2026)</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Purpose:</div>
+                <div>Tourism - Photography expedition</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Cities:</div>
+                <div>Tokyo, Kyoto, Osaka, Nara, Hakone</div>
+            </div>
+        </div>
+
+        <div class="day-section">
+            <div class="day-header">Days 1-2: April 1-2 - Arrival in Tokyo</div>
+            <div class="activity">
+                <span class="time">Morning:</span> Arrive at Narita Airport, transfer to hotel in Shibuya
+            </div>
+            <div class="activity">
+                <span class="time">Afternoon:</span> Rest and explore local neighborhood
+            </div>
+            <div class="activity">
+                <span class="time">Evening:</span> Photography walk - Shibuya Crossing and neon lights
+            </div>
+        </div>
+
+        <div class="day-section">
+            <div class="day-header">Days 3-6: April 3-6 - Tokyo</div>
+            <div class="activity">
+                <span class="time">Day 3:</span> Asakusa and Senso-ji Temple photography, Sumida River views
+            </div>
+            <div class="activity">
+                <span class="time">Day 4:</span> Harajuku fashion district, Meiji Shrine, Yoyogi Park
+            </div>
+            <div class="activity">
+                <span class="time">Day 5:</span> Tsukiji Outer Market, Tokyo Tower, Roppongi Hills
+            </div>
+            <div class="activity">
+                <span class="time">Day 6:</span> Akihabara electronics district, Imperial Palace gardens
+            </div>
+        </div>
+
+        <div class="day-section">
+            <div class="day-header">Days 7-8: April 7-8 - Hakone</div>
+            <div class="activity">
+                <span class="time">Day 7:</span> Travel to Hakone, Lake Ashi boat cruise, Mt. Fuji photography
+            </div>
+            <div class="activity">
+                <span class="time">Day 8:</span> Hakone Open-Air Museum, hot springs, return to Tokyo
+            </div>
+        </div>
+
+        <div class="day-section">
+            <div class="day-header">Days 9-14: April 9-14 - Kyoto</div>
+            <div class="activity">
+                <span class="time">Day 9:</span> Shinkansen to Kyoto, Gion district exploration
+            </div>
+            <div class="activity">
+                <span class="time">Day 10:</span> Fushimi Inari shrine (10,000 torii gates photography)
+            </div>
+            <div class="activity">
+                <span class="time">Day 11:</span> Arashiyama bamboo forest, Togetsukyo Bridge
+            </div>
+            <div class="activity">
+                <span class="time">Day 12:</span> Kinkaku-ji (Golden Pavilion), Ryoan-ji zen garden
+            </div>
+            <div class="activity">
+                <span class="time">Day 13:</span> Nara day trip - Todai-ji Temple, deer park photography
+            </div>
+            <div class="activity">
+                <span class="time">Day 14:</span> Kiyomizu-dera Temple, traditional streets of Higashiyama
+            </div>
+        </div>
+
+        <div class="day-section">
+            <div class="day-header">Days 15-18: April 15-18 - Osaka</div>
+            <div class="activity">
+                <span class="time">Day 15:</span> Travel to Osaka, Dotonbori district night photography
+            </div>
+            <div class="activity">
+                <span class="time">Day 16:</span> Osaka Castle, Umeda Sky Building
+            </div>
+            <div class="activity">
+                <span class="time">Day 17:</span> Shinsekai retro district, street food photography
+            </div>
+            <div class="activity">
+                <span class="time">Day 18:</span> Shopping and final Osaka exploration
+            </div>
+        </div>
+
+        <div class="day-section">
+            <div class="day-header">Days 19-21: April 19-21 - Return to Tokyo & Departure</div>
+            <div class="activity">
+                <span class="time">Day 19:</span> Return to Tokyo, final equipment shopping
+            </div>
+            <div class="activity">
+                <span class="time">Day 20:</span> Last-minute photography locations, pack and prepare
+            </div>
+            <div class="activity">
+                <span class="time">Day 21:</span> Depart from Narita Airport
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Notes:</div>
+            <ul style="font-size: 13px; line-height: 1.8; color: #666; margin-left: 20px;">
+                <li>Primary focus: Landscape, street, and cultural photography</li>
+                <li>All accommodations pre-booked (see hotel confirmation)</li>
+                <li>JR Rail Pass purchased for unlimited train travel</li>
+                <li>Travel insurance active for entire duration</li>
+            </ul>
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

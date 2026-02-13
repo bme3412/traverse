@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigerian Passport - Amara Okafor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            /* Nigerian flag: green-white-green vertical stripes */
+            background: linear-gradient(90deg, #008751 0%, #008751 33%, #f0f0f0 33%, #f0f0f0 66%, #008751 66%, #008751 100%);
+            padding: 40px;
+            min-height: 100vh;
+            position: relative;
+        }
+        /* Coat of arms watermark */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid rgba(255,255,255,0.06);
+        }
+        .passport {
+            width: 800px;
+            height: 1100px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, #f8f8f8 0%, #f0ede8 100%);
+            border: 3px solid #008751;
+            border-radius: 8px;
+            padding: 40px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3), 0 0 60px rgba(0,135,81,0.2);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0d5c3d;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .emblem {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            background: radial-gradient(circle, #0d5c3d 0%, #094d31 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        .country {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0d5c3d;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+        .passport-label {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .passport-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #c00;
+            letter-spacing: 3px;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .photo {
+            width: 180px;
+            height: 220px;
+            background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+            border: 2px solid #999;
+            position: relative;
+            overflow: hidden;
+        }
+        .photo::before {
+            content: '';
+            position: absolute;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 80px;
+            background: #bbb;
+            border-radius: 50%;
+        }
+        .photo::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 100px;
+            background: #bbb;
+            border-radius: 50% 50% 0 0;
+        }
+        .data-field {
+            margin-bottom: 20px;
+        }
+        .field-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+        .field-value {
+            font-size: 16px;
+            color: #000;
+            font-weight: 600;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .signature {
+            margin-top: 40px;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            width: 300px;
+        }
+        .signature-label {
+            font-size: 10px;
+            color: #666;
+        }
+        .machine-readable {
+            position: absolute;
+            bottom: 30px;
+            left: 40px;
+            right: 40px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: #000;
+            background: #f5f5f5;
+            padding: 10px;
+            border-top: 2px solid #333;
+        }
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            color: rgba(13, 92, 61, 0.05);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .disclaimer {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="passport">
+        <div class="watermark">NIGERIA</div>
+
+        <div class="header">
+            <div class="emblem">🦅</div>
+            <div class="country">FEDERAL REPUBLIC OF NIGERIA</div>
+            <div class="passport-label">PASSPORT</div>
+            <div class="passport-number">A 50762891</div>
+        </div>
+
+        <div class="content">
+            <div class="left-column">
+                <div class="data-field">
+                    <div class="field-label">Type</div>
+                    <div class="field-value">P (ORDINARY)</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Surname</div>
+                    <div class="field-value">OKAFOR</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Given Names</div>
+                    <div class="field-value">AMARA CHINYERE</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Nationality</div>
+                    <div class="field-value">NIGERIAN</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Sex</div>
+                    <div class="field-value">F</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Date of Birth</div>
+                    <div class="field-value">08 MAR 2001</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Place of Birth</div>
+                    <div class="field-value">LAGOS, NIGERIA</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Date of Issue</div>
+                    <div class="field-value">15 JAN 2025</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Date of Expiry</div>
+                    <div class="field-value">14 JAN 2035</div>
+                </div>
+
+                <div class="data-field">
+                    <div class="field-label">Place of Issue</div>
+                    <div class="field-value">ABUJA</div>
+                </div>
+
+                <div class="signature">
+                    <div style="font-family: 'Brush Script MT', cursive; font-size: 20px; color: #0d5c3d;">Amara Okafor</div>
+                    <div class="signature-label">Signature of Bearer</div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="photo"></div>
+            </div>
+        </div>
+
+        <div class="machine-readable">
+            P&lt;NGAOKAFOR&lt;&lt;AMARA&lt;CHINYERE&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>
+            A50762891&lt;NGA0103088F3501149&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;02
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

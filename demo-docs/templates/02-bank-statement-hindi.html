@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Statement - Priya Sharma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+        .statement {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .bank-header {
+            border-bottom: 3px solid #003d7a;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .bank-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #003d7a 0%, #005ba3 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .bank-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #003d7a;
+        }
+        .bank-tagline {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .account-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-left: 4px solid #003d7a;
+            margin-bottom: 30px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+        .info-value {
+            color: #000;
+            font-weight: 600;
+        }
+        .statement-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #003d7a;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .balance-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .balance-label {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .balance-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #003d7a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th {
+            background: #003d7a;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .credit {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        .debit {
+            color: #c62828;
+            font-weight: 600;
+        }
+        .footer-note {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="statement">
+        <div class="bank-header">
+            <div class="bank-logo">
+                <div class="logo-icon">🏦</div>
+                <div>
+                    <div class="bank-name">राष्ट्रीय वाणिज्य बैंक</div>
+                    <div class="bank-name" style="font-size: 14px; color: #666;">National Commerce Bank</div>
+                    <div class="bank-tagline">भारत का विश्वसनीय बैंक • Trusted Bank of India</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="account-info">
+            <div class="info-row">
+                <span class="info-label">खाता धारक का नाम / Account Holder:</span>
+                <span class="info-value">सुश्री प्रिया शर्मा / Ms. Priya Sharma</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">खाता संख्या / Account Number:</span>
+                <span class="info-value">SYNTH-1234-5678-9012</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">शाखा / Branch:</span>
+                <span class="info-value">मुंबई - बांद्रा (पश्चिम) / Mumbai - Bandra (West)</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">IFSC कोड / IFSC Code:</span>
+                <span class="info-value">NCBK0001234</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">विवरण अवधि / Statement Period:</span>
+                <span class="info-value">01 सितंबर 2025 से 28 फरवरी 2026 / 01 Sep 2025 to 28 Feb 2026</span>
+            </div>
+        </div>
+
+        <div class="statement-title">खाता विवरण / Account Statement</div>
+
+        <div class="balance-summary">
+            <div class="balance-card">
+                <div class="balance-label">प्रारंभिक शेष / Opening Balance</div>
+                <div class="balance-amount">₹78,450</div>
+            </div>
+            <div class="balance-card">
+                <div class="balance-label">कुल जमा / Total Credits</div>
+                <div class="balance-amount">₹5,10,000</div>
+            </div>
+            <div class="balance-card">
+                <div class="balance-label">अंतिम शेष / Closing Balance</div>
+                <div class="balance-amount">₹95,280</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>तारीख / Date</th>
+                    <th>विवरण / Description</th>
+                    <th>जमा / Credit (₹)</th>
+                    <th>निकासी / Debit (₹)</th>
+                    <th>शेष / Balance (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01 सित 2025</td>
+                    <td>प्रारंभिक शेष</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>78,450</td>
+                </tr>
+                <tr>
+                    <td>05 सित 2025</td>
+                    <td>वेतन जमा - नोवाटेक सॉल्यूशंस<br><small>Salary Credit - NovaTech Solutions</small></td>
+                    <td class="credit">85,000</td>
+                    <td>—</td>
+                    <td>1,63,450</td>
+                </tr>
+                <tr>
+                    <td>08 सित 2025</td>
+                    <td>किराया भुगतान<br><small>Rent Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">28,000</td>
+                    <td>1,35,450</td>
+                </tr>
+                <tr>
+                    <td>12 सित 2025</td>
+                    <td>क्रेडिट कार्ड भुगतान<br><small>Credit Card Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">15,200</td>
+                    <td>1,20,250</td>
+                </tr>
+                <tr>
+                    <td>18 सित 2025</td>
+                    <td>किराना और खरीदारी<br><small>Groceries & Shopping</small></td>
+                    <td>—</td>
+                    <td class="debit">12,400</td>
+                    <td>1,07,850</td>
+                </tr>
+                <tr>
+                    <td>05 अक्ट 2025</td>
+                    <td>वेतन जमा - नोवाटेक सॉल्यूशंस<br><small>Salary Credit - NovaTech Solutions</small></td>
+                    <td class="credit">85,000</td>
+                    <td>—</td>
+                    <td>1,92,850</td>
+                </tr>
+                <tr>
+                    <td>08 अक्ट 2025</td>
+                    <td>किराया भुगतान<br><small>Rent Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">28,000</td>
+                    <td>1,64,850</td>
+                </tr>
+                <tr>
+                    <td>15 अक्ट 2025</td>
+                    <td>बिजली और उपयोगिताएँ<br><small>Electricity & Utilities</small></td>
+                    <td>—</td>
+                    <td class="debit">4,800</td>
+                    <td>1,60,050</td>
+                </tr>
+                <tr>
+                    <td>22 अक्ट 2025</td>
+                    <td>खरीदारी और भोजन<br><small>Shopping & Dining</small></td>
+                    <td>—</td>
+                    <td class="debit">18,600</td>
+                    <td>1,41,450</td>
+                </tr>
+                <tr>
+                    <td>05 नव 2025</td>
+                    <td>वेतन जमा - नोवाटेक सॉल्यूशंस<br><small>Salary Credit - NovaTech Solutions</small></td>
+                    <td class="credit">85,000</td>
+                    <td>—</td>
+                    <td>2,26,450</td>
+                </tr>
+                <tr>
+                    <td>08 नव 2025</td>
+                    <td>किराया भुगतान<br><small>Rent Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">28,000</td>
+                    <td>1,98,450</td>
+                </tr>
+                <tr>
+                    <td>12 नव 2025</td>
+                    <td>चिकित्सा व्यय<br><small>Medical Expenses</small></td>
+                    <td>—</td>
+                    <td class="debit">8,500</td>
+                    <td>1,89,950</td>
+                </tr>
+                <tr>
+                    <td>20 नव 2025</td>
+                    <td>खरीदारी और मनोरंजन<br><small>Shopping & Entertainment</small></td>
+                    <td>—</td>
+                    <td class="debit">22,300</td>
+                    <td>1,67,650</td>
+                </tr>
+                <tr>
+                    <td>05 दिस 2025</td>
+                    <td>वेतन जमा - नोवाटेक सॉल्यूशंस<br><small>Salary Credit - NovaTech Solutions</small></td>
+                    <td class="credit">85,000</td>
+                    <td>—</td>
+                    <td>2,52,650</td>
+                </tr>
+                <tr>
+                    <td>08 दिस 2025</td>
+                    <td>किराया भुगतान<br><small>Rent Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">28,000</td>
+                    <td>2,24,650</td>
+                </tr>
+                <tr>
+                    <td>15 दिस 2025</td>
+                    <td>त्योहार खरीदारी<br><small>Festival Shopping</small></td>
+                    <td>—</td>
+                    <td class="debit">35,800</td>
+                    <td>1,88,850</td>
+                </tr>
+                <tr>
+                    <td>25 दिस 2025</td>
+                    <td>परिवार उपहार और यात्रा<br><small>Family Gifts & Travel</small></td>
+                    <td>—</td>
+                    <td class="debit">28,400</td>
+                    <td>1,60,450</td>
+                </tr>
+                <tr>
+                    <td>05 जन 2026</td>
+                    <td>वेतन जमा - नोवाटेक सॉल्यूशंस<br><small>Salary Credit - NovaTech Solutions</small></td>
+                    <td class="credit">85,000</td>
+                    <td>—</td>
+                    <td>2,45,450</td>
+                </tr>
+                <tr>
+                    <td>08 जन 2026</td>
+                    <td>किराया भुगतान<br><small>Rent Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">28,000</td>
+                    <td>2,17,450</td>
+                </tr>
+                <tr>
+                    <td>12 जन 2026</td>
+                    <td>क्रेडिट कार्ड भुगतान<br><small>Credit Card Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">42,500</td>
+                    <td>1,74,950</td>
+                </tr>
+                <tr>
+                    <td>18 जन 2026</td>
+                    <td>खरीदारी और व्यक्तिगत<br><small>Shopping & Personal</small></td>
+                    <td>—</td>
+                    <td class="debit">18,700</td>
+                    <td>1,56,250</td>
+                </tr>
+                <tr>
+                    <td>05 फर 2026</td>
+                    <td>वेतन जमा - नोवाटेक सॉल्यूशंस<br><small>Salary Credit - NovaTech Solutions</small></td>
+                    <td class="credit">85,000</td>
+                    <td>—</td>
+                    <td>2,41,250</td>
+                </tr>
+                <tr>
+                    <td>08 फर 2026</td>
+                    <td>किराया भुगतान<br><small>Rent Payment</small></td>
+                    <td>—</td>
+                    <td class="debit">28,000</td>
+                    <td>2,13,250</td>
+                </tr>
+                <tr>
+                    <td>15 फर 2026</td>
+                    <td>उपयोगिताएँ और बिल<br><small>Utilities & Bills</small></td>
+                    <td>—</td>
+                    <td class="debit">6,800</td>
+                    <td>2,06,450</td>
+                </tr>
+                <tr>
+                    <td>22 फर 2026</td>
+                    <td>खरीदारी और मनोरंजन<br><small>Shopping & Entertainment</small></td>
+                    <td>—</td>
+                    <td class="debit">24,500</td>
+                    <td>1,81,950</td>
+                </tr>
+                <tr>
+                    <td>27 फर 2026</td>
+                    <td>विविध व्यय<br><small>Miscellaneous Expenses</small></td>
+                    <td>—</td>
+                    <td class="debit">86,670</td>
+                    <td>95,280</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer-note">
+            <strong>महत्वपूर्ण नोट / Important Note:</strong><br>
+            यह एक कम्प्यूटरीकृत विवरण है और इसपर हस्ताक्षर की आवश्यकता नहीं है। किसी भी प्रश्न के लिए, कृपया अपनी शाखा से संपर्क करें या हमारी ग्राहक सेवा को 000000-00000 पर कॉल करें।<br>
+            <em>This is a computerized statement and does not require signature. For any queries, please contact your branch or call our customer service at 000000-00000.</em>
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY<br>
+            नमूना दस्तावेज़ — केवल प्रदर्शन उद्देश्यों के लिए सिंथेटिक डेटा
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Insurance - Priya Sharma</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f5f5f5; padding: 40px; }
+        .document {
+            width: 800px; margin: 0 auto; background: white; padding: 55px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative;
+        }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 3px solid #0055a5; padding-bottom: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo { font-size: 36px; }
+        .company-name { font-size: 20px; font-weight: bold; color: #0055a5; }
+        .company-sub { font-size: 11px; color: #666; }
+        .policy-badge {
+            background: #0055a5; color: white; padding: 8px 16px; border-radius: 4px;
+            font-size: 12px; text-align: center;
+        }
+        .doc-title {
+            font-size: 15px; font-weight: bold; text-align: center; margin: 20px 0;
+            color: #0055a5; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .coverage-box {
+            background: #e3f2fd; border: 2px solid #0055a5; padding: 15px;
+            margin: 15px 0; text-align: center; border-radius: 4px;
+        }
+        .coverage-amount { font-size: 28px; font-weight: bold; color: #0055a5; }
+        .coverage-label { font-size: 12px; color: #666; }
+        .section { margin: 18px 0; }
+        .section-title { font-size: 12px; font-weight: bold; color: #0055a5; margin-bottom: 8px; text-transform: uppercase; }
+        .field-row { display: grid; grid-template-columns: 200px 1fr; margin-bottom: 8px; line-height: 1.4; }
+        .field-label { font-weight: 600; color: #333; font-size: 12px; }
+        .field-value { color: #000; font-size: 12px; }
+        .coverage-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+        .coverage-table th, .coverage-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #eee; }
+        .coverage-table th { background: #e3f2fd; color: #0055a5; font-size: 11px; text-transform: uppercase; }
+        .check { color: #2e7d32; font-weight: bold; }
+        .schengen-badge {
+            display: inline-block; background: #003399; color: #ffcc00; padding: 4px 12px;
+            border-radius: 3px; font-size: 11px; font-weight: bold; letter-spacing: 1px;
+        }
+        .footer { margin-top: 25px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 10px; color: #666; }
+        .disclaimer {
+            position: absolute; bottom: 20px; left: 0; right: 0;
+            text-align: center; font-size: 10px; color: #c00; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo">🛡️</div>
+                <div>
+                    <div class="company-name">BAJAJ ALLIANZ</div>
+                    <div class="company-sub">General Insurance Company Ltd.</div>
+                    <div class="company-sub">IRDAI Reg. No. 113</div>
+                </div>
+            </div>
+            <div class="policy-badge">
+                <div style="font-size: 10px;">Policy No.</div>
+                <div style="font-weight: bold;">TI/2026/DEL/0048271</div>
+            </div>
+        </div>
+
+        <div class="doc-title">Travel Insurance Certificate</div>
+        <div style="text-align: center; margin-bottom: 15px;">
+            <span class="schengen-badge">✓ SCHENGEN COMPLIANT</span>
+        </div>
+
+        <div class="coverage-box">
+            <div class="coverage-label">Maximum Medical Coverage</div>
+            <div class="coverage-amount">€50,000</div>
+            <div class="coverage-label">(Exceeds Schengen minimum of €30,000)</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Insured Person</div>
+            <div class="field-row">
+                <div class="field-label">Full Name:</div>
+                <div class="field-value">Ms. Priya Sharma</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Date of Birth:</div>
+                <div class="field-value">15 August 1995</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Passport Number:</div>
+                <div class="field-value">T8274651</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Address:</div>
+                <div class="field-value">42 Hauz Khas Enclave, New Delhi 110016, India</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Travel Details</div>
+            <div class="field-row">
+                <div class="field-label">Destination:</div>
+                <div class="field-value">Germany (Schengen Area)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Coverage Period:</div>
+                <div class="field-value">10 March 2026 – 25 March 2026 (16 days)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Purpose of Travel:</div>
+                <div class="field-value">Business / Conference</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Geographical Coverage:</div>
+                <div class="field-value">All Schengen member states</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Coverage Summary</div>
+            <table class="coverage-table">
+                <thead>
+                    <tr>
+                        <th>Benefit</th>
+                        <th>Coverage</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Medical Expenses (illness/accident)</td>
+                        <td>€50,000</td>
+                        <td class="check">✓</td>
+                    </tr>
+                    <tr>
+                        <td>Emergency Medical Evacuation</td>
+                        <td>€25,000</td>
+                        <td class="check">✓</td>
+                    </tr>
+                    <tr>
+                        <td>Repatriation of Remains</td>
+                        <td>€25,000</td>
+                        <td class="check">✓</td>
+                    </tr>
+                    <tr>
+                        <td>Trip Cancellation</td>
+                        <td>₹2,00,000</td>
+                        <td class="check">✓</td>
+                    </tr>
+                    <tr>
+                        <td>Lost Baggage</td>
+                        <td>₹1,00,000</td>
+                        <td class="check">✓</td>
+                    </tr>
+                    <tr>
+                        <td>24/7 Emergency Assistance</td>
+                        <td>Included</td>
+                        <td class="check">✓</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Emergency Contact</div>
+            <div class="field-row">
+                <div class="field-label">24-hour Helpline:</div>
+                <div class="field-value">+91 1800 209 5858 (Toll-free) / +49 69 667 788 99 (Germany)</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Premium paid: ₹2,450 | Date of issue: 20 February 2026</p>
+            <p style="margin-top: 5px;">This certificate is valid for visa application to Schengen member states.</p>
+            <p style="margin-top: 5px;">Bajaj Allianz General Insurance Co. Ltd. | GE Plaza, Airport Road, Yerawada, Pune 411006</p>
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

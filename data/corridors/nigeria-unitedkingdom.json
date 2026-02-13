@@ -1,0 +1,153 @@
+{
+  "corridor": "Nigeria → United Kingdom",
+  "visaType": "UK Student Visa (Tier 4 / Student Route)",
+  "visaRequired": true,
+  "items": [
+    {
+      "name": "Valid Passport",
+      "description": "Nigerian passport valid for duration of study programme plus additional months",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Passport must be valid through at least June 20, 2027"
+    },
+    {
+      "name": "CAS (Confirmation of Acceptance for Studies)",
+      "description": "CAS reference number from University of London confirming unconditional offer and course details",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": true
+    },
+    {
+      "name": "English Language Proficiency",
+      "description": "IELTS, TOEFL, or PTE score meeting university minimum (typically IELTS 6.0-6.5 for MSc)",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": true
+    },
+    {
+      "name": "Financial Evidence",
+      "description": "Bank statements showing tuition fees + £1,334/month for 9 months living costs (London rate) held for 28 consecutive days",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Minimum: tuition + £12,006 living costs, funds held for 28 days ending within 31 days of application"
+    },
+    {
+      "name": "Academic Qualifications",
+      "description": "Degree certificates and transcripts referenced in CAS (originals or certified copies)",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": true
+    },
+    {
+      "name": "Tuberculosis (TB) Test Certificate",
+      "description": "TB test from an approved clinic in Nigeria (required for Nigerian nationals)",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": true
+    },
+    {
+      "name": "Personal Statement",
+      "description": "Supporting statement explaining academic goals, career plans, and reasons for choosing the UK",
+      "required": false,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "medium",
+      "uploadable": true
+    },
+    {
+      "name": "Accommodation Proof",
+      "description": "University accommodation offer or private rental agreement for initial period",
+      "required": false,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "medium",
+      "uploadable": true
+    },
+    {
+      "name": "Immigration Health Surcharge (IHS)",
+      "description": "Payment of IHS at £776/year for duration of visa — paid online before biometric appointment",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": false
+    },
+    {
+      "name": "Biometric Appointment",
+      "description": "Attend VFS Global centre in Lagos or Abuja for fingerprints and photograph",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": false
+    },
+    {
+      "name": "Passport-Sized Photographs",
+      "description": "Two recent passport-sized photos meeting UK visa photo requirements — bring to appointment",
+      "required": true,
+      "source": "UK Visas and Immigration (UKVI)",
+      "confidence": "high",
+      "uploadable": false
+    }
+  ],
+  "fees": {
+    "visa": "£490 (Student visa from outside UK)",
+    "service": "VFS Global Nigeria service charge + optional priority processing"
+  },
+  "processingTime": "3-6 weeks standard; 5 working days with priority service",
+  "applyAt": "Online application via gov.uk, biometrics at VFS Global Lagos or Abuja",
+  "importantNotes": [
+    "Apply no more than 6 months before course start date",
+    "Biometric appointment required at VFS Global centre",
+    "Can work up to 20 hours/week during term, full-time during holidays",
+    "Immigration Health Surcharge must be paid in full before visa appointment",
+    "Bank statements must show funds held for 28 consecutive days",
+    "All documents not in English must be translated by a certified translator"
+  ],
+  "sources": [
+    {"name": "UK Visas and Immigration", "url": "https://www.gov.uk/student-visa", "dateAccessed": "2026-02-11"},
+    {"name": "VFS Global Nigeria", "url": "https://visa.vfsglobal.com/nga/en/gbr", "dateAccessed": "2026-02-11"}
+  ],
+  "applicationWindow": {
+    "earliest": "6 months before course start date",
+    "latest": "3 weeks before travel (to allow processing)"
+  },
+  "commonRejectionReasons": [
+    "Funds not held for 28 consecutive days before application",
+    "CAS number invalid or course details don't match supporting documents",
+    "English language test score below required threshold",
+    "Gaps or inconsistencies in academic history"
+  ],
+  "healthRequirements": [
+    {"type": "Tuberculosis (TB) test", "required": true, "note": "Required for all Nigerian nationals — must be from an approved UK test centre in Nigeria"},
+    {"type": "IHS (Immigration Health Surcharge)", "required": true, "note": "£776/year paid online before biometric appointment — covers NHS access"}
+  ],
+  "financialThresholds": {
+    "dailyMinimum": "N/A (lump-sum requirement)",
+    "totalRecommended": "Tuition fees + £12,006 (9 months × £1,334 London rate)",
+    "currency": "GBP",
+    "notes": "Funds must be held for 28 consecutive days; statement must end within 31 days of application date"
+  },
+  "alternativeVisaTypes": [
+    {"type": "Short-term Study Visa", "processingTime": "3 weeks", "note": "For courses under 6 months — no work permitted, no extension possible"},
+    {"type": "Child Student Visa", "processingTime": "3-6 weeks", "note": "For applicants aged 4-17 attending independent school"}
+  ],
+  "postArrivalRegistration": {
+    "required": true,
+    "deadline": "within 7 days of arrival",
+    "where": "Local police station (required for Nigerian nationals staying 6+ months)"
+  },
+  "documentLanguage": {
+    "accepted": ["English"],
+    "translationRequired": true,
+    "certifiedTranslation": true
+  },
+  "transitVisaInfo": {
+    "warning": "If connecting through another country en route to UK, check transit visa requirements separately — Nigerian passport holders need transit visas for many countries including some EU airports",
+    "applies": "Nigerian passport holders"
+  }
+}

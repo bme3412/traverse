@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Transcript - Amara Okafor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Georgia', serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .document {
+            width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #8b0000;
+        }
+        .university-seal {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        .university-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b0000;
+            margin-bottom: 5px;
+        }
+        .doc-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 25px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .student-info {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #8b0000;
+        }
+        .info-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+        thead {
+            background: #8b0000;
+            color: white;
+        }
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .year-header {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #8b0000;
+        }
+        .gpa-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f8ff;
+            border: 2px solid #8b0000;
+            text-align: center;
+        }
+        .gpa-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #8b0000;
+            margin: 10px 0;
+        }
+        .signature-section {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-block {
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 200px;
+            margin-top: 60px;
+            margin-bottom: 5px;
+        }
+        .disclaimer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div class="university-seal">🏛️</div>
+            <div class="university-name">UNIVERSITY OF LAGOS</div>
+            <div style="font-size: 14px; color: #666;">Akoka, Yaba, Lagos State, Nigeria</div>
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">Founded 1962</div>
+        </div>
+
+        <div class="doc-title">Official Academic Transcript</div>
+
+        <div class="student-info">
+            <div class="info-row">
+                <div class="info-label">Student Name:</div>
+                <div>OKAFOR, Amara Chinyere</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Student ID:</div>
+                <div>180543267</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Date of Birth:</div>
+                <div>08 March 2001</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Programme:</div>
+                <div>Bachelor of Science (Honours) - Computer Science</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Period of Study:</div>
+                <div>September 2019 - June 2023</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Classification:</div>
+                <div>First Class Honours</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Title</th>
+                    <th>Credits</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="year-header">
+                    <td colspan="4">Year 1 (2019-2020)</td>
+                </tr>
+                <tr>
+                    <td>CSC 101</td>
+                    <td>Introduction to Computer Science</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>CSC 102</td>
+                    <td>Programming Fundamentals</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>MTH 101</td>
+                    <td>Calculus I</td>
+                    <td>3</td>
+                    <td>B+</td>
+                </tr>
+                <tr>
+                    <td>PHY 101</td>
+                    <td>Physics for Computer Science</td>
+                    <td>3</td>
+                    <td>A-</td>
+                </tr>
+
+                <tr class="year-header">
+                    <td colspan="4">Year 2 (2020-2021)</td>
+                </tr>
+                <tr>
+                    <td>CSC 201</td>
+                    <td>Data Structures and Algorithms</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>CSC 202</td>
+                    <td>Object-Oriented Programming</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>CSC 203</td>
+                    <td>Database Management Systems</td>
+                    <td>4</td>
+                    <td>A+</td>
+                </tr>
+                <tr>
+                    <td>MTH 201</td>
+                    <td>Discrete Mathematics</td>
+                    <td>3</td>
+                    <td>A-</td>
+                </tr>
+
+                <tr class="year-header">
+                    <td colspan="4">Year 3 (2021-2022)</td>
+                </tr>
+                <tr>
+                    <td>CSC 301</td>
+                    <td>Software Engineering</td>
+                    <td>4</td>
+                    <td>A+</td>
+                </tr>
+                <tr>
+                    <td>CSC 302</td>
+                    <td>Computer Networks</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>CSC 303</td>
+                    <td>Operating Systems</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>CSC 304</td>
+                    <td>Artificial Intelligence</td>
+                    <td>4</td>
+                    <td>A+</td>
+                </tr>
+
+                <tr class="year-header">
+                    <td colspan="4">Year 4 (2022-2023)</td>
+                </tr>
+                <tr>
+                    <td>CSC 401</td>
+                    <td>Machine Learning</td>
+                    <td>4</td>
+                    <td>A+</td>
+                </tr>
+                <tr>
+                    <td>CSC 402</td>
+                    <td>Distributed Systems</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>CSC 490</td>
+                    <td>Final Year Project</td>
+                    <td>6</td>
+                    <td>A+</td>
+                </tr>
+                <tr>
+                    <td>CSC 403</td>
+                    <td>Cloud Computing</td>
+                    <td>4</td>
+                    <td>A</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="gpa-summary">
+            <div style="font-size: 14px; color: #666;">Cumulative Grade Point Average</div>
+            <div class="gpa-value">4.75 / 5.00</div>
+            <div style="font-size: 14px; color: #666; margin-top: 10px;">Classification: First Class Honours</div>
+            <div style="font-size: 12px; color: #999; margin-top: 5px;">(UK Equivalent: First Class Honours 75%+)</div>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-block">
+                <div class="signature-line"></div>
+                <div style="font-size: 12px; font-weight: 600;">Registrar</div>
+                <div style="font-size: 11px; color: #666;">University of Lagos</div>
+            </div>
+            <div style="text-align: center; padding-top: 40px;">
+                <div style="font-size: 11px; color: #666;">Date Issued:</div>
+                <div style="font-weight: 600;">20 January 2026</div>
+            </div>
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

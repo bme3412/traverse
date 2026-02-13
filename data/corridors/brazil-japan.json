@@ -1,0 +1,137 @@
+{
+  "corridor": "Brazil → Japan",
+  "visaType": "Visa Exemption (短期滞在 - Tanki Taizai) — Short-Term Stay up to 90 days",
+  "visaRequired": false,
+  "items": [
+    {
+      "name": "Valid Passport",
+      "description": "Brazilian passport valid for duration of stay with blank pages",
+      "required": true,
+      "source": "Ministry of Foreign Affairs of Japan",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Passport must be valid through at least April 22, 2026"
+    },
+    {
+      "name": "Return or Onward Flight Ticket",
+      "description": "Confirmed return flight booking or onward travel ticket",
+      "required": true,
+      "source": "Japan Immigration Bureau",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Return flight on or before April 22, 2026"
+    },
+    {
+      "name": "Proof of Accommodation",
+      "description": "Hotel bookings, hostel reservations, or letter from host for entire stay",
+      "required": true,
+      "source": "Japan Immigration Bureau",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "Bookings covering 21 nights (April 1-22, 2026)"
+    },
+    {
+      "name": "Proof of Sufficient Financial Means",
+      "description": "Bank statements or credit card statements showing funds for trip (~¥10,000-15,000/day)",
+      "required": true,
+      "source": "Japan Immigration Bureau",
+      "confidence": "high",
+      "uploadable": true,
+      "personalizedDetail": "For 21-day stay: approximately ¥210,000-315,000 recommended"
+    },
+    {
+      "name": "Proof of Income or Employment",
+      "description": "Employment letter, freelance income proof, or tax returns demonstrating regular income",
+      "required": false,
+      "source": "Japan Immigration Bureau",
+      "confidence": "medium",
+      "uploadable": true
+    },
+    {
+      "name": "Travel Itinerary / Trip Plan",
+      "description": "Day-by-day itinerary or general travel plan",
+      "required": false,
+      "source": "Japan Immigration Bureau",
+      "confidence": "medium",
+      "uploadable": true
+    },
+    {
+      "name": "Travel Insurance",
+      "description": "Travel medical insurance covering the duration of stay in Japan",
+      "required": false,
+      "source": "Japan Tourism Board",
+      "confidence": "medium",
+      "uploadable": true
+    },
+    {
+      "name": "Disembarkation Card (ED Card)",
+      "description": "Completed upon arrival at Japanese port of entry — provided on flight or at immigration",
+      "required": true,
+      "source": "Japan Immigration Bureau",
+      "confidence": "high",
+      "uploadable": false
+    },
+    {
+      "name": "Customs Declaration",
+      "description": "Completed customs declaration form — provided on flight or at arrival hall",
+      "required": true,
+      "source": "Japan Customs",
+      "confidence": "high",
+      "uploadable": false
+    },
+    {
+      "name": "Visit Japan Web Registration",
+      "description": "Complete online at vjw.digital.go.jp before arrival for faster immigration processing",
+      "required": false,
+      "source": "Digital Agency of Japan",
+      "confidence": "medium",
+      "uploadable": false
+    }
+  ],
+  "fees": {
+    "visa": "No visa fee (visa-exempt)",
+    "service": null
+  },
+  "processingTime": "No processing — visa-exempt entry at border",
+  "applyAt": "No advance application needed — present documents at port of entry",
+  "importantNotes": [
+    "Brazil-Japan visa exemption agreement covers tourism stays up to 90 days",
+    "No visa required but immigration officer may request supporting documents at entry",
+    "Must not engage in paid employment or activities requiring a work visa",
+    "Visit Japan Web (vjw.digital.go.jp) can be completed online before arrival for faster processing"
+  ],
+  "sources": [
+    {"name": "Ministry of Foreign Affairs of Japan", "url": "https://www.mofa.go.jp/j_info/visit/visa/", "dateAccessed": "2026-02-11"},
+    {"name": "Japan Immigration Bureau", "url": "https://www.moj.go.jp/isa/", "dateAccessed": "2026-02-11"}
+  ],
+  "applicationWindow": {
+    "earliest": "No advance application (visa-exempt)",
+    "latest": "Present documents at port of entry"
+  },
+  "commonRejectionReasons": [
+    "Insufficient proof of funds for duration of stay",
+    "No confirmed return or onward flight booking",
+    "Unable to clearly state purpose of visit at immigration",
+    "Previous overstay or immigration violation in Japan"
+  ],
+  "healthRequirements": [],
+  "financialThresholds": {
+    "dailyMinimum": "¥10,000-15,000/day",
+    "totalRecommended": "¥210,000-315,000",
+    "currency": "JPY",
+    "notes": "May be requested at port of entry; credit cards widely accepted but cash proof helps"
+  },
+  "alternativeVisaTypes": [
+    {"type": "Working Holiday Visa", "processingTime": "2-4 weeks", "note": "For ages 18-30, allows part-time work during stay (Brazil-Japan bilateral agreement)"}
+  ],
+  "postArrivalRegistration": {
+    "required": true,
+    "deadline": "within 14 days if staying at a private residence",
+    "where": "Local municipal office (市区町村役場) — hotels register automatically"
+  },
+  "documentLanguage": {
+    "accepted": ["English", "Japanese"],
+    "translationRequired": false,
+    "certifiedTranslation": false
+  }
+}

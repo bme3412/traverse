@@ -1,0 +1,16 @@
+{
+  "name": "demo-docs",
+  "version": "1.0.0",
+  "description": "All documents in this directory contain **synthetic, fictional data** created for demonstration purposes.",
+  "main": "screenshot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "puppeteer": "^24.37.2"
+  }
+}

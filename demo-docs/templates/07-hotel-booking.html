@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Reservation - Priya Sharma</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+        .reservation {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #8b5a3c 0%, #c19a6b 100%);
+            color: white;
+            padding: 35px 40px;
+            text-align: center;
+        }
+        .hotel-logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        .hotel-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        .hotel-tagline {
+            font-size: 13px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        .hotel-location {
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .confirmation-box {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .conf-label {
+            font-size: 12px;
+            color: #2e7d32;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .conf-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1b5e20;
+            letter-spacing: 1px;
+        }
+        .status-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .guest-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #8b5a3c;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+        .info-value {
+            color: #000;
+            font-weight: 700;
+            text-align: right;
+        }
+        .dates-box {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            background: #fff3e0;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .date-section {
+            text-align: center;
+        }
+        .date-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .date-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #8b5a3c;
+            margin-bottom: 3px;
+        }
+        .date-day {
+            font-size: 13px;
+            color: #666;
+        }
+        .nights-badge {
+            background: #ff9800;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50%;
+            text-align: center;
+        }
+        .nights-number {
+            font-size: 28px;
+            font-weight: 700;
+            display: block;
+        }
+        .nights-label {
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .room-details {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .price-summary {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .price-label {
+            color: #666;
+        }
+        .price-value {
+            font-weight: 600;
+            color: #333;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #8b5a3c;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+            padding: 15px;
+            border-top: 2px solid #c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="reservation">
+        <div class="header">
+            <div class="hotel-logo">🏨</div>
+            <div class="hotel-name">GRAND EUROPA HOTEL</div>
+            <div class="hotel-tagline">Luxury Accommodation in the Heart of Berlin</div>
+            <div class="hotel-location">📍 Unter den Linden 77, 10117 Berlin, Germany</div>
+        </div>
+
+        <div class="content">
+            <div class="confirmation-box">
+                <div class="conf-label">Reservation Confirmation Number</div>
+                <div class="conf-number">GEH-SYNTH-4892167</div>
+                <div class="status-badge">✓ CONFIRMED & GUARANTEED</div>
+            </div>
+
+            <div class="guest-info">
+                <div class="section-title">👤 Guest Information</div>
+                <div class="info-row">
+                    <span class="info-label">Guest Name:</span>
+                    <span class="info-value">Ms. Priya Sharma</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">priya.sharma.synth@example.com</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value">+91-000000-00000</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Booking Date:</span>
+                    <span class="info-value">February 8, 2026</span>
+                </div>
+            </div>
+
+            <div class="section-title">📅 Stay Details</div>
+            <div class="dates-box">
+                <div class="date-section">
+                    <div class="date-label">Check-in</div>
+                    <div class="date-value">10 March 2026</div>
+                    <div class="date-day">Monday, 2:00 PM</div>
+                </div>
+                <div class="nights-badge">
+                    <span class="nights-number">15</span>
+                    <span class="nights-label">Nights</span>
+                </div>
+                <div class="date-section">
+                    <div class="date-label">Check-out</div>
+                    <div class="date-value">25 March 2026</div>
+                    <div class="date-day">Tuesday, 11:00 AM</div>
+                </div>
+            </div>
+
+            <div class="room-details">
+                <div class="section-title">🛏️ Room Information</div>
+                <div class="info-row">
+                    <span class="info-label">Room Type:</span>
+                    <span class="info-value">Superior Single Room</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Bed Configuration:</span>
+                    <span class="info-value">1 Queen Bed</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Occupancy:</span>
+                    <span class="info-value">1 Adult</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Room Features:</span>
+                    <span class="info-value">Free WiFi, Air Conditioning, Desk, Mini Bar</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Breakfast:</span>
+                    <span class="info-value">Continental Breakfast Included</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cancellation Policy:</span>
+                    <span class="info-value">Free cancellation until March 3, 2026</span>
+                </div>
+            </div>
+
+            <div class="price-summary">
+                <div class="section-title">💰 Price Summary</div>
+                <div class="price-row">
+                    <span class="price-label">Room Rate (€95 × 15 nights):</span>
+                    <span class="price-value">€1,425.00</span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">City Tax (5%):</span>
+                    <span class="price-value">€71.25</span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">Service Charge:</span>
+                    <span class="price-value">€28.50</span>
+                </div>
+                <div class="total-row">
+                    <span>TOTAL AMOUNT</span>
+                    <span style="color: #8b5a3c;">€1,524.75</span>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                    <div class="price-row">
+                        <span class="info-label">Payment Status:</span>
+                        <span class="info-value" style="color: #4caf50;">✓ FULLY PAID</span>
+                    </div>
+                    <div class="price-row">
+                        <span class="info-label">Payment Method:</span>
+                        <span class="info-value">Credit Card (****1234)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>Important Information:</strong><br>
+            • Check-in time: 2:00 PM | Check-out time: 11:00 AM<br>
+            • Early check-in/late check-out subject to availability<br>
+            • Valid photo ID and credit card required at check-in<br>
+            • Hotel is located 5 minutes walk from Berlin Brandenburg Gate<br>
+            • For inquiries: reservations@grandeuropa-example.com | +49-000-000-0000
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>
