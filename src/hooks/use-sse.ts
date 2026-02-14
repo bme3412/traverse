@@ -16,6 +16,8 @@ interface UseSSEReturn {
   result: AnalysisResult | null;
   start: (body: Record<string, unknown>) => void;
   reset: () => void;
+  appendEvent: (event: SSEEvent) => void;
+  setAgentStatus: (agent: string, status: AgentStatus) => void;
 }
 
 /**
@@ -56,6 +58,25 @@ export function useSSE({ url }: UseSSEOptions): UseSSEReturn {
     setAgentStatuses({});
     setAgentStartTimes({});
     setResult(null);
+  }, []);
+
+  const appendEvent = useCallback((event: SSEEvent) => {
+    setEvents((prev) => [...prev, event]);
+
+    // Track agent statuses
+    if (event.type === "orchestrator" && event.agent) {
+      const key = normalizeAgentName(event.agent);
+      if (event.action === "agent_start") {
+        setAgentStatuses((prev) => ({ ...prev, [key]: "active" }));
+        setAgentStartTimes((prev) => ({ ...prev, [key]: Date.now() }));
+      } else if (event.action === "agent_complete") {
+        setAgentStatuses((prev) => ({ ...prev, [key]: "complete" }));
+      }
+    }
+  }, []);
+
+  const setAgentStatusFn = useCallback((agent: string, status: AgentStatus) => {
+    setAgentStatuses((prev) => ({ ...prev, [agent]: status }));
   }, []);
 
   const start = useCallback(
@@ -169,5 +190,5 @@ export function useSSE({ url }: UseSSEOptions): UseSSEReturn {
     [url, reset]
   );
 
-  return { events, isStreaming, error, agentStatuses, agentStartTimes, result, start, reset };
+  return { events, isStreaming, error, agentStatuses, agentStartTimes, result, start, reset, appendEvent, setAgentStatus: setAgentStatusFn };
 }

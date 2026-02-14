@@ -18,6 +18,7 @@ import {
   ComplianceItem,
   DocumentExtraction,
   CrossDocFinding,
+  RequirementsChecklist,
 } from "@/lib/types";
 import { useTranslation } from "@/lib/i18n-context";
 import { LANGUAGES } from "@/components/language-selector";
@@ -31,8 +32,10 @@ import {
   Loader2,
   AlertTriangle,
   Info,
+  DollarSign,
+  Calendar,
 } from "lucide-react";
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
 type RequirementStatus =
   | "pending"
@@ -58,6 +61,9 @@ interface ProgressiveRequirementsProps {
   compliance?: ComplianceItem[];
   corridorInfo?: { corridor: string; visaType: string };
   onAllDocumentsAnalyzed?: (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => void;
+  onPartialDocumentsAnalyzed?: (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => void;
+  isDemoProfile?: boolean;
+  demoDocuments?: Array<{ name: string; language: string; image: string }>;
 }
 
 export function ProgressiveRequirements({
@@ -66,16 +72,42 @@ export function ProgressiveRequirements({
   compliance,
   corridorInfo,
   onAllDocumentsAnalyzed,
+  onPartialDocumentsAnalyzed,
+  isDemoProfile = false,
+  demoDocuments = [],
 }: ProgressiveRequirementsProps) {
-  const { t, language, isTranslating, translatedRequirements, translatedCorridorInfo } = useTranslation();
+  const { t, tDynamic, language, isTranslating, translatedRequirements, translatedCorridorInfo } = useTranslation();
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [requirementStates, setRequirementStates] = useState<
     Map<number, RequirementState>
   >(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
   const currentItemRef = useRef<HTMLDivElement>(null);
+  const manualUploadCountRef = useRef(0);
+  const manuallyUploadedIndicesRef = useRef<Set<number>>(new Set());
+  const autoUploadTriggeredRef = useRef(false);
+  const partialAdvisoryTriggeredRef = useRef(false);
+
+  // Debug: Log props on mount and when they change
+  useEffect(() => {
+    console.log(`[ProgressiveRequirements] Props updated:`, {
+      isDemoProfile,
+      demoDocumentsLength: demoDocuments.length,
+      demoDocuments: demoDocuments.map(d => d.name),
+    });
+  }, [isDemoProfile, demoDocuments]);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [expandedFindings, setExpandedFindings] = useState<Set<string>>(new Set());
+  const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
   // Track all extractions for cross-document checking
   const extractionsRef = useRef<DocumentExtraction[]>([]);
+
+  // Clear drag-over state when drag ends anywhere (e.g. cancelled drop)
+  useEffect(() => {
+    const handleDragEnd = () => setDragOverIndex(null);
+    document.addEventListener("dragend", handleDragEnd);
+    return () => document.removeEventListener("dragend", handleDragEnd);
+  }, []);
 
   // Build a map from source name → URL using search_status and sources events.
   // Also supports fuzzy matching (substring) for when the model names sources
@@ -111,9 +143,22 @@ export function ProgressiveRequirements({
     };
   }, [events]);
 
-  // Build requirements list from SSE "requirement" events
+  // Extract corridor warnings from the complete event for the key-warnings bar
+  const corridorWarnings = useMemo(() => {
+    const completeEvent = events.find((e) => e.type === "complete");
+    if (!completeEvent || completeEvent.type !== "complete") return null;
+    const reqs = completeEvent.data?.requirements as RequirementsChecklist | undefined;
+    if (!reqs) return null;
+    return {
+      financialThresholds: reqs.financialThresholds,
+      applicationWindow: reqs.applicationWindow,
+      commonRejectionReasons: reqs.commonRejectionReasons,
+    };
+  }, [events]);
+
+  // Build requirements list from SSE "requirement" events — only uploadable items
   const requirements = useMemo(() => {
-    return events
+    const all = events
       .filter((e) => e.type === "requirement")
       .map((e) => {
         if (e.type === "requirement") {
@@ -131,24 +176,57 @@ export function ProgressiveRequirements({
         return null;
       })
       .filter(Boolean) as RequirementItem[];
+    return all.filter((r) => r.uploadable);
   }, [events]);
 
   const totalRequirements = requirements.length;
-  const uploadableCount = requirements.filter((r) => r.uploadable).length;
   const analyzedCount = Array.from(requirementStates.values()).filter(
     (s) => s.status === "passed" || s.status === "warning" || s.status === "flagged"
   ).length;
 
-  // Check if all uploadable docs are analyzed
+  // Reset refs when requirements change (new analysis started)
   useEffect(() => {
-    if (uploadableCount > 0 && analyzedCount === uploadableCount && onAllDocumentsAnalyzed) {
+    manualUploadCountRef.current = 0;
+    manuallyUploadedIndicesRef.current.clear();
+    autoUploadTriggeredRef.current = false;
+    partialAdvisoryTriggeredRef.current = false;
+  }, [totalRequirements]);
+
+  // EARLY TRIGGER: Start advisory after most documents analyzed (80-90%)
+  // This provides parallel execution benefit while ensuring advisory has enough data to be accurate
+  useEffect(() => {
+    // Only trigger for demo profiles with many documents
+    if (!isDemoProfile || totalRequirements < 6) return;
+    if (partialAdvisoryTriggeredRef.current) return;
+
+    // Wait for 80% of documents OR all but the last 1-2 documents (whichever is more)
+    // For 9 docs: Math.max(7, 9-2) = 7 documents (waits for 7/9 = 78%)
+    const eightyPercent = Math.floor(totalRequirements * 0.8);
+    const allButTwo = totalRequirements - 2;
+    const threshold = Math.max(eightyPercent, allButTwo);
+
+    if (analyzedCount >= threshold && onPartialDocumentsAnalyzed) {
+      console.log(`[Early Advisory] Triggering after ${analyzedCount}/${totalRequirements} documents (threshold: ${threshold})`);
+      const partialExtractions = extractionsRef.current;
+      const partialCompliances = Array.from(requirementStates.values())
+        .filter((s) => s.compliance)
+        .map((s) => s.compliance!);
+
+      partialAdvisoryTriggeredRef.current = true;
+      onPartialDocumentsAnalyzed(partialExtractions, partialCompliances);
+    }
+  }, [analyzedCount, totalRequirements, requirementStates, onPartialDocumentsAnalyzed, isDemoProfile]);
+
+  // Check if all documents are analyzed — triggers advisory agent (fallback for non-demo)
+  useEffect(() => {
+    if (totalRequirements > 0 && analyzedCount === totalRequirements && onAllDocumentsAnalyzed) {
       const allExtractions = extractionsRef.current;
       const allCompliances = Array.from(requirementStates.values())
         .filter((s) => s.compliance)
         .map((s) => s.compliance!);
       onAllDocumentsAnalyzed(allExtractions, allCompliances);
     }
-  }, [analyzedCount, uploadableCount, requirementStates, onAllDocumentsAnalyzed]);
+  }, [analyzedCount, totalRequirements, requirementStates, onAllDocumentsAnalyzed]);
 
   const toggleItem = (index: number) => {
     const newExpanded = new Set(expandedItems);
@@ -174,7 +252,7 @@ export function ProgressiveRequirements({
 
   // Handle file upload for a specific requirement
   const handleFileUpload = useCallback(
-    async (index: number, file: File) => {
+    async (index: number, file: File): Promise<void> => {
       const requirement = requirements[index];
       if (!requirement) return;
 
@@ -209,6 +287,21 @@ export function ProgressiveRequirements({
 
       // Expand the item to show inline thinking
       setExpandedItems((prev) => new Set(prev).add(index));
+
+      // Track manual uploads for demo auto-complete feature IMMEDIATELY on drop
+      if (isDemoProfile && !autoUploadTriggeredRef.current) {
+        manuallyUploadedIndicesRef.current.add(index);
+        manualUploadCountRef.current += 1;
+        console.log(`[Auto-upload] Manual upload count: ${manualUploadCountRef.current}, index: ${index}, isDemoProfile: ${isDemoProfile}, demoDocuments: ${demoDocuments.length}`);
+
+        // After 2nd manual upload, auto-upload remaining docs immediately
+        if (manualUploadCountRef.current === 2) {
+          console.log(`[Auto-upload] Triggering auto-upload after 2nd document drop`);
+          autoUploadTriggeredRef.current = true;
+          // Trigger immediately - no need to wait
+          setTimeout(() => autoUploadRemainingDocs(), 100);
+        }
+      }
 
       try {
         // Call per-document analysis endpoint
@@ -297,6 +390,23 @@ export function ProgressiveRequirements({
                     });
                     return next;
                   });
+
+                  // Auto-collapse clean passes after a brief delay
+                  // Keep expanded if there are critical/warning cross-doc findings
+                  if (complianceResult.status === "met") {
+                    const hasIssues = event.crossDocFindings?.some(
+                      (f: CrossDocFinding) => f.severity === "critical" || f.severity === "warning"
+                    );
+                    if (!hasIssues) {
+                      setTimeout(() => {
+                        setExpandedItems((prev) => {
+                          const next = new Set(prev);
+                          next.delete(index);
+                          return next;
+                        });
+                      }, 2000);
+                    }
+                  }
                 }
               } catch {
                 // Skip parse errors
@@ -316,15 +426,102 @@ export function ProgressiveRequirements({
         });
       }
     },
-    [requirements]
+    [requirements, isDemoProfile, demoDocuments]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Note: autoUploadRemainingDocs intentionally omitted to avoid circular dependency
   );
 
-  // Handle drag & drop for a requirement
+  // Auto-upload remaining demo documents
+  const autoUploadRemainingDocs = useCallback(async () => {
+    console.log(`[Auto-upload] Starting auto-upload. isDemoProfile: ${isDemoProfile}, demoDocuments: ${demoDocuments.length}`);
+    console.log(`[Auto-upload] Manually uploaded indices:`, Array.from(manuallyUploadedIndicesRef.current));
+
+    if (!isDemoProfile || demoDocuments.length === 0) {
+      console.log(`[Auto-upload] Skipping: isDemoProfile=${isDemoProfile}, demoDocuments.length=${demoDocuments.length}`);
+      return;
+    }
+
+    // Find requirements that haven't been manually uploaded yet
+    const unuploadedIndices: number[] = [];
+    requirements.forEach((_req, index) => {
+      // Skip if already manually uploaded
+      if (!manuallyUploadedIndicesRef.current.has(index)) {
+        unuploadedIndices.push(index);
+      }
+    });
+
+    console.log(`[Auto-upload] Found ${unuploadedIndices.length} unuploaded requirements out of ${requirements.length} total`);
+    console.log(`[Auto-upload] Unuploaded indices:`, unuploadedIndices);
+
+    // For each unuploaded requirement, find matching demo document
+    for (const index of unuploadedIndices) {
+      const requirement = requirements[index];
+      if (!requirement) continue;
+
+      console.log(`[Auto-upload] Looking for match for requirement ${index}: "${requirement.name}"`);
+
+      // Find matching demo document by name
+      const demoDoc = demoDocuments.find(doc =>
+        requirement.name.toLowerCase().includes(doc.name.toLowerCase()) ||
+        doc.name.toLowerCase().includes(requirement.name.toLowerCase())
+      );
+
+      if (demoDoc) {
+        console.log(`[Auto-upload] Found match: "${demoDoc.name}" for "${requirement.name}"`);
+        try {
+          // Fetch the image and convert to File
+          const response = await fetch(demoDoc.image);
+          const blob = await response.blob();
+          const ext = demoDoc.image.split(".").pop() || "png";
+          const mimeType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : "image/png";
+          const filename = `${demoDoc.name.toLowerCase().replace(/[\s/]+/g, "-")}.${ext}`;
+          const file = new File([blob], filename, { type: mimeType });
+
+          // Trigger upload with small stagger delay to avoid overwhelming
+          const delay = 300 * unuploadedIndices.indexOf(index);
+          console.log(`[Auto-upload] Uploading "${demoDoc.name}" after ${delay}ms delay`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          handleFileUpload(index, file);
+        } catch (err) {
+          console.error(`[Auto-upload] Failed to auto-upload ${demoDoc.name}:`, err);
+        }
+      } else {
+        console.log(`[Auto-upload] No match found for requirement: "${requirement.name}"`);
+      }
+    }
+
+    console.log(`[Auto-upload] Auto-upload complete`);
+  }, [requirements, requirementStates, isDemoProfile, demoDocuments, handleFileUpload]);
+
+  // Handle drag & drop for a requirement (supports both native files and demo sidebar docs)
   const handleDrop = useCallback(
-    (index: number, e: React.DragEvent) => {
+    async (index: number, e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      const file = e.dataTransfer.files[0];
+      setDragOverIndex(null);
+
+      // Read data synchronously before any async ops (React recycles synthetic events)
+      const demoData = e.dataTransfer.getData("application/x-demo-doc");
+      const nativeFiles = e.dataTransfer.files;
+
+      if (demoData) {
+        try {
+          const doc = JSON.parse(demoData);
+          const response = await fetch(doc.image);
+          const blob = await response.blob();
+          const ext = doc.image.split(".").pop() || "png";
+          const mimeType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : "image/png";
+          const filename = `${doc.name.toLowerCase().replace(/[\s/]+/g, "-")}.${ext}`;
+          const file = new File([blob], filename, { type: mimeType });
+          handleFileUpload(index, file);
+        } catch (err) {
+          console.error("Failed to process demo document drop:", err);
+        }
+        return;
+      }
+
+      // Native file drop
+      const file = nativeFiles[0];
       if (file) handleFileUpload(index, file);
     },
     [handleFileUpload]
@@ -370,7 +567,7 @@ export function ProgressiveRequirements({
           {!isTranslating && !isStreaming && totalRequirements > 0 && (
             <span className="text-sm text-green-500">
               {analyzedCount > 0
-                ? `${analyzedCount}/${uploadableCount} ${t("documents checked")}`
+                ? `${analyzedCount}/${totalRequirements} ${t("documents checked")}`
                 : language !== "English"
                   ? `${t("Showing in")} ${LANGUAGES.find(l => l.name === language)?.nativeName || language}`
                   : t("All requirements loaded")}
@@ -393,18 +590,18 @@ export function ProgressiveRequirements({
                   <div
                     className="h-full bg-blue-500 transition-all duration-500 ease-out"
                     style={{
-                      width: `${uploadableCount > 0
-                        ? (analyzedCount / uploadableCount) * 100
-                        : (totalRequirements / 13) * 100
+                      width: `${totalRequirements > 0 && analyzedCount > 0
+                        ? (analyzedCount / totalRequirements) * 100
+                        : 0
                       }%`,
                     }}
                   />
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{totalRequirements} {t("requirements found")}</span>
+                  <span>{totalRequirements} {t("documents needed")}</span>
                   {analyzedCount > 0 && (
-                    <span>{analyzedCount} {t("of")} {uploadableCount} {t("documents checked")}</span>
+                    <span>{analyzedCount} {t("of")} {totalRequirements} {t("checked")}</span>
                   )}
                 </div>
               </>
@@ -412,6 +609,39 @@ export function ProgressiveRequirements({
           </div>
         )}
       </div>
+
+      {/* Key Warnings Bar — actionable corridor intel above requirements */}
+      {corridorWarnings && (
+        <div className="space-y-0 rounded-lg border border-border/60 overflow-hidden">
+          {corridorWarnings.financialThresholds?.totalRecommended && (
+            <div className="flex items-start gap-2.5 px-3 py-2 border-l-[3px] border-l-green-500 bg-green-500/5">
+              <DollarSign className="w-3.5 h-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground">
+                <span className="font-medium">{t("Funds")}:</span>{" "}
+                {tDynamic(corridorWarnings.financialThresholds.totalRecommended)}
+              </p>
+            </div>
+          )}
+          {corridorWarnings.applicationWindow?.latest && (
+            <div className="flex items-start gap-2.5 px-3 py-2 border-l-[3px] border-l-amber-500 bg-amber-500/5">
+              <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground">
+                <span className="font-medium">{t("Apply by")}:</span>{" "}
+                {tDynamic(corridorWarnings.applicationWindow.latest)}
+              </p>
+            </div>
+          )}
+          {corridorWarnings.commonRejectionReasons && corridorWarnings.commonRejectionReasons.length > 0 && (
+            <div className="flex items-start gap-2.5 px-3 py-2 border-l-[3px] border-l-red-500 bg-red-500/5">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground">
+                <span className="font-medium">{t("Risk")}:</span>{" "}
+                {tDynamic(corridorWarnings.commonRejectionReasons[0])}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Requirements List */}
       <div className="space-y-3">
@@ -438,26 +668,34 @@ export function ProgressiveRequirements({
               id={`requirement-${index}`}
               ref={isLast && isStreaming ? currentItemRef : null}
               className={`
-                border rounded-lg overflow-hidden transition-all duration-300
-                ${status === "analyzing"
-                  ? "border-blue-500 shadow-lg shadow-blue-500/10"
-                  : status === "passed"
-                    ? "border-green-500/50"
-                    : status === "flagged"
-                      ? "border-red-500/50"
-                      : status === "warning"
-                        ? "border-yellow-500/50"
-                        : item.universal
-                          ? "border-blue-400/30"
-                          : "border-border"
+                border rounded-lg overflow-hidden transition-all duration-200
+                ${dragOverIndex === index
+                  ? "border-blue-500 bg-blue-500/5 ring-2 ring-blue-500/20 scale-[1.005]"
+                  : status === "analyzing"
+                    ? "border-blue-500 shadow-lg shadow-blue-500/10"
+                    : status === "passed"
+                      ? "border-green-500/50"
+                      : status === "flagged"
+                        ? "border-red-500/50"
+                        : status === "warning"
+                          ? "border-yellow-500/50"
+                          : item.universal
+                            ? "border-blue-400/30"
+                            : "border-border"
                 }
                 animate-in slide-in-from-bottom-4 fade-in
               `}
               style={{ animationDuration: "400ms" }}
               onDragOver={(e) => {
-                if (item.uploadable) {
+                if (item.uploadable && status === "pending") {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (dragOverIndex !== index) setDragOverIndex(index);
+                }
+              }}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  if (dragOverIndex === index) setDragOverIndex(null);
                 }
               }}
               onDrop={(e) => {
@@ -566,125 +804,195 @@ export function ProgressiveRequirements({
               {/* Expanded Details / Inline Analysis */}
               {isExpanded && (
                 <div className="border-t border-border px-4 py-3 space-y-3 animate-in slide-in-from-top-2 fade-in">
-                  {/* Source info — clickable link when URL is available */}
-                  {item.source && (
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">{t("Source")}: </span>
-                      {sourceUrlMap.get(item.source) ? (
-                        <a
-                          href={sourceUrlMap.get(item.source)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 dark:text-blue-400 underline decoration-blue-600/30 dark:decoration-blue-400/20 underline-offset-2 hover:decoration-blue-600/60 dark:hover:decoration-blue-400/50 transition-colors inline-flex items-center gap-1"
-                        >
-                          {item.source}
-                          <svg className="h-3 w-3 shrink-0 opacity-60" viewBox="0 0 12 12" fill="none">
-                            <path d="M4.5 2H2.5C1.95 2 1.5 2.45 1.5 3v6.5c0 .55.45 1 1 1H9c.55 0 1-.45 1-1V7.5M7 1.5h3.5m0 0V5m0-3.5L6 6" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </a>
-                      ) : (
-                        <span className="text-foreground">{item.source}</span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Confidence badge */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">
-                      {t(`${item.confidence} confidence`)}
-                    </span>
-                    {item.uploadable && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">
-                        {t("document required")}
-                      </span>
-                    )}
-                  </div>
-
                   {/* Inline thinking panel */}
                   {reqState?.thinking && status === "analyzing" && (
-                    <div className="rounded-md bg-card/60 border border-border p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />
-                        <span className="text-xs text-blue-400 font-medium">
+                    <div className="rounded-md bg-blue-50/50 dark:bg-blue-950/20 border-l-2 border-l-blue-400 px-3 py-2.5">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />
+                        <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                           {t("Analyzing document...")}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground font-mono whitespace-pre-wrap leading-relaxed">
-                        {reqState.thinking.slice(-500)}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Analysis result */}
-                  {reqState?.compliance && (
-                    <div
-                      className={`rounded-md p-3 ${
-                        reqState.compliance.status === "met"
-                          ? "bg-green-500/10 border border-green-500/20"
-                          : reqState.compliance.status === "warning"
-                            ? "bg-yellow-500/10 border border-yellow-500/20"
-                            : "bg-red-500/10 border border-red-500/20"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        {reqState.compliance.status === "met" && (
-                          <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                        )}
-                        {reqState.compliance.status === "warning" && (
-                          <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                        )}
-                        {reqState.compliance.status === "critical" && (
-                          <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-                        )}
-                        <div>
-                          <p
-                            className={`text-sm font-medium ${
-                              reqState.compliance.status === "met"
-                                ? "text-green-400"
-                                : reqState.compliance.status === "warning"
-                                  ? "text-yellow-400"
-                                  : "text-red-400"
-                            }`}
-                          >
-                            {reqState.compliance.status === "met" && t("Requirement satisfied")}
-                            {reqState.compliance.status === "warning" && t("Partial / unclear")}
-                            {reqState.compliance.status === "critical" && t("Issue detected")}
-                          </p>
-                          {reqState.compliance.detail && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {reqState.compliance.detail}
-                            </p>
-                          )}
-                        </div>
+                      <div className="text-[13px] text-muted-foreground leading-relaxed space-y-1">
+                        <FormatThinkingInline text={reqState.thinking.slice(-600)} />
                       </div>
                     </div>
                   )}
 
-                  {/* Cross-document findings */}
-                  {reqState?.crossDocFindings && reqState.crossDocFindings.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground font-medium">
-                        {t("Cross-document findings:")}
-                      </p>
-                      {reqState.crossDocFindings.map((f, i) => (
-                        <div
-                          key={i}
-                          className={`rounded-md p-2 text-sm ${
-                            f.severity === "critical"
-                              ? "bg-red-500/10 border border-red-500/20 text-red-300"
-                              : f.severity === "warning"
-                                ? "bg-yellow-500/10 border border-yellow-500/20 text-yellow-300"
-                                : "bg-blue-500/10 border border-blue-500/20 text-blue-300"
-                          }`}
-                        >
-                          <p className="font-medium">{f.finding}</p>
-                          {f.detail && (
-                            <p className="text-xs mt-1 opacity-80">{f.detail}</p>
-                          )}
-                        </div>
-                      ))}
+                  {/* Analysis result — clean line, no background box */}
+                  {reqState?.compliance && (
+                    <div className="flex items-start gap-2.5 py-1">
+                      {reqState.compliance.status === "met" && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                      )}
+                      {reqState.compliance.status === "warning" && (
+                        <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                      )}
+                      {reqState.compliance.status === "critical" && (
+                        <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <p className={`text-sm font-semibold ${
+                          reqState.compliance.status === "met"
+                            ? "text-green-700 dark:text-green-400"
+                            : reqState.compliance.status === "warning"
+                              ? "text-yellow-700 dark:text-yellow-400"
+                              : "text-red-700 dark:text-red-400"
+                        }`}>
+                          {reqState.compliance.status === "met" && t("Requirement satisfied")}
+                          {reqState.compliance.status === "warning" && t("Partial / unclear")}
+                          {reqState.compliance.status === "critical" && t("Issue detected")}
+                        </p>
+                        {reqState.compliance.detail && (
+                          <div className="mt-1">
+                            <p className={`text-sm text-muted-foreground leading-relaxed ${
+                              !expandedDetails.has(index) ? "line-clamp-2" : ""
+                            }`}>
+                              {reqState.compliance.detail}
+                            </p>
+                            {reqState.compliance.detail.length > 150 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedDetails(prev => {
+                                    const next = new Set(prev);
+                                    if (next.has(index)) next.delete(index);
+                                    else next.add(index);
+                                    return next;
+                                  });
+                                }}
+                                className="text-xs text-blue-600 dark:text-blue-400 mt-0.5 hover:underline"
+                              >
+                                {expandedDetails.has(index) ? t("Show less") : t("Show more")}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
+
+                  {/* Cross-document findings — compact left-border list */}
+                  {reqState?.crossDocFindings && reqState.crossDocFindings.length > 0 && (
+                    <div className="mt-1">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          {t("Cross-document checks")}
+                        </p>
+                        <CrossDocSummary findings={reqState.crossDocFindings} t={t} />
+                      </div>
+                      <div className="space-y-px">
+                        {reqState.crossDocFindings.map((f, i) => {
+                          const findingKey = `${index}-${i}`;
+                          const isDetailOpen = expandedFindings.has(findingKey);
+                          return (
+                            <div key={i}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!f.detail) return;
+                                  setExpandedFindings(prev => {
+                                    const next = new Set(prev);
+                                    if (next.has(findingKey)) next.delete(findingKey);
+                                    else next.add(findingKey);
+                                    return next;
+                                  });
+                                }}
+                                className={`w-full text-left text-[13px] py-1.5 px-3 flex items-start gap-2 border-l-2 transition-colors ${
+                                  f.detail ? "hover:bg-secondary/60 cursor-pointer" : "cursor-default"
+                                } ${
+                                  f.severity === "critical"
+                                    ? "border-l-red-500"
+                                    : f.severity === "warning"
+                                      ? "border-l-yellow-500"
+                                      : "border-l-green-500"
+                                }`}
+                              >
+                                <span className={`flex-1 leading-snug ${
+                                  f.severity === "critical"
+                                    ? "text-red-700 dark:text-red-300 font-medium"
+                                    : f.severity === "warning"
+                                      ? "text-yellow-700 dark:text-yellow-300"
+                                      : "text-foreground/70"
+                                }`}>
+                                  {f.finding}
+                                </span>
+                                {f.detail && (
+                                  <ChevronDown className={`w-3 h-3 text-muted-foreground/50 flex-shrink-0 mt-0.5 transition-transform ${isDetailOpen ? "rotate-180" : ""}`} />
+                                )}
+                              </button>
+                              {isDetailOpen && f.detail && (
+                                <p className="text-xs text-muted-foreground px-3 pl-5 pb-2 leading-relaxed">
+                                  {f.detail}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Source + metadata footer */}
+                  {(item.source || item.uploadable) && (() => {
+                    const sourceUrl = item.source ? sourceUrlMap.get(item.source) : undefined;
+                    const resolvedUrl = sourceUrl
+                      ? buildSourceUrlWithFragment(sourceUrl, item.name)
+                      : undefined;
+                    const hasIssue = status === "flagged" || status === "warning";
+
+                    return (
+                      <div className="pt-1 space-y-1.5">
+                        {/* Prominent source link when there's an issue — only if we have a direct URL */}
+                        {item.source && hasIssue && resolvedUrl && (
+                          <a
+                            href={resolvedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors group"
+                          >
+                            <svg className="h-3.5 w-3.5 shrink-0 opacity-70 group-hover:opacity-100" viewBox="0 0 12 12" fill="none">
+                              <path d="M4.5 2H2.5C1.95 2 1.5 2.45 1.5 3v6.5c0 .55.45 1 1 1H9c.55 0 1-.45 1-1V7.5M7 1.5h3.5m0 0V5m0-3.5L6 6" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            <span className="underline decoration-blue-600/30 dark:decoration-blue-400/20 underline-offset-2 group-hover:decoration-blue-600/60">
+                              {`${t("View requirement on")} ${item.source}`}
+                            </span>
+                          </a>
+                        )}
+                        {/* Quiet metadata row */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {item.source && !hasIssue && (
+                            <span className="text-[11px] text-muted-foreground">
+                              {t("Source")}:{" "}
+                              {resolvedUrl ? (
+                                <a
+                                  href={resolvedUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 dark:text-blue-400 underline decoration-blue-600/20 underline-offset-2 hover:decoration-blue-600/50 dark:hover:decoration-blue-400/40 transition-colors"
+                                >
+                                  {item.source}
+                                </a>
+                              ) : (
+                                <span>{item.source}</span>
+                              )}
+                            </span>
+                          )}
+                          {hasIssue && item.source && (
+                            <span className="text-[11px] text-muted-foreground">{item.source}</span>
+                          )}
+                          <span className="text-[11px] px-1.5 py-0.5 rounded border border-border/50 text-muted-foreground/70">
+                            {t(`${item.confidence} confidence`)}
+                          </span>
+                          {item.uploadable && (
+                            <span className="text-[11px] px-1.5 py-0.5 rounded border border-border/50 text-muted-foreground/70">
+                              {t("document required")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Upload zone (expanded view — larger drop area) */}
                   {item.uploadable && status === "pending" && (
@@ -768,15 +1076,14 @@ export function ProgressiveRequirements({
         <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border pt-4 pb-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              {totalRequirements} {t("requirements")}
-              {uploadableCount > 0 && ` (${uploadableCount} ${t("need documents")})`}
+              {totalRequirements} {t("documents needed")}
             </span>
             {analyzedCount > 0 && (
               <span className="text-foreground">
-                {analyzedCount} {t("of")} {uploadableCount} {t("verified")}
+                {analyzedCount} {t("of")} {totalRequirements} {t("verified")}
               </span>
             )}
-            {analyzedCount === 0 && uploadableCount > 0 && (
+            {analyzedCount === 0 && totalRequirements > 0 && (
               <span className="text-blue-400 text-xs">
                 {t("Upload documents to each requirement above")}
               </span>
@@ -812,6 +1119,111 @@ function StatusIcon({
     return <AlertCircle className="w-5 h-5 text-red-500" />;
   }
   return <Circle className="w-5 h-5 text-muted-foreground" />;
+}
+
+/**
+ * Build a source URL with a text fragment for deep-linking.
+ * Uses the Scroll to Text Fragment API (#:~:text=...) to highlight
+ * the relevant section on the government source page.
+ * Supported in Chrome, Edge, and other Chromium browsers.
+ */
+function buildSourceUrlWithFragment(baseUrl: string, requirementName: string): string {
+  const stopWords = new Set(["a", "an", "the", "of", "for", "from", "or", "and", "with", "to", "in", "on", "at", "by", "is", "be"]);
+  const terms = requirementName
+    .toLowerCase()
+    .replace(/[*()]/g, "")
+    .split(/[\s/]+/)
+    .filter(w => w.length > 2 && !stopWords.has(w))
+    .slice(0, 3);
+
+  if (terms.length === 0) return baseUrl;
+
+  const textFragment = encodeURIComponent(terms.join(" "));
+  if (baseUrl.includes("#")) {
+    return `${baseUrl}:~:text=${textFragment}`;
+  }
+  return `${baseUrl}#:~:text=${textFragment}`;
+}
+
+/** Lightweight formatter for inline thinking text — renders **bold**, lists, and line breaks */
+function FormatThinkingInline({ text }: { text: string }) {
+  const lines = text.split("\n");
+
+  // Process **bold** markers within a line
+  const renderBold = (line: string, lineIdx: number) => {
+    const parts = line.split(/\*\*(.*?)\*\*/g);
+    return parts.map((part, j) =>
+      j % 2 === 1
+        ? <strong key={`${lineIdx}-${j}`} className="text-foreground/80 font-medium">{part}</strong>
+        : <span key={`${lineIdx}-${j}`}>{part}</span>
+    );
+  };
+
+  return (
+    <>
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+        if (trimmed === "") return null;
+
+        // Numbered list items: "1. ", "2. ", etc.
+        if (/^\d+\.\s/.test(trimmed)) {
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="text-muted-foreground/50 flex-shrink-0 w-4 text-right">
+                {trimmed.match(/^(\d+)\./)?.[1]}.
+              </span>
+              <span>{renderBold(trimmed.replace(/^\d+\.\s*/, ""), i)}</span>
+            </div>
+          );
+        }
+
+        // Bullet/dash items: "- " or "— "
+        if (trimmed.startsWith("- ") || trimmed.startsWith("— ")) {
+          return (
+            <div key={i} className="pl-6">
+              <span className="text-muted-foreground/40 mr-1.5">›</span>
+              {renderBold(trimmed.replace(/^[-—]\s*/, ""), i)}
+            </div>
+          );
+        }
+
+        // Checkmark lines
+        if (trimmed.endsWith("✓") || trimmed.endsWith("✔")) {
+          return (
+            <div key={i} className="flex items-start gap-1.5">
+              <span className="flex-1">{renderBold(trimmed.replace(/[✓✔]\s*$/, ""), i)}</span>
+              <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0 mt-1" />
+            </div>
+          );
+        }
+
+        return <div key={i}>{renderBold(trimmed, i)}</div>;
+      })}
+    </>
+  );
+}
+
+/** Cross-document findings severity summary — e.g. "3 consistent · 1 note" */
+function CrossDocSummary({ findings, t }: { findings: CrossDocFinding[]; t: (s: string) => string }) {
+  const counts = { info: 0, warning: 0, critical: 0 };
+  findings.forEach(f => counts[f.severity]++);
+  const parts: React.ReactElement[] = [];
+  if (counts.info > 0) parts.push(
+    <span key="info" className="text-green-600 dark:text-green-400">{counts.info} {t("consistent")}</span>
+  );
+  if (counts.warning > 0) parts.push(
+    <span key="warn" className="text-yellow-600 dark:text-yellow-400">{counts.warning} {counts.warning === 1 ? t("note") : t("notes")}</span>
+  );
+  if (counts.critical > 0) parts.push(
+    <span key="crit" className="text-red-600 dark:text-red-400">{counts.critical} {counts.critical === 1 ? t("issue") : t("issues")}</span>
+  );
+  return (
+    <p className="text-xs">
+      {parts.map((p, i) => (
+        <span key={i}>{i > 0 && <span className="text-muted-foreground"> · </span>}{p}</span>
+      ))}
+    </p>
+  );
 }
 
 /** Convert File to base64 string (without the data: prefix) */

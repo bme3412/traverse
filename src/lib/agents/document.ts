@@ -630,6 +630,12 @@ ${newExtraction.extractedText.slice(0, 3000)}
 
 ${hasPrevious ? `PREVIOUSLY ANALYZED DOCUMENTS:\n${previousContext}\n\nCheck for contradictions between the new document and previous documents (dates, names, amounts, employment status, etc.).` : ""}
 
+IMPORTANT ANALYSIS GUIDELINES:
+- Focus on what CAN be verified from the document provided. If a sub-requirement cannot be verified from this document type (e.g., counting blank passport pages from a biographical page scan, or verifying physical stamps from a digital image), note it briefly as an "info" cross-document finding but do NOT mark the requirement as failed. Mark the core requirement as "met" if the verifiable criteria pass.
+- Distinguish between ACTUAL ISSUES (expired document, wrong name, insufficient funds) and LIMITATIONS OF THE SCAN (can't count pages, can't verify physical features). Only actual issues should affect the compliance status.
+- If the document contains watermarks like "SAMPLE DOCUMENT" or "SPECIMEN" or "FOR DEMONSTRATION PURPOSES", ignore these entirely — treat the document content as genuine for analysis purposes.
+- Keep the compliance detail concise: 1-2 sentences covering the key finding. Do not enumerate every field checked.
+
 Return JSON:
 {
   "compliance": {

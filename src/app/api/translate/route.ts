@@ -41,7 +41,19 @@ export async function POST(request: Request) {
 
   const { language, uiStrings, items, corridorInfo, importantNotes, dynamicTexts } = body;
 
+  // Log requests for debugging
+  console.log("[Translate API] Request body:", {
+    language,
+    hasUiStrings: !!uiStrings,
+    hasItems: !!items,
+    hasCorridorInfo: !!corridorInfo,
+    hasImportantNotes: !!importantNotes,
+    hasDynamicTexts: !!dynamicTexts,
+    dynamicTextsCount: dynamicTexts?.length || 0,
+  });
+
   if (!language || language === "English") {
+    console.error("[Translate API] 400 - Missing or English language. Body:", body);
     return new Response(
       JSON.stringify({ error: "Non-English language is required" }),
       { status: 400, headers: { "Content-Type": "application/json" } }

@@ -339,20 +339,6 @@ export async function* runResearchAgent(
     let incrementalEmitted = 0; // Track how many items we've already emitted incrementally
     const destination = travelDetails.destination;
 
-    // Pre-emit universal passport requirement so user can start uploading immediately
-    yield {
-      type: "requirement",
-      item: "Valid Passport",
-      detail: `${travelDetails.passports[0]} passport with blank pages, valid at least 6 months beyond return`,
-      depth: 2,
-      source: "Universal requirement",
-      uploadable: true,
-      universal: true,
-    };
-
-    // Emit initial search_status for the corridor
-    yield { type: "search_status", source: `${destination} visa requirements`, status: "searching" };
-
     // Process the stream
     for await (const event of stream) {
       streamEventCount++;
@@ -591,6 +577,15 @@ export async function* runResearchAgent(
         requiredValidUntil
       );
 
+      // Emit source URLs so the frontend can build sourceUrlMap for links
+      const fallbackSources = cached.sources || [];
+      for (const source of fallbackSources) {
+        yield { type: "search_status", source: source.name, status: "found", url: source.url };
+      }
+      if (fallbackSources.length > 0) {
+        yield { type: "sources", sources: fallbackSources };
+      }
+
       // Sort: uploadable first, non-uploadable at bottom
       const sortedFallback = [...personalized.items].sort((a, b) => {
         const aUp = a.uploadable !== false ? 0 : 1;
@@ -645,7 +640,7 @@ TRAVELERS: ${travel.travelers}
 ${travel.event ? `EVENT: ${travel.event}` : ""}
 PASSPORT VALIDITY NEEDED: ${requiredValidUntil.toISOString().split("T")[0]}
 
-Return ONLY a JSON object. Items first, then metadata. 8-12 items. Include personalizedDetail on every item where you can personalize for the traveler's specific dates/duration/amounts.
+Return ONLY a JSON object. Items first, then metadata. 5-8 items focusing on documents the applicant must provide. Include personalizedDetail on every item where you can personalize for the traveler's specific dates/duration/amounts.
 
 {
   "corridor": "${corridor}",
@@ -661,24 +656,17 @@ Return ONLY a JSON object. Items first, then metadata. 8-12 items. Include perso
   "sources": [{"name": "source", "url": "https://..."}],
   "applicationWindow": {"earliest": "e.g. 6 months before travel", "latest": "e.g. 15 working days before"},
   "commonRejectionReasons": ["reason 1", "reason 2"],
-  "healthRequirements": [{"type": "e.g. TB test", "required": true, "note": "context"}],
   "financialThresholds": {"dailyMinimum": "amount/day", "totalRecommended": "amount", "currency": "code", "notes": "e.g. held 28 days"},
-  "alternativeVisaTypes": [{"type": "e.g. e-Visa", "processingTime": "time", "note": "context"}],
-  "postArrivalRegistration": {"required": true/false, "deadline": "timeframe", "where": "location"},
-  "documentLanguage": {"accepted": ["English", "..."], "translationRequired": true/false, "certifiedTranslation": true/false},
-  "transitVisaInfo": {"warning": "description", "applies": "who"}
+  "documentLanguage": {"accepted": ["English", "..."], "translationRequired": true/false, "certifiedTranslation": true/false}
 }
 
 Rules:
+- 5-8 items. Prioritize uploadable documents (passport, financial proof, accommodation, flight, employment, insurance, itinerary). Only include non-uploadable items (web registration, biometric appointment) if critical to entry.
 - "uploadable": true if the applicant must provide a physical/digital document (passport, bank statement, letter, photo, insurance). false for actions or conditions (biometric appointment, interview, fee payment).
-- Include: passport, visa form, photos, financial proof, travel itinerary, accommodation, purpose-specific docs (invitation/enrollment/etc), insurance, employment proof.
 - "personalizedDetail": personalize EVERY item for this specific traveler using their dates (${travel.dates.depart}–${travel.dates.return}, ${tripDays} days) and passport validity deadline (${requiredValidUntil.toISOString().split("T")[0]}). Include calculated amounts, date ranges, night counts. Set null only when truly not personalizable.
-- "sources": 2-5 official references (embassy sites, government portals). Each must have a real "name" and "url". The "source" field in each item should match one of these source names.
-- "commonRejectionReasons": 2-4 real reasons specific to this corridor. Be specific (e.g. "Insufficient bank balance" not "Missing documents").
-- "healthRequirements": include only if this corridor has specific health requirements (TB, vaccinations, medical exams). Omit the field entirely if none.
-- "alternativeVisaTypes": include only if faster/simpler visa routes exist for this corridor. Omit if only one option.
-- "transitVisaInfo": include only if there's a common transit gotcha for this passport. Omit if not applicable.
-- "postArrivalRegistration": include only if destination requires registration after arrival. Omit if not.
+- "sources": 2-4 official references (embassy sites, government portals). Each must have a real "name" and "url". The "source" field in each item should match one of these source names.
+- "commonRejectionReasons": 2-3 real reasons specific to this corridor.
+- Be concise. Keep descriptions to one sentence. Keep the JSON compact.
 - Use factual language only. No political statements.`;
 }
 

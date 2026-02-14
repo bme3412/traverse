@@ -58,6 +58,8 @@ export function LiveFeed({ events }: { events: SSEEvent[] }) {
 
       if (event.type === "thinking" || event.type === "thinking_depth") {
         const key = agentKey(event.agent);
+        // Skip advisory thinking — handled by AdvisoryCard
+        if (key === "advisory") continue;
         if (!thinkingRendered.has(key)) {
           thinkingRendered.add(key);
           items.push(
@@ -112,9 +114,9 @@ function FeedItem({ event }: { event: SSEEvent }) {
     case "narrative":
       return <NarrativeItem event={event} />;
     case "recommendation":
-      return <RecommendationItem event={event} />;
+      return null; // Rendered by AdvisoryCard
     case "assessment":
-      return <AssessmentItem event={event} />;
+      return null; // Rendered by AdvisoryCard
     case "error":
       return (
         <div className="flex items-center gap-2.5 rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">

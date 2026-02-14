@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, ChevronDown, Plane, Eye, X } from "lucide-react";
+import { ChevronRight, ChevronDown, Plane, GripVertical, X } from "lucide-react";
 import { TravelDetails } from "@/lib/types";
 import { countryFlag } from "@/lib/country-flags";
 import { useDemoContext } from "@/lib/demo-context";
@@ -44,15 +44,15 @@ const PERSONAS: DemoPersona[] = [
       event: "European Software Architecture Summit 2026",
     },
     documents: [
-      { name: "Passport", language: "English", image: "/demo-docs/01-passport.png" },
-      { name: "Bank Statement", language: "Hindi", image: "/demo-docs/02-bank-statement-hindi.png" },
-      { name: "Employment Letter", language: "Hindi", image: "/demo-docs/03-employment-letter-hindi.png" },
-      { name: "Cover Letter", language: "English", image: "/demo-docs/04-cover-letter-english.png" },
-      { name: "Conference Invitation", language: "English", image: "/demo-docs/05-conference-invitation-gmail.png" },
-      { name: "Flight Booking", language: "English", image: "/demo-docs/06-flight-booking.png" },
-      { name: "Hotel Booking", language: "English", image: "/demo-docs/07-hotel-booking.png" },
-      { name: "Tax Returns (ITR)", language: "English", image: "/demo-docs/priya-08-tax-returns.png" },
+      { name: "Valid Passport", language: "English", image: "/demo-docs/01-passport.png" },
+      { name: "Business Invitation Letter", language: "English", image: "/demo-docs/05-conference-invitation-gmail.png" },
+      { name: "Employment Proof", language: "Hindi", image: "/demo-docs/03-employment-letter-hindi.png" },
+      { name: "Bank Statements", language: "Hindi", image: "/demo-docs/02-bank-statement-hindi.png" },
+      { name: "Income Tax Returns", language: "English", image: "/demo-docs/priya-08-tax-returns.png" },
+      { name: "Travel Itinerary", language: "English", image: "/demo-docs/06-flight-booking.png" },
+      { name: "Accommodation Proof", language: "English", image: "/demo-docs/07-hotel-booking.png" },
       { name: "Travel Insurance", language: "English", image: "/demo-docs/priya-09-travel-insurance.png" },
+      { name: "Cover Letter", language: "English", image: "/demo-docs/04-cover-letter-english.png" },
     ],
   },
   {
@@ -222,15 +222,30 @@ export function PersonaSidebar() {
                     <button
                       key={i}
                       type="button"
+                      draggable={!!doc.image}
+                      onDragStart={(e) => {
+                        if (!doc.image) {
+                          e.preventDefault();
+                          return;
+                        }
+                        e.dataTransfer.setData(
+                          "application/x-demo-doc",
+                          JSON.stringify({ name: doc.name, language: doc.language, image: doc.image })
+                        );
+                        e.dataTransfer.effectAllowed = "copy";
+                        // Close sidebar after a frame so drop targets become accessible
+                        requestAnimationFrame(() => setIsOpen(false));
+                      }}
                       onClick={() => {
                         if (doc.image) setPreviewImage({ name: doc.name, src: doc.image });
                       }}
                       disabled={!doc.image}
                       className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-colors flex-shrink-0 w-20 ${
                         doc.image
-                          ? "border-border bg-background hover:border-border hover:bg-card cursor-pointer"
+                          ? "border-border bg-background hover:border-border hover:bg-card cursor-grab active:cursor-grabbing"
                           : "border-border/50 bg-background/50 cursor-default opacity-50"
                       }`}
+                      title={doc.image ? "Drag to a requirement or click to preview" : undefined}
                     >
                       {/* Thumbnail */}
                       {doc.image ? (
@@ -239,7 +254,7 @@ export function PersonaSidebar() {
                           <img
                             src={doc.image}
                             alt={doc.name}
-                            className="w-full h-full object-cover object-top"
+                            className="w-full h-full object-cover object-top pointer-events-none"
                           />
                         </div>
                       ) : (
@@ -259,7 +274,7 @@ export function PersonaSidebar() {
                       </div>
 
                       {doc.image && (
-                        <Eye className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                        <GripVertical className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />
                       )}
                     </button>
                   ))}

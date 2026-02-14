@@ -12,14 +12,17 @@ export const AI_CONFIG = {
   /** Thinking budget for adaptive thinking */
   THINKING_BUDGET: 16000,
 
-  /** Maximum tokens for research agent (reduced from 24000 to cut latency) */
-  RESEARCH_MAX_TOKENS: 10000,
+  /** Maximum tokens for research agent (reduced from 10000 to cut latency — trimmed schema) */
+  RESEARCH_MAX_TOKENS: 6000,
 
   /** Maximum tokens for document reading */
   DOCUMENT_READ_MAX_TOKENS: 8000,
 
   /** Maximum tokens for document analysis */
   DOCUMENT_ANALYSIS_MAX_TOKENS: 24000,
+
+  /** Maximum tokens for advisory agent */
+  ADVISORY_MAX_TOKENS: 8000,
 } as const;
 
 /**

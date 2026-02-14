@@ -19,6 +19,9 @@ interface DemoContextValue {
   /** Pre-fetched demo documents ready for the upload zone. */
   demoDocuments: UploadedDocument[];
   setDemoDocuments: (docs: UploadedDocument[]) => void;
+  /** Demo document metadata (name, language, image) for auto-upload feature */
+  demoDocMetadata: Array<{ name: string; language: string; image: string }>;
+  setDemoDocMetadata: (docs: Array<{ name: string; language: string; image: string }>) => void;
   /** Suggested output language from the loaded persona */
   suggestedLanguage: string | null;
   /** Whether the current session originates from a demo persona (not a custom corridor). */
@@ -32,6 +35,7 @@ const DemoContext = createContext<DemoContextValue | null>(null);
 export function DemoProvider({ children }: { children: ReactNode }) {
   const [pendingLoad, setPendingLoad] = useState<DemoLoadPayload | null>(null);
   const [demoDocuments, setDemoDocuments] = useState<UploadedDocument[]>([]);
+  const [demoDocMetadata, setDemoDocMetadata] = useState<Array<{ name: string; language: string; image: string }>>([]);
   const [suggestedLanguage, setSuggestedLanguage] = useState<string | null>(null);
   const [isDemoProfile, setIsDemoProfile] = useState(false);
 
@@ -40,6 +44,10 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setIsDemoProfile(true);
     if (payload.preferredLanguage) {
       setSuggestedLanguage(payload.preferredLanguage);
+    }
+    // Store demo document metadata in context so it persists across navigation
+    if (payload.documents && payload.documents.length > 0) {
+      setDemoDocMetadata(payload.documents);
     }
   }, []);
 
@@ -50,12 +58,13 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const resetDemo = useCallback(() => {
     setIsDemoProfile(false);
     setDemoDocuments([]);
+    setDemoDocMetadata([]);
     setSuggestedLanguage(null);
   }, []);
 
   return (
     <DemoContext.Provider
-      value={{ pendingLoad, loadDemo, clearPending, demoDocuments, setDemoDocuments, suggestedLanguage, isDemoProfile, resetDemo }}
+      value={{ pendingLoad, loadDemo, clearPending, demoDocuments, setDemoDocuments, demoDocMetadata, setDemoDocMetadata, suggestedLanguage, isDemoProfile, resetDemo }}
     >
       {children}
     </DemoContext.Provider>
