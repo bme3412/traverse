@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { AgentStatus } from "@/lib/types";
 import { UI_CONFIG } from "@/lib/config";
 import { useTranslation } from "@/lib/i18n-context";
@@ -33,17 +33,16 @@ export function AgentStatusBar({
   agentStartTimes: Record<string, number>;
 }) {
   const { t } = useTranslation();
-  const [tick, setTick] = useState(0);
   const hasActive = plannedAgents.some((a) => statuses[a] === "active");
 
+  // Client-side only timer to avoid hydration mismatch with Date.now()
+  const [now, setNow] = useState(0);
   useEffect(() => {
     if (!hasActive) return;
-    const id = setInterval(() => setTick((t) => t + 1), UI_CONFIG.TIME_UPDATE_INTERVAL_MS);
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), UI_CONFIG.TIME_UPDATE_INTERVAL_MS);
     return () => clearInterval(id);
   }, [hasActive]);
-
-  // eslint-disable-next-line react-hooks/purity
-  const now = useMemo(() => Date.now(), [tick]);
 
   return (
     <div className="flex items-center gap-5 rounded-xl border border-foreground/[0.08] bg-background/80 backdrop-blur-sm px-5 py-3 text-sm">

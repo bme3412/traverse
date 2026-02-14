@@ -215,6 +215,11 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Compute today's date string client-side only to avoid hydration mismatch
+  const [todayStr, setTodayStr] = useState("");
+  useEffect(() => {
+    setTodayStr(new Date().toISOString().split("T")[0]);
+  }, []);
 
   useEffect(() => {
     if (prefilledData) {
@@ -401,7 +406,7 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
               type="date"
               aria-label="Departure date"
               value={formData.dates?.depart || ""}
-              min={new Date().toISOString().split("T")[0]}
+              min={todayStr}
               onChange={(e) =>
                 updateField("dates", { ...formData.dates, depart: e.target.value })
               }
@@ -420,7 +425,7 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
               type="date"
               aria-label="Return date"
               value={formData.dates?.return || ""}
-              min={formData.dates?.depart || new Date().toISOString().split("T")[0]}
+              min={formData.dates?.depart || todayStr}
               onChange={(e) =>
                 updateField("dates", { ...formData.dates, return: e.target.value })
               }
