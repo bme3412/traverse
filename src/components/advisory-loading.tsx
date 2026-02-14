@@ -8,8 +8,10 @@ interface AdvisoryLoadingProps {
 }
 
 /**
- * Loading banner that appears while Advisory Agent is thinking.
- * Shows between document analysis completion and advisory modal opening.
+ * Subtle inline indicator that appears during Phase 2 (lightweight LLM synthesis).
+ * This is NOT a full-screen blocker — the user can still see and interact with
+ * the progressive advisory content. It just signals that personalized refinements
+ * are being generated (~8-12 seconds).
  */
 export function AdvisoryLoading({ isVisible }: AdvisoryLoadingProps) {
   const { t } = useTranslation();
@@ -17,39 +19,20 @@ export function AdvisoryLoading({ isVisible }: AdvisoryLoadingProps) {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="relative max-w-md mx-4">
-        {/* Main card */}
-        <div className="relative overflow-hidden rounded-xl bg-white dark:bg-slate-900 shadow-2xl border border-emerald-200 dark:border-emerald-900">
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-emerald-950/20 dark:via-blue-950/20 dark:to-purple-950/20 opacity-60" />
-
-          {/* Content */}
-          <div className="relative p-8 text-center space-y-4">
-            {/* Icon */}
-            <div className="flex justify-center">
-              <div className="relative">
-                <Sparkles className="w-12 h-12 text-emerald-600 dark:text-emerald-400 animate-pulse" />
-                <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 text-emerald-600/30 dark:text-emerald-400/30 animate-spin" style={{ animationDuration: '3s' }} />
-              </div>
-            </div>
-
-            {/* Text */}
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-foreground">
-                {t("Preparing Your Recommendations")}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t("Our advisory agent is reviewing your application and crafting personalized guidance...")}
-              </p>
-            </div>
-
-            {/* Progress dots */}
-            <div className="flex justify-center gap-2 pt-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-            </div>
+    <div className="mt-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-shrink-0">
+            <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <Loader2 className="absolute -top-1 -left-1 w-7 h-7 text-emerald-600/30 dark:text-emerald-400/30 animate-spin" style={{ animationDuration: '2s' }} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+              {t("Personalizing your recommendations...")}
+            </p>
+            <p className="text-xs text-emerald-600/70 dark:text-emerald-400/60 mt-0.5">
+              {t("Refining guidance based on your documents — just a few more seconds")}
+            </p>
           </div>
         </div>
       </div>

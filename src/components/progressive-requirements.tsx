@@ -27,6 +27,7 @@ import {
   AlertCircle,
   Circle,
   ChevronDown,
+  ChevronRight,
   Upload,
   FileText,
   Loader2,
@@ -34,6 +35,7 @@ import {
   Info,
   DollarSign,
   Calendar,
+  Eye,
 } from "lucide-react";
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
@@ -62,6 +64,7 @@ interface ProgressiveRequirementsProps {
   corridorInfo?: { corridor: string; visaType: string };
   onAllDocumentsAnalyzed?: (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => void;
   onPartialDocumentsAnalyzed?: (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => void;
+  onDocumentImageCaptured?: (images: Map<string, { base64: string; mimeType: string }>) => void;
   isDemoProfile?: boolean;
   demoDocuments?: Array<{ name: string; language: string; image: string }>;
 }
@@ -73,6 +76,7 @@ export function ProgressiveRequirements({
   corridorInfo,
   onAllDocumentsAnalyzed,
   onPartialDocumentsAnalyzed,
+  onDocumentImageCaptured,
   isDemoProfile = false,
   demoDocuments = [],
 }: ProgressiveRequirementsProps) {
@@ -99,8 +103,16 @@ export function ProgressiveRequirements({
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [expandedFindings, setExpandedFindings] = useState<Set<string>>(new Set());
   const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
+  const [expandedThinking, setExpandedThinking] = useState<Set<number>>(new Set());
   // Track all extractions for cross-document checking
   const extractionsRef = useRef<DocumentExtraction[]>([]);
+  // Track document images (base64) keyed by docType for advisory annotation
+  const documentImagesRef = useRef<Map<string, { base64: string; mimeType: string }>>(new Map());
+  // Stable ref for the callback (avoids stale closure in handleFileUpload's useCallback)
+  const onDocImageCapturedRef = useRef(onDocumentImageCaptured);
+  useEffect(() => {
+    onDocImageCapturedRef.current = onDocumentImageCaptured;
+  }, [onDocumentImageCaptured]);
 
   // Clear drag-over state when drag ends anywhere (e.g. cancelled drop)
   useEffect(() => {
@@ -190,6 +202,7 @@ export function ProgressiveRequirements({
     manuallyUploadedIndicesRef.current.clear();
     autoUploadTriggeredRef.current = false;
     partialAdvisoryTriggeredRef.current = false;
+    documentImagesRef.current.clear();
   }, [totalRequirements]);
 
   // EARLY TRIGGER: Start advisory after most documents analyzed (80-90%)
@@ -214,6 +227,10 @@ export function ProgressiveRequirements({
 
       partialAdvisoryTriggeredRef.current = true;
       onPartialDocumentsAnalyzed(partialExtractions, partialCompliances);
+      // Flush document images so they're available when the advisory modal opens early
+      if (documentImagesRef.current.size > 0) {
+        onDocImageCapturedRef.current?.(new Map(documentImagesRef.current));
+      }
     }
   }, [analyzedCount, totalRequirements, requirementStates, onPartialDocumentsAnalyzed, isDemoProfile]);
 
@@ -225,6 +242,10 @@ export function ProgressiveRequirements({
         .filter((s) => s.compliance)
         .map((s) => s.compliance!);
       onAllDocumentsAnalyzed(allExtractions, allCompliances);
+      // Also flush final document images to ensure they're available for the advisory modal
+      if (documentImagesRef.current.size > 0) {
+        onDocImageCapturedRef.current?.(new Map(documentImagesRef.current));
+      }
     }
   }, [analyzedCount, totalRequirements, requirementStates, onAllDocumentsAnalyzed]);
 
@@ -277,6 +298,10 @@ export function ProgressiveRequirements({
 
       // Convert to base64
       const base64 = await fileToBase64(file);
+
+      // Store base64 for advisory document annotation (keyed by requirement name initially)
+      documentImagesRef.current.set(requirement.name, { base64, mimeType: file.type });
+      onDocImageCapturedRef.current?.(new Map(documentImagesRef.current));
 
       // Update state: uploaded → analyzing
       setRequirementStates((prev) => {
@@ -377,16 +402,24 @@ export function ProgressiveRequirements({
                       ...extractionsRef.current,
                       event.extraction,
                     ];
+                    // Also key the document image by docType for advisory annotation matching
+                    const reqImageData = documentImagesRef.current.get(requirement.name);
+                    if (reqImageData && event.extraction.docType) {
+                      documentImagesRef.current.set(event.extraction.docType, reqImageData);
+                      onDocImageCapturedRef.current?.(new Map(documentImagesRef.current));
+                    }
                   }
 
                   setRequirementStates((prev) => {
                     const next = new Map(prev);
+                    const currentState = next.get(index);
                     next.set(index, {
                       status: newStatus,
                       file,
                       compliance: complianceResult,
                       crossDocFindings: event.crossDocFindings,
                       extraction: event.extraction,
+                      thinking: currentState?.thinking, // Preserve thinking for transparency
                     });
                     return next;
                   });
@@ -736,7 +769,13 @@ export function ProgressiveRequirements({
                         )}
                       </p>
                       <p className={`text-sm text-muted-foreground mt-0.5 line-clamp-2 ${isTranslating ? "opacity-50" : ""} transition-opacity`}>
-                        {displayDesc}
+                        {displayDesc
+                          ?.split(/\n|;/)
+                          .map(s => s.trim())
+                          .filter(s => !/^(Funds?:|Apply by:|Risk:|Duration:|Cost:|Processing|Fee:)/i.test(s))
+                          .join(". ")
+                          .replace(/\.\s*\./g, ".")
+                          .trim() || displayDesc}
                       </p>
                     </div>
                     <ChevronDown
@@ -765,7 +804,7 @@ export function ProgressiveRequirements({
                 {status === "uploaded" && (
                   <div className="flex-shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <FileText className="w-3.5 h-3.5" />
-                    <span>{reqState?.file?.name}</span>
+                    <span>{reqState?.file?.name?.replace(/\.[^.]+$/, "") || "Document"}</span>
                   </div>
                 )}
 
@@ -804,7 +843,7 @@ export function ProgressiveRequirements({
               {/* Expanded Details / Inline Analysis */}
               {isExpanded && (
                 <div className="border-t border-border px-4 py-3 space-y-3 animate-in slide-in-from-top-2 fade-in">
-                  {/* Inline thinking panel */}
+                  {/* Inline thinking panel — live during analysis */}
                   {reqState?.thinking && status === "analyzing" && (
                     <div className="rounded-md bg-blue-50/50 dark:bg-blue-950/20 border-l-2 border-l-blue-400 px-3 py-2.5">
                       <div className="flex items-center gap-2 mb-1.5">
@@ -814,8 +853,42 @@ export function ProgressiveRequirements({
                         </span>
                       </div>
                       <div className="text-[13px] text-muted-foreground leading-relaxed space-y-1">
-                        <FormatThinkingInline text={reqState.thinking.slice(-600)} />
+                        <FormatThinkingInline text={reqState.thinking.slice(-1200)} />
                       </div>
+                    </div>
+                  )}
+
+                  {/* Persisted thinking — collapsible after analysis completes */}
+                  {reqState?.thinking && status !== "analyzing" && (
+                    <div className="rounded-md bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedThinking((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(index)) {
+                              next.delete(index);
+                            } else {
+                              next.add(index);
+                            }
+                            return next;
+                          });
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span className="font-medium">{t("View AI reasoning")}</span>
+                        {expandedThinking.has(index) ? (
+                          <ChevronDown className="w-3 h-3 ml-auto" />
+                        ) : (
+                          <ChevronRight className="w-3 h-3 ml-auto" />
+                        )}
+                      </button>
+                      {expandedThinking.has(index) && (
+                        <div className="px-3 pb-3 text-[13px] text-muted-foreground leading-relaxed space-y-1 border-t border-slate-200 dark:border-slate-700 pt-2 max-h-96 overflow-y-auto">
+                          <FormatThinkingInline text={reqState.thinking} />
+                        </div>
+                      )}
                     </div>
                   )}
 

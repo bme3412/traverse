@@ -16,6 +16,7 @@ export type SSEEvent =
   | { type: "narrative"; assessment: NarrativeStrength; issues: number; details?: string }
   | { type: "recommendation"; priority: Severity; action: string; details?: string }
   | { type: "assessment"; overall: ApplicationAssessment }
+  | { type: "advisory_tips"; interviewTips: string[]; corridorWarnings: string[] }
   | { type: "doc_analysis_start"; requirementName: string; docFilename: string }
   | { type: "doc_analysis_result"; requirementName: string; extraction: DocumentExtraction; compliance: ComplianceItem; crossDocFindings?: CrossDocFinding[] }
   | { type: "doc_analysis_thinking"; requirementName: string; excerpt: string }
@@ -146,12 +147,20 @@ export interface SourceReference {
 }
 
 // Document Agent output — Pass 1
+export interface FieldRegion {
+  field: string;       // field name, e.g. "expiryDate", "balance"
+  value: string;       // the extracted value
+  gridRow: number;     // 0=top, 1=middle, 2=bottom
+  gridCol: number;     // 0=left, 1=center, 2=right
+}
+
 export interface DocumentExtraction {
   id: string;
   docType: string;              // e.g., "passport", "bank_statement", "employment_letter"
   language: string;             // e.g., "English", "Hindi"
   extractedText: string;
   structuredData: Record<string, unknown>;
+  fieldRegions?: FieldRegion[]; // Approximate 3x3 grid positions of key fields
 }
 
 // Document Agent output — Pass 2

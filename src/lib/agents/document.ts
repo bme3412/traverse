@@ -550,12 +550,17 @@ export async function runSingleDocumentRead(
               type: "text",
               text: `Read this document and extract all information.
 
+For fieldRegions, mentally divide the document image into a 3×3 grid (rows 0-2 top to bottom, columns 0-2 left to right) and indicate which cell each key field is located in.
+
 Return JSON:
 {
   "docType": "passport|bank_statement|employment_letter|cover_letter|invitation_letter|flight_booking|hotel_booking|insurance_policy|tax_return|photo|other",
   "language": "primary language",
   "extractedText": "verbatim transcription",
-  "structuredData": { key-value pairs of important data }
+  "structuredData": { key-value pairs of important data },
+  "fieldRegions": [
+    { "field": "fieldName", "value": "extracted value", "gridRow": 0, "gridCol": 0 }
+  ]
 }`,
             },
           ],
@@ -569,11 +574,18 @@ Return JSON:
       .join("");
 
     const jsonMatch = textContent.match(/\{[\s\S]*\}/);
+    interface ParsedFieldRegion {
+      field?: string;
+      value?: string;
+      gridRow?: number;
+      gridCol?: number;
+    }
     interface ParsedExtraction {
       docType?: string;
       language?: string;
       extractedText?: string;
       structuredData?: Record<string, unknown>;
+      fieldRegions?: ParsedFieldRegion[];
     }
     let parsed: ParsedExtraction = {};
     if (jsonMatch) {
@@ -584,12 +596,31 @@ Return JSON:
       }
     }
 
+    // Validate and normalize fieldRegions
+    const fieldRegions = (parsed.fieldRegions || [])
+      .filter(
+        (fr): fr is Required<ParsedFieldRegion> =>
+          typeof fr.field === "string" &&
+          typeof fr.value === "string" &&
+          typeof fr.gridRow === "number" &&
+          typeof fr.gridCol === "number" &&
+          fr.gridRow >= 0 && fr.gridRow <= 2 &&
+          fr.gridCol >= 0 && fr.gridCol <= 2
+      )
+      .map((fr) => ({
+        field: fr.field,
+        value: fr.value,
+        gridRow: fr.gridRow,
+        gridCol: fr.gridCol,
+      }));
+
     return {
       id: document.id,
       docType: parsed.docType || "unknown",
       language: parsed.language || "Unknown",
       extractedText: parsed.extractedText || textContent,
       structuredData: parsed.structuredData || {},
+      ...(fieldRegions.length > 0 ? { fieldRegions } : {}),
     };
   } catch (error) {
     return {
@@ -692,7 +723,7 @@ If no cross-document issues, return an empty crossDocFindings array.`;
             yield {
               type: "doc_analysis_thinking",
               requirementName: requirement.name,
-              excerpt: thinkingBuffer.slice(-2000),
+              excerpt: thinkingBuffer.slice(-4000),
             };
             lastEmitTime = now;
             lastEmitLen = thinkingBuffer.length;
@@ -708,17 +739,28 @@ If no cross-document issues, return an empty crossDocFindings array.`;
       }
     }
 
+    // Emit final thinking buffer so the full analysis reasoning is preserved
+    if (thinkingBuffer.length > 0) {
+      yield {
+        type: "doc_analysis_thinking",
+        requirementName: requirement.name,
+        excerpt: thinkingBuffer,
+      };
+    }
+
     // Parse result
     const jsonMatch = textContent.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
+      const compliance = parsed.compliance || {
+        requirement: requirement.name,
+        status: "not_checked" as const,
+        detail: "Could not analyze",
+      };
+      // Always ensure documentRef is set to the extraction's docType
+      compliance.documentRef = compliance.documentRef || newExtraction.docType;
       return {
-        compliance: parsed.compliance || {
-          requirement: requirement.name,
-          status: "not_checked" as const,
-          detail: "Could not analyze",
-          documentRef: newExtraction.docType,
-        },
+        compliance,
         crossDocFindings: parsed.crossDocFindings || [],
       };
     }

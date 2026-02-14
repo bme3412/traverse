@@ -4,16 +4,17 @@ import {
   RequirementsChecklist,
   DocumentExtraction,
   ComplianceItem,
+  RemediationItem,
 } from "@/lib/types";
 import { runAdvisoryAgent } from "@/lib/agents/advisory";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 60; // Reduced from 120 — Sonnet synthesis is much faster
 
 /**
- * Advisory agent endpoint.
- * Accepts requirements, extractions, and compliances.
- * Returns SSE stream with thinking updates, recommendations, and assessment.
+ * Advisory agent endpoint (Phase 2 — lightweight synthesis).
+ * Accepts requirements, compliances, and optional preliminary fixes for refinement.
+ * Returns SSE stream with recommendations and assessment.
  */
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
   const requirements = body.requirements as RequirementsChecklist;
   const extractions = (body.extractions || []) as DocumentExtraction[];
   const compliances = (body.compliances || []) as ComplianceItem[];
+  const preliminaryFixes = (body.preliminaryFixes || undefined) as RemediationItem[] | undefined;
 
   if (!requirements) {
     return new Response(
@@ -37,15 +39,16 @@ export async function POST(request: Request) {
     );
   }
 
-  return sseResponse(() => advisoryFlow(requirements, extractions, compliances));
+  return sseResponse(() => advisoryFlow(requirements, extractions, compliances, preliminaryFixes));
 }
 
 async function* advisoryFlow(
   requirements: RequirementsChecklist,
   extractions: DocumentExtraction[],
-  compliances: ComplianceItem[]
+  compliances: ComplianceItem[],
+  preliminaryFixes?: RemediationItem[]
 ): AsyncGenerator<SSEEvent, void, unknown> {
-  const generator = runAdvisoryAgent(requirements, extractions, compliances);
+  const generator = runAdvisoryAgent(requirements, extractions, compliances, preliminaryFixes);
 
   while (true) {
     const result = await generator.next();

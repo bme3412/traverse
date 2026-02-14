@@ -13,6 +13,7 @@ import { AdvisoryCard } from "@/components/advisory-card";
 import { AdvisoryModal } from "@/components/advisory-modal";
 import { AdvisoryLoading } from "@/components/advisory-loading";
 import { TravelDetails, UploadedDocument, DocumentExtraction, ComplianceItem, RequirementsChecklist, SSEEvent, AdvisoryReport, RemediationItem, ApplicationAssessment } from "@/lib/types";
+import { buildPreliminaryAdvisory, updateAdvisoryWithCompliance } from "@/lib/advisory-builder";
 import { useDemoContext, fetchDemoDocument } from "@/lib/demo-context";
 import { TranslationProvider, useTranslation, collectCorridorDynamicTexts } from "@/lib/i18n-context";
 import { LanguageSelector } from "@/components/language-selector";
@@ -60,6 +61,11 @@ function AnalyzeContent() {
   const [advisoryReport, setAdvisoryReport] = useState<AdvisoryReport | null>(null);
   const [showAdvisoryModal, setShowAdvisoryModal] = useState(false);
   const [isAdvisoryRunning, setIsAdvisoryRunning] = useState(false);
+  const [documentImages, setDocumentImages] = useState<Map<string, { base64: string; mimeType: string }>>(new Map());
+
+  // Refs for two-phase advisory pipeline
+  const preliminaryAdvisoryRef = useRef<AdvisoryReport | null>(null);
+  const lastComplianceCountRef = useRef(0);
 
   // Debug: Log demo context state
   useEffect(() => {
@@ -76,20 +82,57 @@ function AnalyzeContent() {
   const requirementsComplete = result?.requirements && !isStreaming;
   const plannedAgents = ["research", "document", "advisory"];
 
-  // Collect advisory report from events and show modal when complete
+  // Phase 1: Build preliminary advisory immediately when requirements arrive
+  useEffect(() => {
+    if (result?.requirements && !preliminaryAdvisoryRef.current) {
+      const preliminary = buildPreliminaryAdvisory(result.requirements);
+      preliminaryAdvisoryRef.current = preliminary;
+      setAdvisoryReport(preliminary);
+      console.log(`[Phase 1] Preliminary advisory built from ${result.requirements.items.length} requirements`);
+    }
+  }, [result?.requirements]);
+
+  // Phase 1b: Progressively update advisory as each doc_analysis_result event arrives
+  useEffect(() => {
+    if (!result?.requirements) return;
+
+    const complianceResults = events
+      .filter((e): e is Extract<SSEEvent, { type: "doc_analysis_result" }> => e.type === "doc_analysis_result")
+      .map((e) => e.compliance);
+
+    // Only update if we have new compliance results
+    if (complianceResults.length === 0 || complianceResults.length === lastComplianceCountRef.current) return;
+    lastComplianceCountRef.current = complianceResults.length;
+
+    // Rebuild from scratch: preliminary + all compliances applied
+    let updated = buildPreliminaryAdvisory(result.requirements);
+    for (const compliance of complianceResults) {
+      updated = updateAdvisoryWithCompliance(updated, compliance);
+    }
+    preliminaryAdvisoryRef.current = updated;
+    setAdvisoryReport(updated);
+    console.log(`[Phase 1b] Advisory updated with ${complianceResults.length} compliance results`);
+  }, [events, result?.requirements]);
+
+  // Phase 2: Track LLM advisory agent lifecycle (lightweight Sonnet synthesis)
+  // When it completes, replace preliminary advisory with refined version and show modal
   useEffect(() => {
     let assessment: ApplicationAssessment | null = null;
     const recommendations: RemediationItem[] = [];
-    const interviewTips: string[] = [];
-    const corridorWarnings: string[] = [];
+    let interviewTips: string[] = [];
+    let corridorWarnings: string[] = [];
     let advisoryComplete = false;
     let advisoryStarted = false;
     let priority = 1;
 
     for (const e of events) {
       if (e.type === "orchestrator" && e.agent?.toLowerCase().includes("advisory")) {
-        if (e.action === "agent_start") advisoryStarted = true;
-        if (e.action === "agent_complete") advisoryComplete = true;
+        if (e.action === "agent_start") {
+          advisoryStarted = true;
+        }
+        if (e.action === "agent_complete") {
+          advisoryComplete = true;
+        }
       }
       if (e.type === "assessment") {
         assessment = e.overall as ApplicationAssessment;
@@ -102,74 +145,88 @@ function AnalyzeContent() {
           fix: e.action,
         });
       }
+      if (e.type === "advisory_tips") {
+        interviewTips = e.interviewTips || [];
+        corridorWarnings = e.corridorWarnings || [];
+      }
     }
 
-    // Update advisory running state
+    // Update Phase 2 running indicator (subtle, non-blocking)
     if (advisoryStarted && !advisoryComplete) {
       setIsAdvisoryRunning(true);
     } else if (advisoryComplete) {
       setIsAdvisoryRunning(false);
     }
 
-    // If advisory is complete and we have data, build the report and show modal
+    // When Phase 2 LLM completes, replace advisory with refined version and show modal
+    // Use LLM-refined tips/warnings if available, fall back to preliminary
     if (advisoryComplete && assessment && recommendations.length > 0) {
       const report: AdvisoryReport = {
         overall: assessment,
         fixes: recommendations,
-        interviewTips,
-        corridorWarnings,
+        interviewTips: interviewTips.length > 0 ? interviewTips : (preliminaryAdvisoryRef.current?.interviewTips || []),
+        corridorWarnings: corridorWarnings.length > 0 ? corridorWarnings : (preliminaryAdvisoryRef.current?.corridorWarnings || []),
       };
       setAdvisoryReport(report);
       setShowAdvisoryModal(true);
     }
   }, [events]);
 
-  // Callback when partial documents are analyzed — triggers advisory agent EARLY
+  // Callback when partial documents are analyzed — triggers Phase 2 advisory (lightweight LLM) EARLY
   const handlePartialDocumentsAnalyzed = useCallback(
     (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => {
       setPerDocExtractions(extractions);
       setPerDocCompliances(compliances);
 
-      // Trigger advisory agent early with partial results
+      // Trigger Phase 2: lightweight LLM synthesis with preliminary fixes for refinement
       if (result?.requirements && !advisoryTriggeredRef.current) {
-        console.log(`[Early Advisory] Starting with ${extractions.length} partial documents`);
+        console.log(`[Phase 2] Starting Sonnet synthesis with ${extractions.length} partial documents, ${preliminaryAdvisoryRef.current?.fixes.length || 0} preliminary fixes`);
         advisoryTriggeredRef.current = true;
-        runAdvisoryStream(result.requirements, extractions, compliances);
+        runAdvisoryStream(result.requirements, extractions, compliances, preliminaryAdvisoryRef.current?.fixes);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [result?.requirements]
   );
 
-  // Callback when all per-requirement documents are analyzed — update state, possibly trigger advisory
+  // Callback when all per-requirement documents are analyzed — update state, possibly trigger Phase 2
   const handleAllDocumentsAnalyzed = useCallback(
     (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => {
       setPerDocExtractions(extractions);
       setPerDocCompliances(compliances);
 
-      // Only trigger advisory if not already started (fallback for non-demo or small doc sets)
+      // Only trigger Phase 2 if not already started (fallback for non-demo or small doc sets)
       if (result?.requirements && !advisoryTriggeredRef.current) {
-        console.log(`[Advisory] Starting with all ${extractions.length} documents`);
+        console.log(`[Phase 2] Starting Sonnet synthesis with all ${extractions.length} documents, ${preliminaryAdvisoryRef.current?.fixes.length || 0} preliminary fixes`);
         advisoryTriggeredRef.current = true;
-        runAdvisoryStream(result.requirements, extractions, compliances);
+        runAdvisoryStream(result.requirements, extractions, compliances, preliminaryAdvisoryRef.current?.fixes);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [result?.requirements]
   );
 
-  // Stream advisory agent events into the main event feed
+  // Callback when document images are captured during upload (for advisory annotation)
+  const handleDocumentImageCaptured = useCallback(
+    (images: Map<string, { base64: string; mimeType: string }>) => {
+      setDocumentImages(new Map(images));
+    },
+    []
+  );
+
+  // Stream Phase 2 advisory agent events into the main event feed
   const runAdvisoryStream = useCallback(
     async (
       requirements: RequirementsChecklist,
       extractions: DocumentExtraction[],
-      compliances: ComplianceItem[]
+      compliances: ComplianceItem[],
+      preliminaryFixes?: RemediationItem[]
     ) => {
       try {
         const response = await fetch("/api/advisory", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requirements, extractions, compliances }),
+          body: JSON.stringify({ requirements, extractions, compliances, preliminaryFixes }),
         });
 
         if (!response.ok || !response.body) {
@@ -216,7 +273,7 @@ function AnalyzeContent() {
   // Track if we've already triggered advisory for this result
   const advisoryTriggeredRef = useRef(false);
 
-  // Trigger advisory immediately when main analysis completes (handles demo/bulk upload flow)
+  // Trigger Phase 2 immediately when main analysis completes (handles demo/bulk upload flow)
   useEffect(() => {
     // Skip if already triggered for this result
     if (advisoryTriggeredRef.current) return;
@@ -225,7 +282,7 @@ function AnalyzeContent() {
     if (result?.requirements && result?.extractions && result?.analysis) {
       const compliances = result.analysis.compliance?.items || [];
       advisoryTriggeredRef.current = true;
-      runAdvisoryStream(result.requirements, result.extractions, compliances);
+      runAdvisoryStream(result.requirements, result.extractions, compliances, preliminaryAdvisoryRef.current?.fixes);
     }
   }, [result, runAdvisoryStream]);
 
@@ -302,6 +359,8 @@ function AnalyzeContent() {
       }
       // Auto-start analysis
       advisoryTriggeredRef.current = false; // Reset for new analysis
+      preliminaryAdvisoryRef.current = null;
+      lastComplianceCountRef.current = 0;
       start({ travelDetails: details });
     } else {
       // If no params, redirect back to home
@@ -344,12 +403,16 @@ function AnalyzeContent() {
   const handleDocumentAnalyze = () => {
     if (travelDetails) {
       advisoryTriggeredRef.current = false; // Reset for new analysis
+      preliminaryAdvisoryRef.current = null;
+      lastComplianceCountRef.current = 0;
       start({ travelDetails, documents });
     }
   };
 
   const handleReset = () => {
     advisoryTriggeredRef.current = false; // Reset flag
+    preliminaryAdvisoryRef.current = null;
+    lastComplianceCountRef.current = 0;
     reset();
     setDocuments([]);
     router.push("/");
@@ -398,6 +461,8 @@ function AnalyzeContent() {
         setShowAdvisoryModal={setShowAdvisoryModal}
         isAdvisoryRunning={isAdvisoryRunning}
         demoDocMetadata={demoDocMetadata}
+        documentImages={documentImages}
+        handleDocumentImageCaptured={handleDocumentImageCaptured}
       />
     </TranslationProvider>
   );
@@ -431,6 +496,8 @@ function AnalyzePageInner({
   setShowAdvisoryModal,
   isAdvisoryRunning,
   demoDocMetadata,
+  documentImages,
+  handleDocumentImageCaptured,
 }: {
   travelDetails: TravelDetails;
   events: ReturnType<typeof useSSE>["events"];
@@ -456,6 +523,8 @@ function AnalyzePageInner({
   setShowAdvisoryModal: (show: boolean) => void;
   isAdvisoryRunning: boolean;
   demoDocMetadata: Array<{ name: string; language: string; image: string }>;
+  documentImages: Map<string, { base64: string; mimeType: string }>;
+  handleDocumentImageCaptured: (images: Map<string, { base64: string; mimeType: string }>) => void;
 }) {
   const router = useRouter();
   const { t, language, isTranslating, translationPhase, setLanguage, translatedCorridorInfo, translateFeedContent } = useTranslation();
@@ -601,6 +670,7 @@ function AnalyzePageInner({
             } : undefined}
             onPartialDocumentsAnalyzed={handlePartialDocumentsAnalyzed}
             onAllDocumentsAnalyzed={handleAllDocumentsAnalyzed}
+            onDocumentImageCaptured={handleDocumentImageCaptured}
             isDemoProfile={isDemoProfile}
             demoDocuments={demoDocMetadata}
           />
@@ -614,7 +684,7 @@ function AnalyzePageInner({
         </section>
       )}
 
-      {/* Advisory Loading — appears while advisory agent is thinking */}
+      {/* Advisory refinement indicator — subtle inline indicator during Phase 2 LLM synthesis */}
       <AdvisoryLoading isVisible={isAdvisoryRunning} />
 
       {/* Advisory Modal — appears when advisory agent completes */}
@@ -623,6 +693,8 @@ function AnalyzePageInner({
           advisory={advisoryReport}
           isOpen={showAdvisoryModal}
           onClose={() => setShowAdvisoryModal(false)}
+          documentImages={documentImages}
+          extractions={perDocExtractions}
         />
       )}
 

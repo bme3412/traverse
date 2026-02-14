@@ -9,7 +9,10 @@ export const AI_CONFIG = {
   /** Claude model to use for all agents */
   MODEL: (process.env.ANTHROPIC_MODEL || "claude-opus-4-6") as string,
 
-  /** Thinking budget for adaptive thinking */
+  /** Fast model for advisory synthesis (Sonnet — much faster than Opus for structured output) */
+  ADVISORY_MODEL: (process.env.ADVISORY_MODEL || "claude-sonnet-4-20250514") as string,
+
+  /** Thinking budget for adaptive thinking (research + document agents) */
   THINKING_BUDGET: 16000,
 
   /** Maximum tokens for research agent (reduced from 10000 to cut latency — trimmed schema) */
@@ -21,8 +24,8 @@ export const AI_CONFIG = {
   /** Maximum tokens for document analysis */
   DOCUMENT_ANALYSIS_MAX_TOKENS: 24000,
 
-  /** Maximum tokens for advisory agent */
-  ADVISORY_MAX_TOKENS: 8000,
+  /** Maximum tokens for advisory agent (reduced — prompt is now compliance-only, no raw text) */
+  ADVISORY_MAX_TOKENS: 4000,
 } as const;
 
 /**

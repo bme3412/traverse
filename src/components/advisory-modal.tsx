@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { X, CheckCircle2, AlertTriangle, Info, ExternalLink, Globe, ChevronDown } from "lucide-react";
-import { AdvisoryReport, ApplicationAssessment } from "@/lib/types";
+import { AdvisoryReport, ApplicationAssessment, DocumentExtraction, RemediationItem, FieldRegion, Severity } from "@/lib/types";
 import { useTranslation } from "@/lib/i18n-context";
 import { FadeText } from "./fade-text";
 import { LANGUAGES } from "./language-selector";
+import { FileText } from "lucide-react";
 
 interface AdvisoryModalProps {
   advisory: AdvisoryReport;
   isOpen: boolean;
   onClose: () => void;
+  documentImages?: Map<string, { base64: string; mimeType: string }>;
+  extractions?: DocumentExtraction[];
 }
 
 /**
@@ -75,7 +78,244 @@ function getAssessmentInfo(overall: ApplicationAssessment) {
   }
 }
 
-export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps) {
+/**
+ * Find the document image matching a fix's documentRef.
+ * Tries exact match on docType, then fuzzy match.
+ */
+function findImageForFix(
+  fix: RemediationItem,
+  documentImages?: Map<string, { base64: string; mimeType: string }>
+): { base64: string; mimeType: string } | null {
+  if (!documentImages || documentImages.size === 0) return null;
+
+  // Strategy 1: Match by documentRef if present
+  if (fix.documentRef) {
+    const ref = fix.documentRef.toLowerCase();
+
+    // Exact match on docType key
+    for (const [key, val] of documentImages) {
+      if (key.toLowerCase() === ref) return val;
+    }
+
+    // Fuzzy: check if key contains ref or ref contains key
+    for (const [key, val] of documentImages) {
+      const k = key.toLowerCase();
+      if (k.includes(ref) || ref.includes(k)) return val;
+    }
+  }
+
+  // Strategy 2: Match by scanning fix issue/fix text for document type keywords
+  const fixText = ((fix.issue || "") + " " + (fix.fix || "")).toLowerCase();
+  const docTypeKeywords: Record<string, string[]> = {
+    passport: ["passport"],
+    invitation_letter: ["invitation", "invite"],
+    bank_statement: ["bank", "statement", "balance", "funds", "financial"],
+    employment_letter: ["employment", "employer", "salary", "job"],
+    tax_return: ["tax", "itr", "income tax"],
+    flight_booking: ["flight", "itinerary", "travel booking", "airline"],
+    hotel_booking: ["hotel", "accommodation", "lodging", "booking"],
+    insurance_policy: ["insurance", "travel insurance", "medical insurance"],
+    cover_letter: ["cover letter"],
+  };
+
+  for (const [docType, keywords] of Object.entries(docTypeKeywords)) {
+    if (keywords.some(kw => fixText.includes(kw))) {
+      // Look for this docType in the image map
+      for (const [key, val] of documentImages) {
+        if (key.toLowerCase() === docType || key.toLowerCase().replace(/\s+/g, "_") === docType) {
+          return val;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Find the extraction matching a fix's documentRef for structured data display.
+ */
+function findExtractionForFix(
+  fix: RemediationItem,
+  extractions?: DocumentExtraction[]
+): DocumentExtraction | null {
+  if (!extractions || extractions.length === 0) return null;
+
+  // Strategy 1: Match by documentRef
+  if (fix.documentRef) {
+    const ref = fix.documentRef.toLowerCase();
+    const match = extractions.find(
+      (e) =>
+        e.docType.toLowerCase() === ref ||
+        e.docType.toLowerCase().includes(ref) ||
+        ref.includes(e.docType.toLowerCase())
+    );
+    if (match) return match;
+  }
+
+  // Strategy 2: Match by keywords in fix text
+  const fixText = ((fix.issue || "") + " " + (fix.fix || "")).toLowerCase();
+  for (const e of extractions) {
+    const docWords = e.docType.toLowerCase().replace(/_/g, " ").split(" ");
+    if (docWords.some(w => w.length > 3 && fixText.includes(w))) {
+      return e;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Find field regions from an extraction that match the text in a compliance detail/issue.
+ */
+function findRegionsForIssue(
+  detail: string,
+  fieldRegions: FieldRegion[]
+): FieldRegion[] {
+  const lowerDetail = detail.toLowerCase();
+  return fieldRegions.filter(
+    (fr) =>
+      lowerDetail.includes(fr.value.toLowerCase()) ||
+      lowerDetail.includes(fr.field.toLowerCase())
+  );
+}
+
+/**
+ * Severity-based highlight colors for grid overlays.
+ */
+const SEVERITY_HIGHLIGHT: Record<Severity, { border: string; bg: string; text: string }> = {
+  critical: {
+    border: "border-red-400 dark:border-red-500",
+    bg: "bg-red-400/15 dark:bg-red-500/15",
+    text: "bg-red-600 dark:bg-red-500 text-white",
+  },
+  warning: {
+    border: "border-amber-400 dark:border-amber-500",
+    bg: "bg-amber-400/15 dark:bg-amber-500/15",
+    text: "bg-amber-600 dark:bg-amber-500 text-white",
+  },
+  info: {
+    border: "border-blue-400 dark:border-blue-500",
+    bg: "bg-blue-400/15 dark:bg-blue-500/15",
+    text: "bg-blue-600 dark:bg-blue-500 text-white",
+  },
+};
+
+/**
+ * Renders a document thumbnail with optional region highlight overlays and structured data callout chips.
+ */
+function DocumentThumbnail({
+  imageData,
+  extraction,
+  documentRef,
+  issueText,
+  severity,
+}: {
+  imageData: { base64: string; mimeType: string };
+  extraction?: DocumentExtraction | null;
+  documentRef?: string;
+  issueText?: string;
+  severity?: Severity;
+}) {
+  // Pick a few key fields from structuredData to show as chips
+  const chips: Array<{ label: string; value: string }> = [];
+  if (extraction?.structuredData) {
+    const data = extraction.structuredData;
+    for (const [key, val] of Object.entries(data)) {
+      if (val && typeof val === "string" && val.length < 60) {
+        // Convert camelCase/snake_case to readable label
+        const label = key
+          .replace(/([A-Z])/g, " $1")
+          .replace(/_/g, " ")
+          .replace(/^\s/, "")
+          .split(" ")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join(" ");
+        chips.push({ label, value: val });
+      }
+      if (chips.length >= 4) break; // Max 4 chips
+    }
+  }
+
+  // Find matching field regions to highlight
+  const highlights: FieldRegion[] =
+    issueText && extraction?.fieldRegions
+      ? findRegionsForIssue(issueText, extraction.fieldRegions)
+      : [];
+  const colors = SEVERITY_HIGHLIGHT[severity || "info"];
+
+  return (
+    <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+      {/* Document header */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
+        <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+        <span className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+          {documentRef || extraction?.docType || "Document"}
+        </span>
+      </div>
+      {/* Image with optional highlight overlays */}
+      <div className="relative">
+        <img
+          src={`data:${imageData.mimeType};base64,${imageData.base64}`}
+          alt={`Document: ${documentRef || "uploaded"}`}
+          className="w-full max-h-56 object-contain bg-white dark:bg-slate-900 p-1"
+        />
+        {/* Region highlight overlays (3x3 grid) */}
+        {highlights.length > 0 && (
+          <div className="absolute inset-0 pointer-events-none">
+            {highlights.map((h, i) => (
+              <div
+                key={i}
+                className={`absolute border-2 rounded-sm ${colors.border} ${colors.bg} transition-opacity`}
+                style={{
+                  top: `${h.gridRow * 33.33}%`,
+                  left: `${h.gridCol * 33.33}%`,
+                  width: "33.33%",
+                  height: "33.33%",
+                }}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded ${colors.text} shadow-sm`}
+                >
+                  {h.field}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* Structured data chips */}
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 px-3 py-2 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+          {chips.map((chip, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300"
+            >
+              <span className="font-medium text-slate-500 dark:text-slate-400">{chip.label}:</span>
+              <span>{chip.value}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extractions }: AdvisoryModalProps) {
+  // Debug: log document image matching info
+  useEffect(() => {
+    if (isOpen) {
+      console.log(`[AdvisoryModal] Opened with ${documentImages?.size || 0} document images, ${extractions?.length || 0} extractions`);
+      if (documentImages?.size) {
+        console.log(`[AdvisoryModal] Image keys:`, Array.from(documentImages.keys()));
+      }
+      if (advisory?.fixes) {
+        console.log(`[AdvisoryModal] Fix documentRefs:`, advisory.fixes.map(f => f.documentRef || '(none)'));
+      }
+    }
+  }, [isOpen, documentImages, extractions, advisory]);
+
   const { t, language, setLanguage } = useTranslation();
   const [translatedContent, setTranslatedContent] = useState<{
     fixes: Array<{ issue: string; fix: string }>;
@@ -179,10 +419,12 @@ export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps)
             <div className="flex-1 min-w-0">
               <FadeText
                 text={assessmentInfo.title}
+                as="h2"
                 className={`text-2xl font-bold ${assessmentInfo.color}`}
               />
               <FadeText
                 text={assessmentInfo.message}
+                as="p"
                 className="mt-1 text-sm text-foreground/70"
               />
             </div>
@@ -260,6 +502,8 @@ export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps)
               <div className="space-y-4">
                 {critical.map((fix, index) => {
                   const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
+                  const matchingImage = findImageForFix(fix, documentImages);
+                  const matchingExtraction = findExtractionForFix(fix, extractions);
                   return (
                     <div
                       key={index}
@@ -277,6 +521,15 @@ export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps)
                             <span className="font-medium text-foreground/90">How to fix: </span>
                             {renderWithLinks(translatedFix.fix)}
                           </div>
+                          {matchingImage && (
+                            <DocumentThumbnail
+                              imageData={matchingImage}
+                              extraction={matchingExtraction}
+                              documentRef={fix.documentRef}
+                              issueText={fix.issue}
+                              severity={fix.severity}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -298,6 +551,8 @@ export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps)
               <div className="space-y-4">
                 {warnings.map((fix, index) => {
                   const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
+                  const matchingImage = findImageForFix(fix, documentImages);
+                  const matchingExtraction = findExtractionForFix(fix, extractions);
                   return (
                     <div
                       key={index}
@@ -315,6 +570,15 @@ export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps)
                             <span className="font-medium text-foreground/90">How to fix: </span>
                             {renderWithLinks(translatedFix.fix)}
                           </div>
+                          {matchingImage && (
+                            <DocumentThumbnail
+                              imageData={matchingImage}
+                              extraction={matchingExtraction}
+                              documentRef={fix.documentRef}
+                              issueText={fix.issue}
+                              severity={fix.severity}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -336,6 +600,8 @@ export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps)
               <div className="space-y-4">
                 {info.map((fix, index) => {
                   const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
+                  const matchingImage = findImageForFix(fix, documentImages);
+                  const matchingExtraction = findExtractionForFix(fix, extractions);
                   return (
                     <div
                       key={index}
@@ -353,6 +619,15 @@ export function AdvisoryModal({ advisory, isOpen, onClose }: AdvisoryModalProps)
                             <span className="font-medium text-foreground/90">How to do it: </span>
                             {renderWithLinks(translatedFix.fix)}
                           </div>
+                          {matchingImage && (
+                            <DocumentThumbnail
+                              imageData={matchingImage}
+                              extraction={matchingExtraction}
+                              documentRef={fix.documentRef}
+                              issueText={fix.issue}
+                              severity={fix.severity}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
