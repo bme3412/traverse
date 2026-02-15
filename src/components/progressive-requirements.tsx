@@ -37,6 +37,9 @@ import {
   DollarSign,
   Calendar,
   Eye,
+  Globe,
+  Plus,
+  Minus,
 } from "lucide-react";
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
@@ -81,8 +84,8 @@ export function ProgressiveRequirements({
   isDemoProfile = false,
   demoDocuments = [],
 }: ProgressiveRequirementsProps) {
-  const { t, tDynamic, language, isTranslating, translatedRequirements, translatedCorridorInfo } = useTranslation();
-  const { requestSidebarExpand } = useDemoContext();
+  const { t, tDynamic, language, setLanguage, isTranslating, translatedRequirements, translatedCorridorInfo } = useTranslation();
+  const { requestSidebarExpand, setSidebarOpen, loadedPersonaName } = useDemoContext();
   const sidebarExpandTriggeredRef = useRef(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [requirementStates, setRequirementStates] = useState<
@@ -107,6 +110,9 @@ export function ProgressiveRequirements({
   const [expandedFindings, setExpandedFindings] = useState<Set<string>>(new Set());
   const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
   const [expandedThinking, setExpandedThinking] = useState<Set<number>>(new Set());
+  // Traveler name extracted from passport — shown in greeting
+  const [travelerFirstName, setTravelerFirstName] = useState<string | null>(null);
+
   // Track all extractions for cross-document checking
   const extractionsRef = useRef<DocumentExtraction[]>([]);
   // Track document images (base64) keyed by docType for advisory annotation
@@ -193,6 +199,7 @@ export function ProgressiveRequirements({
     autoUploadTriggeredRef.current = false;
     partialAdvisoryTriggeredRef.current = false;
     documentImagesRef.current.clear();
+    setTravelerFirstName(null);
   }, [totalRequirements]);
 
   // EARLY TRIGGER: Start advisory after most documents analyzed (80-90%)
@@ -300,6 +307,18 @@ export function ProgressiveRequirements({
         return next;
       });
 
+      // Demo shortcut: set traveler name immediately when passport is dropped
+      // (no need to wait for extraction — we already know the persona name)
+      if (
+        isDemoProfile &&
+        loadedPersonaName &&
+        !travelerFirstName &&
+        requirement.name.toLowerCase().includes("passport")
+      ) {
+        const demoFirstName = loadedPersonaName.split(" ")[0];
+        if (demoFirstName) setTravelerFirstName(demoFirstName);
+      }
+
       // Expand the item to show inline thinking
       setExpandedItems((prev) => new Set(prev).add(index));
 
@@ -309,11 +328,18 @@ export function ProgressiveRequirements({
         manualUploadCountRef.current += 1;
         console.log(`[Auto-upload] Manual upload count: ${manualUploadCountRef.current}, index: ${index}, isDemoProfile: ${isDemoProfile}, demoDocuments: ${demoDocuments.length}`);
 
-        // After 2nd manual upload, auto-upload remaining docs immediately
+        if (manualUploadCountRef.current === 1) {
+          // After 1st upload, reopen the sidebar so user can drag the 2nd document
+          setTimeout(() => setSidebarOpen(true), 800);
+        }
+
+        // After 2nd manual upload, close the demo sidebar and auto-upload remaining docs
         if (manualUploadCountRef.current === 2) {
           console.log(`[Auto-upload] Triggering auto-upload after 2nd document drop`);
           autoUploadTriggeredRef.current = true;
-          // Trigger immediately - no need to wait
+          // Close the demo sidebar — user has uploaded enough for the demo to take over
+          setSidebarOpen(false);
+          // Trigger auto-upload immediately
           setTimeout(() => autoUploadRemainingDocs(), 100);
         }
       }
@@ -398,6 +424,16 @@ export function ProgressiveRequirements({
                       documentImagesRef.current.set(event.extraction.docType, reqImageData);
                       onDocImageCapturedRef.current?.(new Map(documentImagesRef.current));
                     }
+
+                    // Extract traveler's first name from passport
+                    if (
+                      event.extraction.docType?.toLowerCase() === "passport" &&
+                      !travelerFirstName &&
+                      event.extraction.structuredData
+                    ) {
+                      const name = extractFirstName(event.extraction.structuredData);
+                      if (name) setTravelerFirstName(name);
+                    }
                   }
 
                   setRequirementStates((prev) => {
@@ -449,7 +485,7 @@ export function ProgressiveRequirements({
         });
       }
     },
-    [requirements, isDemoProfile, demoDocuments]
+    [requirements, isDemoProfile, demoDocuments, loadedPersonaName, travelerFirstName]
     // eslint-disable-next-line react-hooks/exhaustive-deps
     // Note: autoUploadRemainingDocs intentionally omitted to avoid circular dependency
   );
@@ -569,6 +605,23 @@ export function ProgressiveRequirements({
     return null;
   }
 
+  // Build contextual greeting text based on verification state
+  const greetingText = useMemo(() => {
+    if (!travelerFirstName) return null;
+    const name = travelerFirstName;
+    if (analyzedCount === 0) {
+      // Just passport uploaded, nothing verified yet
+      return t(`Hello ${name}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.`);
+    }
+    if (analyzedCount > 0 && analyzedCount < totalRequirements) {
+      return t(`${name}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.`);
+    }
+    if (analyzedCount >= totalRequirements && totalRequirements > 0) {
+      return t(`${name}, all ${totalRequirements} documents have been verified. Review your results below.`);
+    }
+    return null;
+  }, [travelerFirstName, analyzedCount, totalRequirements, t]);
+
   return (
     <div className="space-y-6" ref={containerRef}>
       {/* Header with Progress */}
@@ -609,6 +662,19 @@ export function ProgressiveRequirements({
         )}
       </div>
 
+      {/* Contextual greeting — appears after passport name is extracted */}
+      {greetingText && (
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-card/60 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-foreground leading-relaxed">
+              {greetingText}
+            </p>
+          </div>
+          {/* Inline language selector */}
+          <InlineLanguageSwitch language={language} setLanguage={setLanguage} t={t} />
+        </div>
+      )}
+
       {/* Requirements List */}
       <div className="space-y-3">
         {requirements.map((item, index) => {
@@ -640,11 +706,11 @@ export function ProgressiveRequirements({
                   : status === "analyzing"
                     ? "border-blue-500 shadow-lg shadow-blue-500/10"
                     : status === "passed"
-                      ? "border-green-500/50"
+                      ? "border-emerald-500 bg-emerald-500/[0.03]"
                       : status === "flagged"
-                        ? "border-red-500/50"
+                        ? "border-red-500 bg-red-500/[0.04]"
                         : status === "warning"
-                          ? "border-yellow-500/50"
+                          ? "border-amber-500 bg-amber-500/[0.04]"
                           : item.universal
                             ? "border-blue-400/30"
                             : "border-border"
@@ -752,12 +818,12 @@ export function ProgressiveRequirements({
                 {(status === "passed" || status === "warning" || status === "flagged") && (
                   <div className="flex-shrink-0">
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                         status === "passed"
-                          ? "bg-green-500/15 text-green-400"
+                          ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                           : status === "warning"
-                            ? "bg-yellow-500/15 text-yellow-400"
-                            : "bg-red-500/15 text-red-400"
+                            ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                            : "bg-red-500/20 text-red-600 dark:text-red-400"
                       }`}
                     >
                       {status === "passed" && t("Verified")}
@@ -771,6 +837,21 @@ export function ProgressiveRequirements({
                   <div className="flex-shrink-0 text-xs text-muted-foreground px-2 py-1">
                     {t("Info only")}
                   </div>
+                )}
+
+                {/* +/− expand toggle for processed items */}
+                {(status === "passed" || status === "warning" || status === "flagged") && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleItem(index); }}
+                    className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md hover:bg-secondary/60 transition-colors text-muted-foreground/60 hover:text-muted-foreground"
+                    aria-label={isExpanded ? "Collapse" : "Expand"}
+                  >
+                    {isExpanded ? (
+                      <Minus className="w-3.5 h-3.5" />
+                    ) : (
+                      <Plus className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                 )}
               </div>
 
@@ -833,7 +914,7 @@ export function ProgressiveRequirements({
                         <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                       )}
                       {reqState.compliance.status === "warning" && (
-                        <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                       )}
                       {reqState.compliance.status === "critical" && (
                         <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
@@ -841,9 +922,9 @@ export function ProgressiveRequirements({
                       <div className="min-w-0">
                         <p className={`text-sm font-semibold ${
                           reqState.compliance.status === "met"
-                            ? "text-green-700 dark:text-green-400"
+                            ? "text-emerald-700 dark:text-emerald-400"
                             : reqState.compliance.status === "warning"
-                              ? "text-yellow-700 dark:text-yellow-400"
+                              ? "text-amber-700 dark:text-amber-400"
                               : "text-red-700 dark:text-red-400"
                         }`}>
                           {reqState.compliance.status === "met" && t("Requirement satisfied")}
@@ -909,17 +990,17 @@ export function ProgressiveRequirements({
                                   f.detail ? "hover:bg-secondary/60 cursor-pointer" : "cursor-default"
                                 } ${
                                   f.severity === "critical"
-                                    ? "border-l-red-500"
+                                    ? "border-l-red-600"
                                     : f.severity === "warning"
-                                      ? "border-l-yellow-500"
-                                      : "border-l-green-500"
+                                      ? "border-l-amber-500"
+                                      : "border-l-emerald-500"
                                 }`}
                               >
                                 <span className={`flex-1 leading-snug ${
                                   f.severity === "critical"
                                     ? "text-red-700 dark:text-red-300 font-medium"
                                     : f.severity === "warning"
-                                      ? "text-yellow-700 dark:text-yellow-300"
+                                      ? "text-amber-700 dark:text-amber-300"
                                       : "text-foreground/70"
                                 }`}>
                                   {f.finding}
@@ -1036,13 +1117,13 @@ export function ProgressiveRequirements({
                     <div className="text-sm">
                       <span className="text-muted-foreground">{t("Source")}: </span>
                       <span
-                        className={
+                        className={`font-medium ${
                           externalStatus === "met"
-                            ? "text-green-400"
+                            ? "text-emerald-600 dark:text-emerald-400"
                             : externalStatus === "warning"
-                              ? "text-yellow-400"
-                              : "text-red-400"
-                        }
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-red-600 dark:text-red-400"
+                        }`}
                       >
                         {externalStatus === "met" && t("Requirement satisfied")}
                         {externalStatus === "warning" && t("Partial / unclear")}
@@ -1106,19 +1187,19 @@ function StatusIcon({
   complianceStatus: string;
 }) {
   if (status === "passed" || complianceStatus === "met") {
-    return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+    return <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
   }
   if (status === "warning" || complianceStatus === "warning") {
-    return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+    return <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
   }
   if (status === "flagged" || complianceStatus === "critical") {
-    return <AlertCircle className="w-5 h-5 text-red-500" />;
+    return <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />;
   }
   if (status === "analyzing") {
     return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
   }
   if (status === "error") {
-    return <AlertCircle className="w-5 h-5 text-red-500" />;
+    return <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />;
   }
   return <Circle className="w-5 h-5 text-muted-foreground" />;
 }
@@ -1211,10 +1292,10 @@ function CrossDocSummary({ findings, t }: { findings: CrossDocFinding[]; t: (s: 
   findings.forEach(f => counts[f.severity]++);
   const parts: React.ReactElement[] = [];
   if (counts.info > 0) parts.push(
-    <span key="info" className="text-green-600 dark:text-green-400">{counts.info} {t("consistent")}</span>
+    <span key="info" className="text-emerald-600 dark:text-emerald-400 font-medium">{counts.info} {t("consistent")}</span>
   );
   if (counts.warning > 0) parts.push(
-    <span key="warn" className="text-yellow-600 dark:text-yellow-400">{counts.warning} {counts.warning === 1 ? t("note") : t("notes")}</span>
+    <span key="warn" className="text-amber-600 dark:text-amber-400 font-medium">{counts.warning} {counts.warning === 1 ? t("note") : t("notes")}</span>
   );
   if (counts.critical > 0) parts.push(
     <span key="crit" className="text-red-600 dark:text-red-400">{counts.critical} {counts.critical === 1 ? t("issue") : t("issues")}</span>
@@ -1226,6 +1307,106 @@ function CrossDocSummary({ findings, t }: { findings: CrossDocFinding[]; t: (s: 
       ))}
     </p>
   );
+}
+
+/**
+ * Compact inline language switcher — shown next to the greeting.
+ * Shows current language as a pill; clicking opens a small dropdown.
+ */
+function InlineLanguageSwitch({
+  language,
+  setLanguage,
+  t,
+}: {
+  language: string;
+  setLanguage: (lang: string) => void;
+  t: (s: string) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Top languages for compact display
+  const topLanguages = LANGUAGES.slice(0, 12);
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border bg-secondary/60 hover:bg-secondary text-xs text-muted-foreground hover:text-foreground transition-colors"
+        title={t("Change language")}
+      >
+        <Globe className="w-3 h-3" />
+        <span className="hidden sm:inline">{language === "English" ? t("English") : language}</span>
+        <ChevronDown className="w-3 h-3" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-lg border border-border bg-popover shadow-lg py-1 max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
+          {topLanguages.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => {
+                setLanguage(lang.name);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-3 py-1.5 text-sm hover:bg-secondary transition-colors flex items-center justify-between ${
+                language === lang.name ? "text-foreground font-medium" : "text-muted-foreground"
+              }`}
+            >
+              <span>{lang.nativeName}</span>
+              {language === lang.name && (
+                <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Extract a first name from passport structuredData.
+ * Handles common field names the document agent may produce.
+ */
+function extractFirstName(data: Record<string, unknown>): string | null {
+  // Try common passport field patterns (case-insensitive key search)
+  const keys = Object.keys(data);
+  const find = (patterns: string[]) => {
+    for (const pattern of patterns) {
+      const key = keys.find(k => k.toLowerCase().replace(/[_\s-]/g, "").includes(pattern));
+      if (key && typeof data[key] === "string" && (data[key] as string).trim()) {
+        return (data[key] as string).trim();
+      }
+    }
+    return null;
+  };
+
+  // Try given name / first name first
+  const given = find(["givenname", "firstname", "given_name", "first_name", "prenom"]);
+  if (given) {
+    // Take the first word if it contains spaces (e.g., "PRIYA SHARMA" in given names field)
+    return given.split(/\s+/)[0].charAt(0).toUpperCase() + given.split(/\s+/)[0].slice(1).toLowerCase();
+  }
+
+  // Try full name / holder name and take the first word
+  const full = find(["holdername", "fullname", "name", "holder_name", "full_name", "applicantname"]);
+  if (full) {
+    const firstName = full.split(/\s+/)[0];
+    return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+  }
+
+  // Try surname as last resort — not ideal but better than nothing
+  return null;
 }
 
 /** Convert File to base64 string (without the data: prefix) */

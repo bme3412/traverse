@@ -84,6 +84,7 @@ export interface RequirementsChecklist {
   };
   processingTime: string;
   applyAt: string;
+  applyAtUrl?: string;
   importantNotes: string[];
   sources?: SourceReference[];
 

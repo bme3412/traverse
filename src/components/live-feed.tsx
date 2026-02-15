@@ -278,28 +278,32 @@ function SourcesBlock({ sources }: { sources: SourceReference[] }) {
   if (!sources || sources.length === 0) return null;
 
   return (
-    <div className="mt-3 mb-1 rounded-lg border border-foreground/[0.08] bg-foreground/[0.03] px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t("Sources")}</p>
-      <div className="space-y-1.5">
+    <div className="mt-3 mb-1 rounded-lg border border-foreground/[0.08] bg-foreground/[0.03] px-4 py-3.5">
+      <div className="flex items-center gap-2 mb-2.5">
+        <svg className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1.5v5M8 9.5v.5M3 5.5l3.5 3L8 6.5l1.5 2L13 5.5M1.5 3v10c0 .55.45 1 1 1h11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1h-11c-.55 0-1 .45-1 1z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("Data grounded from")}</p>
+      </div>
+      <div className="space-y-2">
         {sources.map((source, i) => (
-          <div key={i} className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground text-xs tabular-nums shrink-0">{i + 1}.</span>
+          <div key={i} className="flex items-center gap-2.5">
             {source.url ? (
               <a
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline decoration-blue-600/30 dark:decoration-blue-400/20 underline-offset-2 hover:decoration-blue-600/60 dark:hover:decoration-blue-400/50 transition-colors"
+                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline underline-offset-2 decoration-blue-500/30 dark:decoration-blue-400/30 hover:decoration-blue-500/60 dark:hover:decoration-blue-400/60 transition-colors"
               >
                 {source.name}
               </a>
             ) : (
-              <span className="text-muted-foreground">{source.name}</span>
+              <span className="text-sm text-muted-foreground">{source.name}</span>
             )}
             {source.url && <ExternalLinkIcon />}
             {source.dateAccessed && (
-              <span className="text-[10px] text-muted-foreground font-mono ml-auto shrink-0">
-                {t("accessed")} {source.dateAccessed}
+              <span className="text-[11px] text-muted-foreground/70 ml-auto shrink-0">
+                {source.dateAccessed}
               </span>
             )}
           </div>

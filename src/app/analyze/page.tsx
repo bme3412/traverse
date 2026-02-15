@@ -16,7 +16,6 @@ import { useDemoContext, fetchDemoDocument } from "@/lib/demo-context";
 import { TranslationProvider, useTranslation, collectCorridorDynamicTexts } from "@/lib/i18n-context";
 import { LanguageSelector } from "@/components/language-selector";
 import { TranslationBanner } from "@/components/translation-banner";
-import { RemediationPanel } from "@/components/remediation-panel";
 import { getRemediationByName, type PersonaRemediation } from "@/lib/remediation-data";
 import { ArrowLeft, CheckCircle2, PartyPopper } from "lucide-react";
 import { countryFlag } from "@/lib/country-flags";
@@ -101,6 +100,84 @@ function formatDateRange(depart: string, returnDate: string): string {
   }
   // Different months: "Feb 25 – Mar 7, 2026"
   return `${dStr} – ${rStr}, ${year}`;
+}
+
+/**
+ * Returns a plain-language description of what a visa type is and who it's for.
+ * When trip context is provided, the description is personalized to the traveler's
+ * specific origin, destination, purpose, and duration.
+ */
+function getVisaDescription(
+  visaType: string,
+  tripContext?: { origin: string; destination: string; purpose: string; days: number },
+): string {
+  const v = visaType.toLowerCase();
+
+  // Helper: build a contextual prefix like "For your 15-day business travel from India to Germany, you will need"
+  const ctx = tripContext
+    ? `For your ${tripContext.days}-day ${tripContext.purpose} travel from ${tripContext.origin} to ${tripContext.destination}, you will need `
+    : "";
+
+  // Schengen visas
+  if (v.includes("schengen") && v.includes("type c")) {
+    if (v.includes("business")) return `${ctx}a short-stay Schengen visa allowing business activities — meetings, conferences, trade fairs, and contract negotiations — in any of the 27 Schengen Area countries for up to 90 days within a 180-day period.`;
+    if (v.includes("tourist") || v.includes("tourism")) return `${ctx}a short-stay Schengen visa for tourism and leisure travel across any of the 27 Schengen Area countries, valid for up to 90 days within a 180-day period.`;
+    if (v.includes("medical")) return `${ctx}a short-stay Schengen visa for medical treatment in any Schengen Area country, valid for up to 90 days within a 180-day period.`;
+    if (v.includes("visit") || v.includes("family")) return `${ctx}a short-stay Schengen visa for visiting family or friends in any Schengen Area country, valid for up to 90 days within a 180-day period.`;
+    return `${ctx}a short-stay Schengen Area visa (Type C) valid for up to 90 days within a 180-day period. Allows travel across all 27 Schengen member states with a single visa.`;
+  }
+  if (v.includes("schengen") && v.includes("type d")) return `${ctx}a long-stay national visa for the specific Schengen country, typically for work, study, or family reunification. Valid beyond 90 days, issued under national — not Schengen-wide — rules.`;
+  if (v.includes("schengen")) return `${ctx}a Schengen Area visa allowing travel across 27 European countries. Short-stay (Type C) permits up to 90 days; long-stay (Type D) is issued by individual member states for extended purposes.`;
+
+  // UK visas
+  if (v.includes("uk") || v.includes("united kingdom") || v.includes("british")) {
+    if (v.includes("standard visitor") || v.includes("visitor visa")) return `${ctx}a UK Standard Visitor Visa for tourism, business meetings, conferences, or short courses. Usually valid for up to 6 months. Does not permit employment.`;
+    if (v.includes("student") || v.includes("tier 4") || v.includes("cas")) return `${ctx}a UK Student Visa (formerly Tier 4) for studying at a licensed UK institution. Requires a Confirmation of Acceptance for Studies (CAS). Duration tied to course length.`;
+    if (v.includes("work") || v.includes("skilled worker") || v.includes("tier 2")) return `${ctx}a UK Skilled Worker Visa (formerly Tier 2) for employment with a licensed UK sponsor. Requires a job offer meeting the salary and skill threshold.`;
+    if (v.includes("family")) return `${ctx}a UK Family Visa for joining or accompanying a family member who is a British citizen or settled person. Requires proof of relationship and financial support.`;
+    return `${ctx}a United Kingdom visa issued under the UK's points-based immigration system. Requirements vary by purpose of travel — tourism, work, study, or family.`;
+  }
+
+  // US visas
+  if (v.includes("b-1") && v.includes("b-2")) return `${ctx}a US B-1/B-2 combined visitor visa for business (B-1) and tourism/pleasure (B-2). The most common US nonimmigrant visa, typically valid for up to 10 years with stays of up to 6 months per entry.`;
+  if (v.includes("b-1")) return `${ctx}a US B-1 Business Visitor Visa for attending meetings, conferences, negotiations, or consultations. Does not permit employment. Typically valid for up to 10 years with 6-month stays.`;
+  if (v.includes("b-2")) return `${ctx}a US B-2 Tourist Visa for tourism, vacation, visiting friends or family, or medical treatment. Typically valid for up to 10 years with stays of up to 6 months per entry.`;
+  if (v.includes("f-1")) return `${ctx}a US F-1 Student Visa for full-time academic study at an accredited US institution. Requires a Form I-20 from the school. Valid for the duration of the academic program.`;
+  if (v.includes("h-1b")) return `${ctx}a US H-1B Work Visa for specialty occupation employment requiring a bachelor's degree or equivalent. Employer-sponsored, subject to annual cap. Initially valid for 3 years, extendable to 6.`;
+  if (v.includes("j-1")) return `${ctx}a US J-1 Exchange Visitor Visa for approved exchange programs including research, teaching, internships, and cultural exchange. Requires a DS-2019 form from the program sponsor.`;
+  if (v.includes("esta") || v.includes("visa waiver")) return `${ctx ? ctx.replace("you will need ", "") + "you can use " : ""}the US Visa Waiver Program (ESTA), which allows citizens of 41 participating countries to visit the US for up to 90 days without a visa. Requires pre-travel electronic authorization.`;
+
+  // Japan
+  if (v.includes("japan")) {
+    if (v.includes("tourist") || v.includes("tourism") || v.includes("temporary visitor")) return `${ctx}a Japan Temporary Visitor Visa for tourism, business meetings, visiting friends, or attending events. Stays of up to 15, 30, or 90 days depending on nationality.`;
+    if (v.includes("work")) return `${ctx}a Japan Work Visa issued under a specific status of residence (e.g., Engineer, Specialist in Humanities). Requires employer sponsorship and a Certificate of Eligibility.`;
+    if (v.includes("student")) return `${ctx}a Japan Student Visa (ryugaku) for studying at a Japanese educational institution. Requires a Certificate of Eligibility and acceptance from a recognized school.`;
+    return `${ctx}a Japanese visa issued under Japan's immigration system. Requirements and duration vary by purpose — tourism, work, study, or cultural activities.`;
+  }
+
+  // eVisa / ETA / Visa on arrival
+  if (v.includes("evisa") || v.includes("e-visa") || v.includes("electronic visa")) return `${ctx}an electronic visa (eVisa) applied for and issued online, eliminating the need to visit an embassy or consulate. Typically linked to your passport electronically.`;
+  if (v.includes("eta") || v.includes("electronic travel auth")) return `${ctx}an Electronic Travel Authorization (ETA) — a lightweight pre-screening requirement for visa-exempt travelers. Applied for online, usually approved within minutes.`;
+  if (v.includes("visa on arrival") || v.includes("voa")) return `${ctx}a visa issued at the port of entry upon arrival. Typically available for short tourism or business visits. Requirements and fees vary by nationality and destination.`;
+  if (v.includes("visa free") || v.includes("visa-free")) return `${tripContext ? `For your ${tripContext.days}-day ${tripContext.purpose} travel from ${tripContext.origin} to ${tripContext.destination}, no visa is required.` : "No visa required for this corridor."} Your passport grants visa-free entry for short stays. Check the maximum duration and any registration requirements after arrival.`;
+
+  // Australia / Canada / India
+  if (v.includes("australia") || v.includes("australian")) return `${ctx}an Australian visa — requirements vary by subclass. Common types include Visitor (subclass 600), Student (subclass 500), and Skilled Worker (subclass 482).`;
+  if (v.includes("canada") || v.includes("canadian")) return `${ctx}a Canadian visa — requirements vary by type. Common categories include Temporary Resident Visa (visitor), Study Permit, and Work Permit.`;
+  if (v.includes("india") || v.includes("indian")) return `${ctx}an Indian visa — available as eVisa (eTourist, eBusiness, eMedical) or traditional sticker visa. eVisas are processed online; traditional visas require consular application.`;
+
+  // Generic by purpose
+  if (v.includes("business")) return `${ctx}a business visa permitting attendance at meetings, conferences, negotiations, and professional events. Does not typically authorize employment. Duration and conditions vary by country.`;
+  if (v.includes("tourist") || v.includes("tourism")) return `${ctx}a tourist visa for leisure travel, sightseeing, and visiting friends or family. Does not permit employment. Duration varies by destination country.`;
+  if (v.includes("student") || v.includes("study")) return `${ctx}a student visa for enrolling in an educational program at a recognized institution. Typically requires proof of acceptance, financial support, and health insurance.`;
+  if (v.includes("work")) return `${ctx}a work visa authorizing employment in the destination country. Usually requires employer sponsorship, a job offer, and proof of qualifications.`;
+  if (v.includes("transit")) return `${ctx}a transit visa for passing through a country en route to a final destination. Required by some nationalities even for short airport layovers.`;
+  if (v.includes("medical")) return `${ctx}a medical visa for traveling to receive medical treatment abroad. Typically requires documentation from the treating facility and proof of financial means.`;
+  if (v.includes("family") || v.includes("spouse") || v.includes("dependent")) return `${ctx}a family/dependent visa for joining or accompanying a family member in the destination country. Requires proof of relationship and the primary visa holder's status.`;
+  if (v.includes("digital nomad") || v.includes("remote work")) return `${ctx}a digital nomad or remote work visa allowing foreign nationals to live and work remotely for employers outside the destination country. A growing category with varying rules per country.`;
+
+  // Fallback
+  return `${ctx}a travel visa required for entry to the destination country. Requirements, fees, and processing times vary based on your nationality, purpose of travel, and intended duration of stay.`;
 }
 
 /**
@@ -832,6 +909,15 @@ function AnalyzePageInner({
          e.action === "agent_complete"
   );
 
+  // Auto-open the advisory modal as soon as the assessment is ready
+  const advisoryAutoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (advisoryAgentComplete && advisoryReport && !advisoryAutoOpenedRef.current) {
+      advisoryAutoOpenedRef.current = true;
+      setShowAdvisoryModal(true);
+    }
+  }, [advisoryAgentComplete, advisoryReport, setShowAdvisoryModal]);
+
   // Progress narration text — contextual for demo personas
   const progressNarration = (() => {
     if (!researchDone) return null;
@@ -865,20 +951,16 @@ function AnalyzePageInner({
         style={{ paddingLeft: sidebarOpen ? '23rem' : '0px' }}
       >
       <div className="mx-auto max-w-5xl px-6 py-12">
-        {/* Back Button */}
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t("Back to Home")}
-        </button>
-
-      {/* Header — corridor card */}
-      <section className="mb-6 rounded-xl border border-border/60 bg-card/50 overflow-hidden">
-        {/* Top bar: language selector */}
-        <div className="flex justify-end px-5 pt-4 pb-0">
+        {/* Top toolbar — back button + language selector */}
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t("Back to Home")}
+          </button>
           <LanguageSelector
             currentLanguage={language}
             onLanguageChange={setLanguage}
@@ -889,61 +971,117 @@ function AnalyzePageInner({
           />
         </div>
 
-        {/* Main content */}
-        <div className="px-5 pb-5 pt-2">
-          {/* Corridor visual: FROM → TO */}
-          <div className="flex items-center gap-4 sm:gap-6">
+      {/* Header — corridor card */}
+      <section className="mb-6 rounded-xl border border-border/60 bg-card/50">
+        <div className="px-6 py-6 sm:px-8 sm:py-7">
+          {/* Row 1: Corridor hero — big flags, big names */}
+          <div className="flex items-center gap-5 sm:gap-8">
             {/* Origin */}
-            <div className="flex items-center gap-2.5">
-              <span className="text-4xl sm:text-5xl" aria-hidden="true">{countryFlag(travelDetails.passports[0])}</span>
-              <div>
-                <p className="text-lg sm:text-xl font-semibold leading-tight">{travelDetails.passports[0]}</p>
-                <p className="text-xs text-muted-foreground">{t("Passport")}</p>
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="text-5xl sm:text-6xl" aria-hidden="true">{countryFlag(travelDetails.passports[0])}</span>
+              <p className="text-xl sm:text-2xl font-bold leading-tight">{travelDetails.passports[0]}</p>
             </div>
 
             {/* Arrow */}
-            <div className="flex flex-col items-center gap-0.5 px-1">
-              <svg className="w-6 h-6 text-muted-foreground/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="flex flex-col items-center px-1">
+              <svg className="w-8 h-8 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
-              <span className="text-[10px] text-muted-foreground/50 font-medium">{tripDays}d</span>
             </div>
 
             {/* Destination */}
-            <div className="flex items-center gap-2.5">
-              <span className="text-4xl sm:text-5xl" aria-hidden="true">{countryFlag(travelDetails.destination)}</span>
-              <div>
-                <p className="text-lg sm:text-xl font-semibold leading-tight">{travelDetails.destination}</p>
-                <p className="text-xs text-muted-foreground capitalize">{t(travelDetails.purpose)}</p>
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="text-5xl sm:text-6xl" aria-hidden="true">{countryFlag(travelDetails.destination)}</span>
+              <p className="text-xl sm:text-2xl font-bold leading-tight">{travelDetails.destination}</p>
             </div>
           </div>
 
-          {/* Trip details row */}
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground">
-              <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="3" width="12" height="11" rx="1.5" />
-                <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" />
-              </svg>
-              {formatDateRange(travelDetails.dates.depart, travelDetails.dates.return)}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground">
-              <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="8" cy="5" r="3" />
-                <path d="M2.5 14c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
-              </svg>
-              {travelDetails.travelers} {travelDetails.travelers === 1 ? t("traveler") : t("travelers")}
-            </span>
+          {/* Row 2: Unified context line — purpose · duration · dates · travelers · visa type */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            <span className="capitalize font-medium text-foreground/80">{t(travelDetails.purpose)}</span>
+            <span className="text-border/60">&middot;</span>
+            <span>{tripDays} {t("days")}</span>
+            <span className="text-border/60">&middot;</span>
+            <span>{formatDateRange(travelDetails.dates.depart, travelDetails.dates.return)}</span>
+            <span className="text-border/60">&middot;</span>
+            <span>{travelDetails.travelers} {travelDetails.travelers === 1 ? t("traveler") : t("travelers")}</span>
             {result?.requirements && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
-                {translatedCorridorInfo?.visaType || result.requirements.visaType}
-              </span>
+              <>
+                <span className="text-border/60">&middot;</span>
+                <span className="relative group">
+                  <span className="font-medium text-blue-600 dark:text-blue-400 cursor-help border-b border-dashed border-blue-400/40">
+                    {translatedCorridorInfo?.visaType || result.requirements.visaType}
+                  </span>
+                  {/* Visa info tooltip */}
+                  <span className="pointer-events-none group-hover:pointer-events-auto absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-80 rounded-lg border border-border bg-popover p-4 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-left">
+                    {/* Title */}
+                    <span className="block text-sm font-semibold text-foreground">
+                      {translatedCorridorInfo?.visaType || result.requirements.visaType}
+                    </span>
+                    {/* Description — contextualized to the traveler's trip */}
+                    <span className="block mt-1.5 text-xs leading-relaxed text-muted-foreground first-letter:uppercase">
+                      {getVisaDescription(result.requirements.visaType, {
+                        origin: travelDetails.passports[0],
+                        destination: travelDetails.destination,
+                        purpose: travelDetails.purpose,
+                        days: tripDays,
+                      })}
+                    </span>
+                    {/* Details grid — order: Apply at, Fee, Processing, Window */}
+                    {(result.requirements.fees?.visa || result.requirements.processingTime || result.requirements.applyAt) && (
+                      <span className="block mt-3 pt-3 border-t border-border/60">
+                        <span className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+                          {/* Apply at — with hyperlink when URL available */}
+                          {result.requirements.applyAt && (
+                            <>
+                              <span className="text-muted-foreground">Apply at</span>
+                              <span className="text-foreground">
+                                {result.requirements.applyAtUrl ? (
+                                  <a href={result.requirements.applyAtUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline underline-offset-2 decoration-blue-400/40 hover:decoration-blue-500 transition-colors">
+                                    {result.requirements.applyAt}
+                                  </a>
+                                ) : (
+                                  result.requirements.applyAt
+                                )}
+                              </span>
+                            </>
+                          )}
+                          {/* Fee — visa fee and service fee on separate lines */}
+                          {result.requirements.fees?.visa && (
+                            <>
+                              <span className="text-muted-foreground">Fee</span>
+                              <span className="text-foreground">
+                                <span className="block">{result.requirements.fees.visa}</span>
+                                {result.requirements.fees.service && (
+                                  <span className="block text-muted-foreground mt-0.5">+ {result.requirements.fees.service}</span>
+                                )}
+                              </span>
+                            </>
+                          )}
+                          {result.requirements.processingTime && (
+                            <>
+                              <span className="text-muted-foreground">Processing</span>
+                              <span className="text-foreground">{result.requirements.processingTime}</span>
+                            </>
+                          )}
+                          {result.requirements.applicationWindow && (
+                            <>
+                              <span className="text-muted-foreground">Window</span>
+                              <span className="text-foreground">{result.requirements.applicationWindow.earliest} – {result.requirements.applicationWindow.latest}</span>
+                            </>
+                          )}
+                        </span>
+                      </span>
+                    )}
+                    {/* Arrow */}
+                    <span className="absolute left-1/2 -translate-x-1/2 -top-1.5 w-3 h-3 rotate-45 border-l border-t border-border bg-popover" />
+                  </span>
+                </span>
+              </>
             )}
           </div>
 
-          {/* Contextual intro */}
+          {/* Row 3: Contextual intro */}
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {introText}
           </p>
@@ -1011,32 +1149,18 @@ function AnalyzePageInner({
       <AdvisoryLoading isVisible={isAdvisoryRunning} />
 
       {/* ══════════════════════════════════════════════════════════════
-          ADVISORY CTA — Natural conclusion card (replaces surprise modal)
+          ADVISORY RE-OPEN — compact link to re-open the assessment modal
+          (modal auto-opens on completion; this is for re-opening after close)
           ══════════════════════════════════════════════════════════════ */}
-      {advisoryAgentComplete && advisoryReport && !showAdvisoryModal && (
-        <div className="mt-8 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/5 px-6 py-5 animate-in fade-in slide-in-from-bottom-3 duration-500">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">{t("Your assessment is ready")}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Personalized recommendations based on your documents and corridor requirements.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowAdvisoryModal(true)}
-              className="shrink-0 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors"
-            >
-              {t("View Assessment")}
-            </button>
-          </div>
+      {advisoryAgentComplete && advisoryReport && !showAdvisoryModal && !reauditComplete && (
+        <div className="mt-4 flex justify-end animate-in fade-in duration-300">
+          <button
+            type="button"
+            onClick={() => setShowAdvisoryModal(true)}
+            className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 underline underline-offset-2 transition-colors"
+          >
+            {t("View Assessment")}
+          </button>
         </div>
       )}
 
@@ -1074,17 +1198,7 @@ function AnalyzePageInner({
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════
-          REMEDIATION PANEL — Fix Wizard for demo personas
-          Shows after advisory completes, before re-audit
-          ══════════════════════════════════════════════════════════════ */}
-      {remediationData && advisoryAgentComplete && advisoryReport && !reauditComplete && (
-        <RemediationPanel
-          remediation={remediationData}
-          onApplyFixes={onApplyFixes}
-          isReauditing={isReauditing}
-        />
-      )}
+      {/* Fix Wizard is now embedded inside the AdvisoryModal — no standalone panel needed */}
 
       {/* Advisory Modal — opened via CTA button, not auto-popup */}
       {advisoryReport && (
@@ -1094,6 +1208,9 @@ function AnalyzePageInner({
           onClose={() => setShowAdvisoryModal(false)}
           documentImages={documentImages}
           extractions={perDocExtractions}
+          remediation={remediationData}
+          onApplyFixes={onApplyFixes}
+          isReauditing={isReauditing}
         />
       )}
     </div>

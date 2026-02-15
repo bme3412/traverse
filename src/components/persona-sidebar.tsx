@@ -75,11 +75,11 @@ const PERSONAS: DemoPersona[] = [
     documents: [
       { name: "Passport", language: "English", image: "/demo-docs/amara-01-passport.png" },
       { name: "CAS Letter", language: "English", image: "/demo-docs/amara-02-cas-letter.png" },
+      { name: "IELTS Score Report", language: "English", image: "/demo-docs/amara-06-ielts-score.png" },
       { name: "Bank Statement", language: "English", image: "/demo-docs/amara-03-bank-statement.png" },
       { name: "Academic Transcripts", language: "English", image: "/demo-docs/amara-04-transcripts.png" },
-      { name: "Personal Statement", language: "English", image: "/demo-docs/amara-05-personal-statement.png" },
-      { name: "IELTS Score Report", language: "English", image: "/demo-docs/amara-06-ielts-score.png" },
       { name: "TB Test Certificate", language: "English", image: "/demo-docs/amara-07-tb-test.png" },
+      { name: "Personal Statement", language: "English", image: "/demo-docs/amara-05-personal-statement.png" },
       { name: "Accommodation Offer", language: "English", image: "/demo-docs/amara-08-accommodation.png" },
     ],
   },
@@ -99,11 +99,11 @@ const PERSONAS: DemoPersona[] = [
     },
     documents: [
       { name: "Passport", language: "Portuguese", image: "/demo-docs/carlos-01-passport.png" },
+      { name: "Return Flight", language: "English", image: "/demo-docs/carlos-06-flight.png" },
+      { name: "Hotel Reservations", language: "English", image: "/demo-docs/carlos-05-hotel.png" },
       { name: "Bank Statement", language: "Portuguese", image: "/demo-docs/carlos-02-bank-statement.png" },
       { name: "Freelance Income Proof", language: "Portuguese", image: "/demo-docs/carlos-03-freelance-income.png" },
       { name: "Travel Itinerary", language: "English", image: "/demo-docs/carlos-04-itinerary.png" },
-      { name: "Hotel Reservations", language: "English", image: "/demo-docs/carlos-05-hotel.png" },
-      { name: "Return Flight", language: "English", image: "/demo-docs/carlos-06-flight.png" },
     ],
   },
 ];
@@ -114,7 +114,7 @@ const PERSONAS: DemoPersona[] = [
 
 export function PersonaSidebar() {
   const pathname = usePathname();
-  const { loadDemo, isDemoProfile, loadedPersonaName, sidebarExpandRequested, clearSidebarExpandRequest, setSidebarOpen } = useDemoContext();
+  const { loadDemo, isDemoProfile, loadedPersonaName, sidebarExpandRequested, clearSidebarExpandRequest, sidebarOpen: contextSidebarOpen, setSidebarOpen } = useDemoContext();
   const [isOpen, setIsOpenLocal] = useState(false);
 
   // Wrap setIsOpen to sync with context so other components can respond
@@ -163,6 +163,16 @@ export function PersonaSidebar() {
       clearSidebarExpandRequest();
     }
   }, [sidebarExpandRequested, isOpen, clearSidebarExpandRequest, setIsOpen]);
+
+  // Sync local state when other components open/close the sidebar via context
+  // (e.g., progressive-requirements reopens after 1st upload, closes after 2nd)
+  useEffect(() => {
+    if (contextSidebarOpen && !isOpen) {
+      setIsOpenLocal(true);
+    } else if (!contextSidebarOpen && isOpen) {
+      setIsOpenLocal(false);
+    }
+  }, [contextSidebarOpen, isOpen]);
 
   const handleLoad = async () => {
     // Brief green flash, then load
@@ -362,6 +372,7 @@ export function PersonaSidebar() {
                         JSON.stringify({ name: doc.name, language: doc.language, image: doc.image })
                       );
                       e.dataTransfer.effectAllowed = "copy";
+                      // Close sidebar during drag so drop targets are accessible
                       requestAnimationFrame(() => setIsOpen(false));
                     }}
                     className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg border transition-colors ${

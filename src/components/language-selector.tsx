@@ -287,9 +287,9 @@ export function LanguageSelector({
         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
-      {/* Dropdown — anchored to right edge of trigger, constrained to viewport */}
+      {/* Dropdown — anchored below trigger, right-aligned */}
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] max-h-96 rounded-xl border border-border bg-popover backdrop-blur-sm shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] max-h-96 rounded-xl border border-border bg-popover backdrop-blur-sm shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Search */}
           <div className="p-2 border-b border-border">
             <div className="relative">

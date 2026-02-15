@@ -204,7 +204,13 @@ export function RequirementsChecklistComponent({
             </div>
             <div>
               <span className="text-muted-foreground">Apply at: </span>
-              <span className="text-foreground">{requirements.applyAt}</span>
+              {requirements.applyAtUrl ? (
+                <a href={requirements.applyAtUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline underline-offset-2 decoration-blue-400/40 hover:decoration-blue-500 transition-colors">
+                  {requirements.applyAt}
+                </a>
+              ) : (
+                <span className="text-foreground">{requirements.applyAt}</span>
+              )}
             </div>
           </div>
         </div>

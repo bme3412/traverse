@@ -73,6 +73,7 @@ export const UI_STRINGS_P2: Record<string, string> = {
   "Info only": "Info only",
   "Source": "Source",
   "Sources": "Sources",
+  "Data grounded from": "Data grounded from",
   "accessed": "accessed",
   "high confidence": "high confidence",
   "medium confidence": "medium confidence",

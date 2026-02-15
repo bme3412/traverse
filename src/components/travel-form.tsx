@@ -155,8 +155,12 @@ function CountryPicker({
           }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={`w-full ${value ? "pl-12" : "pl-11"} pr-12 py-3 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
-            error ? "border-red-500/60" : "border-border"
+          className={`w-full ${value ? "pl-12" : "pl-11"} pr-12 py-3 rounded-xl border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+            error
+              ? "border-red-500/60 bg-card"
+              : value
+                ? "border-blue-500/30 bg-blue-50/20 dark:bg-blue-950/10"
+                : "border-border bg-card"
           }`}
         />
         {value && (
@@ -340,6 +344,12 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
   const passport = formData.passports?.[0] || "";
   const destination = formData.destination || "";
 
+  // Layer 1+3: Derive completion state from actual form data (works for both manual + demo)
+  const corridorComplete = !!(passport && destination);
+  const datesComplete = !!formData.dates?.depart;
+  const eventFilled = !!formData.event;
+  const isFormReady = corridorComplete && datesComplete;
+
   return (
     <div className="relative">
       <form
@@ -349,11 +359,13 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
       {/* ── Step 1: Corridor ── */}
       <div className={animatedFields.has("passports") || animatedFields.has("destination") ? "animate-field-slide" : ""} style={{ animationDelay: "0ms" }}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          <h3 className={`text-sm font-semibold uppercase tracking-wider transition-colors duration-300 ${
+            corridorComplete ? "text-foreground" : "text-muted-foreground"
+          }`}>
             Travel Corridor
           </h3>
-          {passport && destination && animatedFields.has("passports") && animatedFields.has("destination") && (
-            <div className="animate-checkmark">
+          {corridorComplete && (
+            <div className="transition-all duration-300 animate-in fade-in">
               <div className="bg-green-500/20 text-green-500 rounded-full p-1">
                 <Check className="w-3 h-3" />
               </div>
@@ -375,10 +387,16 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
             />
           </div>
 
-          {/* Arrow */}
+          {/* Arrow — lights up when corridor is complete */}
           <div className="pt-5">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary border border-border">
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-300 ${
+              corridorComplete
+                ? "bg-blue-500/10 border-blue-500/30 dark:bg-blue-500/15"
+                : "bg-secondary border-border"
+            }`}>
+              <ArrowRight className={`w-4 h-4 transition-colors duration-300 ${
+                corridorComplete ? "text-blue-500" : "text-muted-foreground"
+              }`} />
             </div>
           </div>
 
@@ -403,13 +421,6 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             Purpose of Travel
           </h3>
-          {formData.purpose && animatedFields.has("purpose") && (
-            <div className="animate-checkmark">
-              <div className="bg-green-500/20 text-green-500 rounded-full p-1">
-                <Check className="w-3 h-3" />
-              </div>
-            </div>
-          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {PURPOSES.map((p) => (
@@ -419,7 +430,7 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
               onClick={() => updateField("purpose", p.value)}
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
                 formData.purpose === p.value
-                  ? "border-blue-500 bg-blue-500/15 text-blue-300"
+                  ? "border-blue-500 bg-blue-500/15 text-blue-600 dark:text-blue-300"
                   : "border-border bg-muted/50 text-muted-foreground hover:border-border hover:text-foreground"
               }`}
             >
@@ -433,18 +444,20 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
       {/* ── Step 3: Dates ── */}
       <div className={animatedFields.has("dates") ? "animate-field-slide" : ""} style={{ animationDelay: "300ms" }}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          <h3 className={`text-sm font-semibold uppercase tracking-wider transition-colors duration-300 ${
+            datesComplete ? "text-foreground" : "text-muted-foreground"
+          }`}>
             Travel Dates
           </h3>
           <div className="flex items-center gap-2">
             {formData.dates?.depart && formData.dates?.return && (
-              <div className="flex items-center gap-1.5 text-xs text-blue-400 font-medium">
+              <div className="flex items-center gap-1.5 text-xs text-blue-500 dark:text-blue-400 font-medium">
                 <Clock className="w-3.5 h-3.5" />
                 {calculateDuration(formData.dates.depart, formData.dates.return)} days
               </div>
             )}
-            {formData.dates?.depart && animatedFields.has("dates") && (
-              <div className="animate-checkmark">
+            {datesComplete && (
+              <div className="transition-all duration-300 animate-in fade-in">
                 <div className="bg-green-500/20 text-green-500 rounded-full p-1">
                   <Check className="w-3 h-3" />
                 </div>
@@ -467,8 +480,12 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
               onChange={(e) =>
                 updateField("dates", { ...formData.dates, depart: e.target.value })
               }
-              className={`w-full px-4 py-3 rounded-xl border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
-                errors.depart ? "border-red-500/60" : "border-border"
+              className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+                errors.depart
+                  ? "border-red-500/60 bg-card"
+                  : formData.dates?.depart
+                    ? "border-blue-500/30 bg-blue-50/20 dark:bg-blue-950/10"
+                    : "border-border bg-card"
               }`}
             />
             {errors.depart && <p className="mt-1.5 text-xs text-red-400">{errors.depart}</p>}
@@ -486,8 +503,12 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
               onChange={(e) =>
                 updateField("dates", { ...formData.dates, return: e.target.value })
               }
-              className={`w-full px-4 py-3 rounded-xl border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
-                errors.return ? "border-red-500/60" : "border-border"
+              className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+                errors.return
+                  ? "border-red-500/60 bg-card"
+                  : formData.dates?.return
+                    ? "border-blue-500/30 bg-blue-50/20 dark:bg-blue-950/10"
+                    : "border-border bg-card"
               }`}
             />
             {errors.return && <p className="mt-1.5 text-xs text-red-400">{errors.return}</p>}
@@ -501,8 +522,8 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
           <label className="block text-xs font-medium text-muted-foreground">
             Specific event <span className="text-muted-foreground">(optional)</span>
           </label>
-          {formData.event && animatedFields.has("event") && (
-            <div className="animate-checkmark">
+          {eventFilled && (
+            <div className="transition-all duration-300 animate-in fade-in">
               <div className="bg-green-500/20 text-green-500 rounded-full p-1">
                 <Check className="w-3 h-3" />
               </div>
@@ -514,7 +535,11 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
           value={formData.event || ""}
           onChange={(e) => updateField("event", e.target.value)}
           placeholder="e.g., Conference name, wedding, university..."
-          className="w-full px-4 py-3 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+          className={`w-full px-4 py-3 rounded-xl border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+            eventFilled
+              ? "border-blue-500/30 bg-blue-50/20 dark:bg-blue-950/10"
+              : "border-border bg-card"
+          }`}
         />
       </div>
 
@@ -530,11 +555,17 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
           Random
         </button>
 
-        {/* Check Requirements Button - Center/Right */}
+        {/* Check Requirements Button — transforms when form is ready */}
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-muted disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors inline-flex items-center justify-center gap-1.5 text-sm"
+          className={`inline-flex items-center justify-center gap-1.5 font-medium rounded-lg transition-all duration-300 text-sm ${
+            isLoading
+              ? "px-4 py-2 bg-muted text-muted-foreground cursor-not-allowed"
+              : isFormReady
+                ? "px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-lg shadow-blue-500/25"
+                : "px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white"
+          }`}
         >
           {isLoading ? (
             <>

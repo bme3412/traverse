@@ -57,7 +57,7 @@ export function ThinkingPanel({
       {/* Subtle header label */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-border/40 bg-muted/30">
         <div className={`w-1.5 h-1.5 rounded-full ${
-          translatedSummary.toLowerCase().includes("complete") || translatedSummary.toLowerCase().includes("done")
+          translatedSummary.toLowerCase().includes("complete") || translatedSummary.toLowerCase().includes("done") || translatedSummary.toLowerCase().includes("ready")
             ? "bg-emerald-500"
             : "bg-blue-500 animate-pulse"
         }`} />
@@ -71,7 +71,7 @@ export function ThinkingPanel({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="px-5 py-4 text-[13px] text-foreground/80 leading-[1.75] max-h-[28rem] overflow-y-auto scroll-smooth"
+        className="px-5 py-4 text-sm text-foreground/85 leading-[1.8] max-h-[28rem] overflow-y-auto scroll-smooth"
       >
         {formatted}
       </div>
@@ -116,41 +116,141 @@ function stripMetaCommentary(line: string): string {
   return cleaned.trim();
 }
 
-/* ─── Selective highlighting ──────────────────────────────────────── */
+/* ─── Semantic highlighting ───────────────────────────────────────── */
 
-const HIGHLIGHT_PATTERN = new RegExp(
-  [
-    /\b(?:ETIAS|ESTA|ETA|SEVIS)\b/.source,
-    /[€$£¥]\d[\d,.]+/.source,
-    /\b\d{4}-\d{2}-\d{2}\b/.source,
-  ].join("|"),
-  "g"
-);
+/** Markdown-style link: [label](url) */
+const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g;
 
+/**
+ * Highlight rules — order matters (first match wins per character).
+ * Each rule maps a regex to a Tailwind class string.
+ * Applied AFTER markdown links have been extracted.
+ */
+const HIGHLIGHT_RULES: Array<{ pattern: RegExp; className: string }> = [
+  // Money / fees — green tones
+  // Handles ranges like €45-50/day, standalone like €80, with parenthetical like €80 (≈₹7,200), currency-prefixed like EUR 675+
+  { pattern: /[€$£¥₹][,.\d]+(?:[-–][,.\d]+)?(?:\/\w+)?(?:\s*\([^)]+\))?/g, className: "text-emerald-600 dark:text-emerald-400 font-semibold" },
+  { pattern: /(?:EUR|USD|GBP|INR|JPY)\s*[\d,.]+\+?/g, className: "text-emerald-600 dark:text-emerald-400 font-semibold" },
+  // ISO dates
+  { pattern: /\b\d{4}-\d{2}-\d{2}\b/g, className: "text-blue-600 dark:text-blue-400 font-medium" },
+  // Time durations & processing windows — blue tones
+  { pattern: /\b\d+[-–]\d+\s+(?:working\s+)?days?\b/g, className: "text-blue-600 dark:text-blue-400 font-medium" },
+  { pattern: /\b\d+\s+(?:working\s+)?days?\b/g, className: "text-blue-600 dark:text-blue-400 font-medium" },
+  { pattern: /\b\d+\s+months?\b/g, className: "text-blue-600 dark:text-blue-400 font-medium" },
+  { pattern: /\b\d+-day\b/g, className: "text-blue-600 dark:text-blue-400 font-medium" },
+  // Full visa type names — match as one bold unit (e.g., "Schengen Business Visa (Type C)")
+  { pattern: /\bSchengen\s+(?:\w+\s+)*Visa\s*\(Type\s+[A-D]\)/g, className: "text-foreground font-semibold" },
+  { pattern: /\bSchengen\s+(?:\w+\s+)*Visa\b/g, className: "text-foreground font-semibold" },
+  // Key acronyms / program names
+  { pattern: /\b(?:ETIAS|ESTA|ETA|SEVIS)\b/g, className: "text-foreground font-semibold" },
+  // Standalone "VFS Global" (when not already inside a link)
+  { pattern: /\bVFS\s+Global\b/g, className: "text-foreground font-semibold" },
+  // Standalone Schengen / Type references not already caught above
+  { pattern: /\bSchengen\b/g, className: "text-foreground font-semibold" },
+];
+
+type HighlightSpan = {
+  start: number;
+  end: number;
+  className?: string;
+  // For link spans
+  isLink?: boolean;
+  label?: string;
+  url?: string;
+};
+
+/**
+ * Parse text into highlighted React nodes.
+ * Handles markdown links [label](url) and semantic highlight rules.
+ */
 function highlightTerms(text: string): React.ReactNode[] {
+  const spans: HighlightSpan[] = [];
+
+  // 1. Extract markdown links first — they take priority
+  LINK_PATTERN.lastIndex = 0;
+  let linkMatch: RegExpExecArray | null;
+  while ((linkMatch = LINK_PATTERN.exec(text)) !== null) {
+    spans.push({
+      start: linkMatch.index,
+      end: linkMatch.index + linkMatch[0].length,
+      isLink: true,
+      label: linkMatch[1],
+      url: linkMatch[2],
+    });
+  }
+
+  // 2. Apply highlight rules to remaining (non-link) regions
+  for (const rule of HIGHLIGHT_RULES) {
+    rule.pattern.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = rule.pattern.exec(text)) !== null) {
+      const start = m.index;
+      const end = start + m[0].length;
+      const overlaps = spans.some(s => start < s.end && end > s.start);
+      if (!overlaps) {
+        spans.push({ start, end, className: rule.className });
+      }
+    }
+  }
+
+  if (spans.length === 0) return [text];
+
+  spans.sort((a, b) => a.start - b.start);
+
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let key = 0;
-  let match: RegExpExecArray | null;
 
-  HIGHLIGHT_PATTERN.lastIndex = 0;
-  while ((match = HIGHLIGHT_PATTERN.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+  for (const span of spans) {
+    if (span.start > lastIndex) {
+      parts.push(text.slice(lastIndex, span.start));
     }
-    parts.push(
-      <span key={key++} className="text-foreground font-medium">
-        {match[0]}
-      </span>
-    );
-    lastIndex = HIGHLIGHT_PATTERN.lastIndex;
+    if (span.isLink && span.label && span.url) {
+      parts.push(
+        <a
+          key={key++}
+          href={span.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 font-medium underline underline-offset-2 decoration-blue-400/40 hover:decoration-blue-500 transition-colors"
+        >
+          {span.label}
+        </a>
+      );
+    } else {
+      parts.push(
+        <span key={key++} className={span.className}>
+          {text.slice(span.start, span.end)}
+        </span>
+      );
+    }
+    lastIndex = span.end;
   }
 
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
 
-  return parts.length > 0 ? parts : [text];
+  return parts;
+}
+
+/**
+ * Format a bullet item, splitting on " — " to give the document/item name
+ * a distinct visual weight from its description.
+ */
+function formatBulletContent(text: string, isWarning: boolean): React.ReactNode {
+  const dashIndex = text.indexOf(" — ");
+  if (dashIndex === -1 || isWarning) {
+    return <span className={isWarning ? "text-foreground/90" : ""}>{highlightTerms(text)}</span>;
+  }
+  const name = text.slice(0, dashIndex);
+  const desc = text.slice(dashIndex + 3);
+  return (
+    <span>
+      <span className="text-foreground font-medium">{name}</span>
+      <span className="text-muted-foreground"> — {highlightTerms(desc)}</span>
+    </span>
+  );
 }
 
 /* ─── Text formatter ──────────────────────────────────────────────── */
@@ -166,16 +266,16 @@ function formatThinking(text: string): React.ReactNode {
   const flushBullets = () => {
     if (bulletGroup.length === 0) return;
     elements.push(
-      <ul key={key++} className="my-2 ml-0.5 space-y-1">
+      <ul key={key++} className="my-2.5 ml-0.5 space-y-2">
         {bulletGroup.map((item, i) => (
-          <li key={i} className="flex gap-2">
-            <span className={`select-none shrink-0 mt-[2px] text-xs ${
-              item.isWarning ? "text-amber-500" : "text-muted-foreground/50"
+          <li key={i} className="flex gap-2.5">
+            <span className={`select-none shrink-0 mt-[3px] text-xs ${
+              item.isWarning ? "text-amber-500" : "text-muted-foreground/40"
             }`}>
               {item.isWarning ? "⚠" : "•"}
             </span>
-            <span className={`leading-relaxed ${item.isWarning ? "text-foreground/90" : ""}`}>
-              {highlightTerms(item.text)}
+            <span className="leading-relaxed">
+              {formatBulletContent(item.text, item.isWarning)}
             </span>
           </li>
         ))}
@@ -195,15 +295,13 @@ function formatThinking(text: string): React.ReactNode {
     if (/^§\s+/.test(line)) {
       flushBullets();
       const sectionName = line.replace(/^§\s+/, "");
-      const isDone = /^DONE$/i.test(sectionName);
+      const isComplete = /^(?:DONE|READY)$/i.test(sectionName);
       elements.push(
-        <div key={key++} className={`mt-4 mb-1.5 flex items-center gap-2 ${isDone ? "mt-5" : ""}`}>
-          <span className={`text-[11px] font-semibold tracking-wider uppercase ${
-            isDone
+        <div key={key++} className={`mt-5 mb-2 flex items-center gap-2.5`}>
+          <span className={`text-xs font-semibold tracking-wider uppercase ${
+            isComplete
               ? "text-emerald-600 dark:text-emerald-400"
-              : sectionName.includes("WATCH")
-                ? "text-amber-600 dark:text-amber-400"
-                : "text-foreground/50"
+              : "text-foreground/50"
           }`}>
             {sectionName}
           </span>
@@ -242,19 +340,30 @@ function formatThinking(text: string): React.ReactNode {
       continue;
     }
 
-    // Old-style header line: ends with ":" or is ALL CAPS (but not a § section)
-    if (/:\s*$/.test(line) && line.length < 80) {
+    // Intro / lead-in line: ends with ":" (e.g., "Here's everything required for your application:")
+    if (/:\s*$/.test(line) && line.length < 100) {
       elements.push(
-        <p key={key++} className="mt-3 mb-1 text-xs font-semibold text-foreground/50 tracking-wider uppercase">
-          {line.replace(/:$/, "")}
+        <p key={key++} className="mt-2 mb-1 text-sm text-muted-foreground italic">
+          {highlightTerms(line)}
         </p>
+      );
+      continue;
+    }
+
+    // Traverse service callout — highlight lines mentioning Traverse can help
+    if (/Traverse can help/i.test(line)) {
+      elements.push(
+        <div key={key++} className="my-2.5 flex items-start gap-2.5 rounded-md border border-blue-500/20 bg-blue-500/5 px-3.5 py-2.5 text-sm">
+          <span className="shrink-0 mt-0.5 text-blue-500">✦</span>
+          <span className="text-foreground/90 leading-relaxed">{highlightTerms(line)}</span>
+        </div>
       );
       continue;
     }
 
     // Regular paragraph
     elements.push(
-      <p key={key++} className="my-1 leading-relaxed">
+      <p key={key++} className="my-1.5 leading-relaxed">
         {highlightTerms(line)}
       </p>
     );

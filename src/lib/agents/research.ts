@@ -188,6 +188,7 @@ export async function* runResearchAgent(
     // Build a narrative thinking walkthrough from cached data
     let thinkingText = "";
     const purpose = travelDetails.purpose.replace("_", " ");
+    const origin = travelDetails.passports[0];
 
     // ── Phase 1: Opening — set the scene ──
     thinkingText += `Searching for ${purpose} visa requirements: ${corridor}.\n`;
@@ -218,17 +219,26 @@ export async function* runResearchAgent(
     };
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // ── Phase 2: Visa type — the key discovery ──
-    thinkingText += `\n§ VISA TYPE\n`;
-    thinkingText += `${cached.visaType}`;
-    if (cached.fees?.visa) thinkingText += ` — fee: ${cached.fees.visa}`;
-    thinkingText += `\n`;
-    if (cached.processingTime) thinkingText += `Processing: ${cached.processingTime}\n`;
-    if (cached.applyAt) thinkingText += `Where to apply: ${cached.applyAt}\n`;
-
-    if (cached.applicationWindow) {
-      thinkingText += `Application window: submit ${cached.applicationWindow.latest} before travel (earliest: ${cached.applicationWindow.earliest})\n`;
+    // ── Phase 2: Visa type — conversational overview ──
+    thinkingText += `\n§ YOUR VISA\n`;
+    thinkingText += `For your ${tripDays}-day ${purpose} trip from ${origin} to ${destination}, you'll need a ${cached.visaType}.\n`;
+    if (cached.applyAt) {
+      // Embed markdown-style link if URL is available
+      const applyAtLabel = cached.applyAtUrl
+        ? `[${cached.applyAt}](${cached.applyAtUrl})`
+        : cached.applyAt;
+      thinkingText += `You can apply at ${applyAtLabel}`;
+      if (cached.fees?.visa) {
+        thinkingText += `. The visa fee is ${cached.fees.visa}`;
+        if (cached.fees.service) thinkingText += `, plus a ${cached.fees.service} processing fee`;
+      }
+      thinkingText += `.\n`;
     }
+    if (cached.processingTime) thinkingText += `Processing typically takes ${cached.processingTime}`;
+    if (cached.applicationWindow) {
+      thinkingText += `, so plan to submit your application at least ${cached.applicationWindow.latest} before your departure`;
+    }
+    thinkingText += `.\n`;
 
     yield {
       type: "thinking",
@@ -242,12 +252,14 @@ export async function* runResearchAgent(
     const requiredItems = cached.items.filter(i => i.required);
     const optionalItems = cached.items.filter(i => !i.required);
 
-    thinkingText += `\n§ REQUIRED DOCUMENTS (${requiredItems.length})\n`;
+    thinkingText += `\n§ WHAT YOU'LL NEED (${requiredItems.length} documents)\n`;
+    thinkingText += `Here's everything required for your application:\n`;
     for (const item of requiredItems) {
       thinkingText += `• ${item.name} — ${item.description}\n`;
     }
     if (optionalItems.length > 0) {
-      thinkingText += `\n§ RECOMMENDED (${optionalItems.length})\n`;
+      thinkingText += `\n§ ALSO RECOMMENDED\n`;
+      thinkingText += `These aren't strictly required, but can strengthen your application:\n`;
       for (const item of optionalItems) {
         thinkingText += `• ${item.name} — ${item.description}\n`;
       }
@@ -268,32 +280,42 @@ export async function* runResearchAgent(
       requiredValidUntil
     );
 
-    thinkingText += `\n§ PERSONALIZING FOR THIS TRIP\n`;
-    thinkingText += `Passport must be valid until ${requiredValidUntil.toISOString().split("T")[0]}.\n`;
+    thinkingText += `\n§ TAILORED TO YOUR TRIP\n`;
+    thinkingText += `Your passport must be valid through at least ${requiredValidUntil.toISOString().split("T")[0]} (6 months past your return date).\n`;
 
     if (personalized.financialThresholds) {
       const ft = personalized.financialThresholds;
       if (ft.dailyMinimum && ft.dailyMinimum !== "N/A (lump-sum requirement)") {
-        thinkingText += `Financial proof: ${ft.dailyMinimum}`;
-        if (ft.totalRecommended) thinkingText += ` (${ft.totalRecommended})`;
+        thinkingText += `You'll need to show proof of at least ${ft.dailyMinimum} for each day of your stay`;
+        if (ft.totalRecommended) thinkingText += ` — that's roughly ${ft.totalRecommended} for your ${tripDays}-day trip`;
         thinkingText += `.\n`;
       } else if (ft.totalRecommended) {
-        thinkingText += `Financial proof: ${ft.totalRecommended}.\n`;
+        thinkingText += `You'll need to show financial proof of at least ${ft.totalRecommended}.\n`;
       }
       if (ft.notes) thinkingText += `${ft.notes}\n`;
     }
 
+    // Language/translation notes — highlight Traverse services
     if (cached.documentLanguage) {
       const dl = cached.documentLanguage;
-      let langLine = `Documents accepted in: ${dl.accepted.join(", ")}`;
+      const langs = dl.accepted.join(" or ");
       if (dl.translationRequired) {
-        langLine += dl.certifiedTranslation ? `. Certified translation required` : `. Translation required`;
+        thinkingText += `Documents must be in ${langs}. `;
+        if (dl.certifiedTranslation) {
+          thinkingText += `Any documents in another language will need a certified translation — Traverse can help with this.\n`;
+        } else {
+          thinkingText += `Documents in other languages will need to be translated — Traverse can help with this.\n`;
+        }
+      } else {
+        thinkingText += `Documents are accepted in ${langs}.\n`;
       }
-      thinkingText += `${langLine}.\n`;
     }
 
+    // Important notes — skip the language/translation note (already handled above)
     if (cached.importantNotes?.length) {
       for (const note of cached.importantNotes) {
+        // Skip language translation notes since we handle them with the Traverse callout above
+        if (/translat(?:ed|ion)|notariz/i.test(note)) continue;
         thinkingText += `${note}\n`;
       }
     }
@@ -305,23 +327,6 @@ export async function* runResearchAgent(
       excerpt: thinkingText,
     };
     await new Promise(resolve => setTimeout(resolve, 300));
-
-    // ── Phase 5: Rejection risks — the cautionary note ──
-    if (cached.commonRejectionReasons?.length) {
-      thinkingText += `\n§ WATCH OUT\n`;
-      thinkingText += `Common reasons applications on this corridor get rejected:\n`;
-      for (const reason of cached.commonRejectionReasons) {
-        thinkingText += `⚠ ${reason}\n`;
-      }
-
-      yield {
-        type: "thinking",
-        agent: "Research Agent",
-        summary: "Rejection risks identified",
-        excerpt: thinkingText,
-      };
-      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.QUARTER_SECOND_MS));
-    }
 
     // Sort: uploadable first, non-uploadable at bottom
     const sortedPersonalized = [...personalized.items].sort((a, b) => {
@@ -344,8 +349,8 @@ export async function* runResearchAgent(
     }
 
     // Final thinking state
-    thinkingText += `\n§ DONE\n`;
-    thinkingText += `${personalized.items.length} requirements identified from ${sources.length} sources. Ready for document verification.`;
+    thinkingText += `\n§ READY\n`;
+    thinkingText += `We've identified ${personalized.items.length} requirements from ${sources.length} official sources. You can now upload your documents and we'll verify each one.`;
 
     yield {
       type: "thinking",
@@ -720,6 +725,7 @@ Return ONLY a JSON object. Items first, then metadata. 5-8 items focusing on doc
   "fees": {"visa": "amount with currency", "service": "amount or null"},
   "processingTime": "estimate",
   "applyAt": "where to apply",
+  "applyAtUrl": "direct URL to the application portal or visa service website (e.g. https://visa.vfsglobal.com/...)",
   "importantNotes": ["note"],
   "sources": [{"name": "source", "url": "https://..."}],
   "applicationWindow": {"earliest": "e.g. 6 months before travel", "latest": "e.g. 15 working days before"},
@@ -892,6 +898,7 @@ function createFallbackRequirements(
     },
     processingTime: "Unknown",
     applyAt: "Embassy or consulate",
+    applyAtUrl: undefined,
     importantNotes: [
       "Unable to retrieve complete requirements. Please verify with official sources.",
     ],

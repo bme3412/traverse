@@ -54,7 +54,7 @@ async function* perDocumentAnalysis(
   yield {
     type: "doc_analysis_thinking",
     requirementName: requirement.name,
-    excerpt: `Reading ${document.filename}...`,
+    excerpt: `Reading document...`,
   };
 
   const extraction = await runSingleDocumentRead(document);

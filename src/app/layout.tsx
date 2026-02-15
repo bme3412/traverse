@@ -21,9 +21,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Traverse — AI Visa Application Auditor",
+  title: "Traverse — Every document. Every detail. Every language.",
   description:
-    "AI that reviews your visa application the way an experienced immigration team would. Upload documents in any language.",
+    "Three AI agents systematically traverse your entire visa application — researching requirements, reading every document, and telling you exactly what to fix. No immigration lawyer needed.",
 };
 
 export default function RootLayout({
@@ -51,11 +51,18 @@ export default function RootLayout({
             <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur-sm">
               <div className="mx-auto flex h-14 max-w-5xl items-center px-6">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-emerald-500 text-white text-sm font-bold shadow-sm">
                     T
                   </div>
                   <span className="text-lg font-semibold tracking-tight">
                     Traverse
+                  </span>
+                  <span className="hidden sm:inline text-xs border-l border-border/60 pl-2.5 ml-0.5">
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">Every document</span>
+                    <span className="text-muted-foreground/40 mx-1">&middot;</span>
+                    <span className="font-semibold text-purple-600 dark:text-purple-400">Every detail</span>
+                    <span className="text-muted-foreground/40 mx-1">&middot;</span>
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">Every language</span>
                   </span>
                 </div>
                 <div className="ml-auto text-xs text-muted-foreground">
