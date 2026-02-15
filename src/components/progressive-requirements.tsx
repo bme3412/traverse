@@ -202,9 +202,30 @@ function findBestDocumentMatch(
   const reqWords = reqLower.split(/\s+/);
 
   // Define explicit document types with keywords and exclusions
+  // Order matters: more specific types must come before generic ones
   const documentTypes = {
     passport: {
       keywords: ["passport"],
+      excludeIf: []
+    },
+    casLetter: {
+      keywords: ["cas", "confirmation of acceptance"],
+      excludeIf: []
+    },
+    personalStatement: {
+      keywords: ["personal statement", "statement of purpose", "personal essay"],
+      excludeIf: []
+    },
+    ielts: {
+      keywords: ["ielts", "toefl", "pte", "language proficiency", "english proficiency", "english language"],
+      excludeIf: []
+    },
+    academicQualifications: {
+      keywords: ["academic", "transcript", "qualification", "degree", "certificate", "diploma"],
+      excludeIf: ["tb", "tuberculosis", "medical", "birth"]
+    },
+    tbTest: {
+      keywords: ["tuberculosis", "tb test", "tb certificate", "medical test", "medical exam"],
       excludeIf: []
     },
     accommodation: {
@@ -212,27 +233,31 @@ function findBestDocumentMatch(
       excludeIf: ["flight", "ticket", "airline"]
     },
     bankStatement: {
-      keywords: ["bank", "statement", "financial"],
-      excludeIf: ["employment", "income", "tax", "return"]
+      keywords: ["bank", "financial evidence", "financial means", "sufficient funds"],
+      excludeIf: ["employment", "income", "tax", "return", "personal"]
     },
     incomeTaxReturns: {
       keywords: ["tax", "return", "itr"],
       excludeIf: []
     },
     employmentProof: {
-      keywords: ["employment", "work", "employer", "letter"],
-      excludeIf: ["tax", "return", "bank", "statement"]
+      keywords: ["employment", "work", "employer", "income", "freelance"],
+      excludeIf: ["tax", "return", "bank"]
     },
     flight: {
-      keywords: ["flight", "ticket", "airline", "itinerary"],
+      keywords: ["flight", "ticket", "airline"],
       excludeIf: ["hotel", "accommodation"]
+    },
+    travelItinerary: {
+      keywords: ["itinerary", "travel plan", "trip plan"],
+      excludeIf: []
     },
     insurance: {
       keywords: ["insurance", "coverage", "policy"],
       excludeIf: []
     },
     coverLetter: {
-      keywords: ["cover", "letter"],
+      keywords: ["cover letter"],
       excludeIf: ["employment", "invitation", "bank"]
     },
     invitation: {
@@ -759,6 +784,19 @@ export function ProgressiveRequirements({
                       }, 2000);
                     }
                   }
+
+                  // Auto-scroll to show the next requirement after this one completes
+                  if (index + 1 < requirements.length) {
+                    setTimeout(() => {
+                      const el = document.getElementById(`requirement-${index + 1}`);
+                      if (el) {
+                        const rect = el.getBoundingClientRect();
+                        if (rect.top > window.innerHeight - 150 || rect.bottom < 80) {
+                          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                        }
+                      }
+                    }, 600);
+                  }
                 }
               } catch {
                 // Skip parse errors
@@ -946,8 +984,8 @@ export function ProgressiveRequirements({
 
   return (
     <div className="space-y-6" ref={containerRef}>
-      {/* Header with Progress */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border pb-3">
+      {/* Header with Progress + Greeting — sticky so the contextual message stays visible while scrolling */}
+      <div className="sticky top-0 z-10 bg-white dark:bg-slate-950 border-b border-border pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold">{t("Documents")}</h2>
@@ -982,18 +1020,20 @@ export function ProgressiveRequirements({
             />
           </div>
         )}
-      </div>
 
-      {/* Contextual greeting — appears after passport name is extracted (client-side only) */}
-      {hasMounted && (multiLanguageGreetings || greetingText) && (
-        <CompactGreeting
-          multiLanguageGreetings={multiLanguageGreetings}
-          greetingText={greetingText}
-          language={language}
-          setLanguage={setLanguage}
-          t={t}
-        />
-      )}
+        {/* Contextual greeting — sticky inside the header so it stays visible while scrolling */}
+        {hasMounted && (multiLanguageGreetings || greetingText) && (
+          <div className="mt-3">
+            <CompactGreeting
+              multiLanguageGreetings={multiLanguageGreetings}
+              greetingText={greetingText}
+              language={language}
+              setLanguage={setLanguage}
+              t={t}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Requirements List */}
       <div className="space-y-3">

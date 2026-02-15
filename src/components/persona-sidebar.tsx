@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronRight, ChevronLeft, Plane, GripVertical, X, CheckCircle2, FileText, ZoomIn } from "lucide-react";
 import { TravelDetails } from "@/lib/types";
@@ -142,6 +142,7 @@ export function PersonaSidebar() {
   const [zoomedGalleryImage, setZoomedGalleryImage] = useState<{ name: string; src: string } | null>(null);
 
   const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
+  const sidebarPanelRef = useRef<HTMLDivElement>(null);
 
   const isAnalyzePage = pathname?.startsWith("/analyze");
 
@@ -175,6 +176,13 @@ export function PersonaSidebar() {
       clearSidebarExpandRequest();
     }
   }, [sidebarExpandRequested, isOpen, clearSidebarExpandRequest, setIsOpen]);
+
+  // Scroll sidebar to top whenever it opens on the analyze page so persona name is visible
+  useEffect(() => {
+    if (isOpen && isAnalyzePage && isDemoProfile && sidebarPanelRef.current) {
+      sidebarPanelRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isOpen, isAnalyzePage, isDemoProfile]);
 
   // Sync local state when other components open/close the sidebar via context
   // (e.g., progressive-requirements reopens after 1st upload, closes after 2nd)
@@ -223,6 +231,7 @@ export function PersonaSidebar() {
 
       {/* Sidebar panel */}
       <div
+        ref={sidebarPanelRef}
         className={`fixed left-0 top-0 h-full w-[22rem] bg-popover backdrop-blur-sm border-r border-border z-40 transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } overflow-y-auto`}
@@ -251,6 +260,12 @@ export function PersonaSidebar() {
 
           {/* Persona header — large & readable */}
           <div className="mb-5 rounded-xl border border-border bg-background/60 p-4">
+            {/* Fictional profile badge */}
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/20 text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                Fictional Demo Profile
+              </span>
+            </div>
             {/* Name + corridor flags */}
             <h2 className="text-lg font-bold text-foreground mb-1">{persona.name}</h2>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
@@ -400,11 +415,11 @@ export function PersonaSidebar() {
           {/* Documents — always-expanded draggable list (analyze page) */}
           {isAnalyzePage && isDemoProfile && (
             <div className="mb-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                 Documents
                 <span className="ml-1 normal-case tracking-normal font-normal">({persona.documents.length})</span>
               </p>
-              <div className="space-y-1.5">
+              <div className="space-y-2.5">
                 {persona.documents.map((doc, i) => (
                   <div
                     key={i}
@@ -422,7 +437,10 @@ export function PersonaSidebar() {
                       // Close sidebar during drag so drop targets are accessible
                       requestAnimationFrame(() => setIsOpen(false));
                     }}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg border transition-colors ${
+                    onClick={() => {
+                      if (doc.image) setPreviewImage({ name: doc.name, src: doc.image });
+                    }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${
                       doc.image
                         ? "border-border bg-background hover:bg-card cursor-grab active:cursor-grabbing"
                         : "border-border/50 bg-background/50 opacity-50"

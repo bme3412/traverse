@@ -23,6 +23,8 @@ export interface RemediationFix {
   correctedDocName: string;
   /** Language of the corrected document */
   correctedDocLanguage: string;
+  /** Pre-written compliance detail for demo fast-path (skips LLM re-verification) */
+  passResult?: string;
 }
 
 export interface PersonaRemediation {
@@ -57,6 +59,8 @@ const priyaRemediation: PersonaRemediation = {
       ],
       correctedDocName: "Cover Letter (Corrected)",
       correctedDocLanguage: "English",
+      passResult:
+        "Cover letter correctly identifies applicant as permanent Senior Software Engineer at TechVista Solutions Pvt. Ltd. (₹85,000/month), matching Hindi employment letter. Trip purpose (ESAS 2026 conference, Berlin), travel dates (March 10–25, 2026), and ties to India (permanent employment, family residence in Mumbai) are clearly articulated. No cross-lingual contradictions detected.",
     },
     {
       id: "priya-conference-invitation",
@@ -76,6 +80,8 @@ const priyaRemediation: PersonaRemediation = {
       ],
       correctedDocName: "Conference Invitation (Official)",
       correctedDocLanguage: "English",
+      passResult:
+        "Official invitation issued from info@esas-conference.org on ESAS Conference letterhead with registration REG-2026-ESAS-4782. Conference dates (March 13–15, 2026), venue (Berlin Convention Centre), and organizer details verified against public records. Sender domain resolves to legitimate conference organization. No forensic flags detected.",
     },
     {
       id: "priya-travel-itinerary",
@@ -96,6 +102,8 @@ const priyaRemediation: PersonaRemediation = {
       isNewDocument: true,
       correctedDocName: "Detailed Travel Itinerary",
       correctedDocLanguage: "English",
+      passResult:
+        "Day-by-day itinerary accounts for all 15 days: ESAS 2026 conference (Mar 13–15), pre-conference client meetings with SAP Labs (Mar 11–12), post-conference networking and Berlin tech meetups (Mar 16–18), disclosed leisure days (Mar 19–21) with confirmed return flight BER→BOM on March 25. Trip duration is fully justified with business and tourism activities. No narrative gaps remain.",
     },
   ],
 };
@@ -127,6 +135,8 @@ const amaraRemediation: PersonaRemediation = {
       ],
       correctedDocName: "Bank Statement (3-Month)",
       correctedDocLanguage: "English",
+      passResult:
+        "3-month bank statement (Nov 2025 – Jan 2026) shows consistent balance of ₦44,200,000+ maintained for 92 consecutive days, exceeding UKVI 28-day holding requirement. All deposits traceable to salary credits from University of Lagos. No third-party transfers or suspicious capital injections. GBP equivalent ≈ £27,760 exceeds Tier 4 financial threshold of £1,334/month for 9 months (£12,006).",
     },
     {
       id: "amara-ielts",
@@ -147,6 +157,8 @@ const amaraRemediation: PersonaRemediation = {
       ],
       correctedDocName: "IELTS Score Report (Retake)",
       correctedDocLanguage: "English",
+      passResult:
+        "IELTS Academic retake (Jan 18, 2026) — TRF 26NG005104OKAA002A verified against British Council database. All component scores meet UKVI Tier 4 minimum of 6.0: Listening 7.5, Reading 7.0, Writing 6.5, Speaking 6.5. Overall Band 7.0. Test date within 2-year validity window. No component below threshold.",
     },
     {
       id: "amara-personal-statement",
@@ -167,6 +179,8 @@ const amaraRemediation: PersonaRemediation = {
       ],
       correctedDocName: "Personal Statement (Revised)",
       correctedDocLanguage: "English",
+      passResult:
+        "Personal statement articulates clear return-to-Nigeria plan: establish AI research laboratory for agricultural optimization at University of Lagos. Employer commitment from Tech Solutions Ltd (Lagos) confirms position held for post-study return as ML team lead. Strong family ties documented (parents and three siblings in Lagos). Genuine student intent established with specific career trajectory and homeland obligations. No narrative inconsistencies detected.",
     },
   ],
 };
@@ -198,6 +212,8 @@ const carlosRemediation: PersonaRemediation = {
       ],
       correctedDocName: "Extrato Bancário (3 Meses)",
       correctedDocLanguage: "Portuguese",
+      passResult:
+        "3-month bank statement (Nov 2025 – Jan 2026) shows sustained balance of R$42,800+ from legitimate photography income. All deposits traceable to named client payments (Studio Lumière, Editora Abril, independent commissions). No personal loans or suspicious capital injections detected. Closing balance R$73,500 demonstrates sufficient funds for 21-day Japan trip. Forensic review: clean.",
     },
     {
       id: "carlos-freelance-income",
@@ -218,6 +234,8 @@ const carlosRemediation: PersonaRemediation = {
       ],
       correctedDocName: "Declaração de Renda (com MEI)",
       correctedDocLanguage: "Portuguese",
+      passResult:
+        "Freelance income declaration includes valid MEI registration: CNPJ 12.345.678/0001-90, municipal inscription CCM SP-8.765.432-1, CNAE 7420-0/01 (Professional Photography). DAS-MEI payment current through January 2026. Prefeitura de São Paulo official stamp present. Income of R$8,500/month verified against bank statement deposits. Registration cross-references with Receita Federal database. No documentation gaps.",
     },
     {
       id: "carlos-itinerary",
@@ -238,6 +256,8 @@ const carlosRemediation: PersonaRemediation = {
       ],
       correctedDocName: "Japan Travel Itinerary (Detailed)",
       correctedDocLanguage: "English",
+      passResult:
+        "Comprehensive 21-day itinerary with specific daily activities: Tokyo photography locations (Shinjuku, Shibuya, Asakusa), Kyoto temple circuit (Fushimi Inari, Kinkaku-ji, Arashiyama), Osaka street food tour, Hiroshima day trip. All 4 hotel bookings confirmed with reservation numbers. JR Rail Pass order #JP-2026-88412 verified. Return flight LATAM LA8083 on Apr 21 at 18:45 confirmed. No gaps in accommodation or travel plan.",
     },
   ],
 };

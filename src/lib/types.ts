@@ -14,7 +14,7 @@ export type SSEEvent =
   | { type: "cross_lingual"; finding: string; severity: Severity; details?: string }
   | { type: "forensic"; finding: string; severity: Severity; details?: string }
   | { type: "narrative"; assessment: NarrativeStrength; issues: number; details?: string }
-  | { type: "recommendation"; priority: Severity; action: string; details?: string }
+  | { type: "recommendation"; priority: Severity; action: string; details?: string; documentRef?: string }
   | { type: "assessment"; overall: ApplicationAssessment }
   | { type: "advisory_tips"; interviewTips: string[]; corridorWarnings: string[] }
   | { type: "doc_analysis_start"; requirementName: string; docFilename: string }

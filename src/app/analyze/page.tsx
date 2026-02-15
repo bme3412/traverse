@@ -435,6 +435,7 @@ function AnalyzeContent() {
           severity: e.priority as "critical" | "warning" | "info",
           issue: e.details || "",
           fix: e.action,
+          documentRef: e.documentRef,
         });
       }
       if (e.type === "advisory_tips") {
@@ -527,6 +528,85 @@ function AnalyzeContent() {
     };
     setReauditProgress({ ...progress });
     setReauditThinking(new Map());
+
+    // ---- Demo fast-path: simulate re-audit with pre-baked results ----
+    if (isDemoProfile) {
+      for (let fixIdx = 0; fixIdx < remediationData.fixes.length; fixIdx++) {
+        const fix = remediationData.fixes[fixIdx];
+
+        // Fetching stage
+        progress.fixStatuses.set(fix.id, "fetching");
+        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses) });
+        await new Promise((r) => setTimeout(r, 400));
+
+        // Analyzing / reading stage
+        progress.fixStatuses.set(fix.id, "analyzing");
+        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses) });
+        setReauditThinking((prev) => {
+          const next = new Map(prev);
+          next.set(fix.id, "Reading document...");
+          return next;
+        });
+        await new Promise((r) => setTimeout(r, 800));
+
+        // Cross-checking stage
+        setReauditThinking((prev) => {
+          const next = new Map(prev);
+          next.set(fix.id, "Cross-checking against requirement...");
+          return next;
+        });
+        await new Promise((r) => setTimeout(r, 1000));
+
+        // Verifying stage
+        setReauditThinking((prev) => {
+          const next = new Map(prev);
+          next.set(fix.id, "Verifying compliance...");
+          return next;
+        });
+        await new Promise((r) => setTimeout(r, 500));
+
+        // Mark passed with pre-baked result
+        progress.fixStatuses.set(fix.id, "passed");
+        progress.fixResults.set(fix.id, {
+          requirement: fix.requirementName,
+          status: "met",
+          detail: fix.passResult || "Requirement satisfied after corrections.",
+        });
+        setReauditProgress({
+          ...progress,
+          fixStatuses: new Map(progress.fixStatuses),
+          fixResults: new Map(progress.fixResults),
+        });
+
+        // Inter-fix delay
+        if (fixIdx < remediationData.fixes.length - 1) {
+          await new Promise((r) => setTimeout(r, 300));
+        }
+      }
+
+      // Finalize — all demo fixes pass
+      progress.overallComplete = true;
+      progress.allPassed = true;
+      setReauditProgress({
+        ...progress,
+        fixStatuses: new Map(progress.fixStatuses),
+        fixResults: new Map(progress.fixResults),
+      });
+
+      if (advisoryReport) {
+        setAdvisoryReport({
+          ...advisoryReport,
+          overall: "APPLICATION_PROCEEDS",
+        });
+      }
+
+      if (isDevelopment()) {
+        console.log("[Re-audit] Demo fast-path complete. All fixes passed.");
+      }
+      return;
+    }
+
+    // ---- Real re-audit path (non-demo) ----
 
     // Accumulate extractions across fixes for cross-doc validation
     const accumulatedExtractions = [...perDocExtractions];
@@ -729,7 +809,7 @@ function AnalyzeContent() {
     if (isDevelopment()) {
       console.log(`[Re-audit] Complete. All passed: ${allPassed}`);
     }
-  }, [remediationData, result?.requirements, perDocExtractions, advisoryReport]);
+  }, [remediationData, result?.requirements, perDocExtractions, advisoryReport, isDemoProfile]);
 
   // Derived: is re-audit in progress?
   const isReauditing = !!reauditProgress && !reauditProgress.overallComplete;
@@ -1449,6 +1529,9 @@ function AnalyzePageInner({
           isReauditing={isReauditing}
           reauditProgress={reauditProgress}
           reauditThinking={reauditThinking}
+          passports={travelDetails.passports}
+          destination={travelDetails.destination}
+          suggestedLanguage={suggestedLanguage || undefined}
         />
       )}
     </div>

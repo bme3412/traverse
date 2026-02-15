@@ -273,6 +273,7 @@ export async function* runAdvisoryAgent(
           priority: fix.severity,
           action: fix.fix,
           details: fix.issue,
+          documentRef: fix.documentRef,
         };
       }
     }

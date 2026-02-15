@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, CheckCircle2, AlertTriangle, Info, ExternalLink, Globe, ChevronDown, ChevronUp, Sparkles, XCircle, ArrowRight, FileCheck2, RefreshCw, ZoomIn, FilePlus2 } from "lucide-react";
+import { X, CheckCircle2, AlertTriangle, Info, ExternalLink, ChevronDown, ChevronUp, Sparkles, XCircle, ArrowRight, FileCheck2, RefreshCw, ZoomIn, FilePlus2 } from "lucide-react";
 import { AdvisoryReport, ApplicationAssessment, ComplianceItem, DocumentExtraction, RemediationItem, FieldRegion, Severity, ReauditProgress, ReauditFixStatus } from "@/lib/types";
 import { useTranslation } from "@/lib/i18n-context";
 import { FadeText } from "./fade-text";
-import { LANGUAGES } from "./language-selector";
+import { LanguageSelector } from "./language-selector";
 import { FileText } from "lucide-react";
 import type { RemediationFix, PersonaRemediation } from "@/lib/remediation-data";
 
@@ -21,6 +21,10 @@ interface AdvisoryModalProps {
   isReauditing?: boolean;
   reauditProgress?: ReauditProgress | null;
   reauditThinking?: Map<string, string>;
+  /** Corridor info for language selector suggestions */
+  passports?: string[];
+  destination?: string;
+  suggestedLanguage?: string;
 }
 
 /**
@@ -309,7 +313,7 @@ function DocumentThumbnail({
   );
 }
 
-export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extractions, remediation, onApplyFixes, isReauditing = false, reauditProgress, reauditThinking }: AdvisoryModalProps) {
+export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extractions, remediation, onApplyFixes, isReauditing = false, reauditProgress, reauditThinking, passports, destination, suggestedLanguage }: AdvisoryModalProps) {
   // Debug: log document image matching info
   useEffect(() => {
     if (isOpen) {
@@ -326,10 +330,8 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
   const { t, language, setLanguage } = useTranslation();
   const [translatedContent, setTranslatedContent] = useState<{
     fixes: Array<{ issue: string; fix: string }>;
-    interviewTips: string[];
     corridorWarnings: string[];
   } | null>(null);
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [expandedFixCards, setExpandedFixCards] = useState<Set<string>>(new Set());
   const [zoomedImage, setZoomedImage] = useState<{ src: string; label: string } | null>(null);
 
@@ -337,9 +339,6 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
   const effectiveAssessment = reauditProgress?.allPassed ? "APPLICATION_PROCEEDS" as ApplicationAssessment : advisory.overall;
   const assessmentInfo = getAssessmentInfo(effectiveAssessment);
   const Icon = assessmentInfo.icon;
-
-  // Get current language display name
-  const currentLang = LANGUAGES.find(l => l.name === language) || LANGUAGES[0];
 
   // Translate advisory content when language changes
   useEffect(() => {
@@ -378,7 +377,6 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
     const textsToTranslate = [
       ...advisory.fixes.map((f) => f.issue),
       ...advisory.fixes.map((f) => f.fix),
-      ...(advisory.interviewTips || []),
       ...(advisory.corridorWarnings || []),
     ];
 
@@ -389,18 +387,12 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
         fix: translated[fixCount + i] || advisory.fixes[i].fix,
       }));
 
-      const tipStart = fixCount * 2;
-      const tipCount = advisory.interviewTips?.length || 0;
-      const interviewTips = (advisory.interviewTips || []).map(
-        (_, i) => translated[tipStart + i] || advisory.interviewTips![i]
-      );
-
-      const warningStart = tipStart + tipCount;
+      const warningStart = fixCount * 2;
       const corridorWarnings = (advisory.corridorWarnings || []).map(
         (_, i) => translated[warningStart + i] || advisory.corridorWarnings![i]
       );
 
-      setTranslatedContent({ fixes, interviewTips, corridorWarnings });
+      setTranslatedContent({ fixes, corridorWarnings });
     });
   }, [isOpen, advisory, language]);
 
@@ -408,7 +400,6 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
 
   const content = translatedContent || {
     fixes: advisory.fixes.map((f) => ({ issue: f.issue, fix: f.fix })),
-    interviewTips: advisory.interviewTips || [],
     corridorWarnings: advisory.corridorWarnings || [],
   };
 
@@ -420,72 +411,38 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800"
+        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`sticky top-0 z-10 border-b ${assessmentInfo.border} ${assessmentInfo.bg}`}>
+        <div className={`sticky top-0 z-10 border-b ${assessmentInfo.border} ${assessmentInfo.bg} rounded-t-2xl`}>
           <div className="flex items-start gap-4 p-6">
-            <Icon className={`w-8 h-8 flex-shrink-0 ${assessmentInfo.color}`} />
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center">
+              <Icon className={`w-5 h-5 ${assessmentInfo.color}`} />
+            </div>
             <div className="flex-1 min-w-0">
               <FadeText
                 text={assessmentInfo.title}
                 as="h2"
-                className={`text-2xl font-bold ${assessmentInfo.color}`}
+                className={`text-xl font-bold ${assessmentInfo.color}`}
               />
               <FadeText
                 text={assessmentInfo.message}
                 as="p"
-                className="mt-1 text-sm text-foreground/70"
+                className="mt-1 text-sm text-foreground/60"
               />
             </div>
 
-            {/* Language Selector */}
-            <div className="relative flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-sm"
-                aria-label="Change language"
-              >
-                <Globe className="w-4 h-4" />
-                <span className="font-medium">{currentLang.nativeName}</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-
-              {showLanguageMenu && (
-                <>
-                  {/* Backdrop to close dropdown */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowLanguageMenu(false)}
-                  />
-
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-56 max-h-80 overflow-y-auto bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50">
-                    {LANGUAGES.map((lang) => (
-                      <button
-                        key={lang.code}
-                        type="button"
-                        onClick={() => {
-                          setLanguage(lang.name);
-                          setShowLanguageMenu(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${
-                          lang.name === language ? "bg-slate-100 dark:bg-slate-700" : ""
-                        }`}
-                      >
-                        <span className="text-sm font-medium text-foreground">
-                          {lang.nativeName}
-                        </span>
-                        {lang.name === language && (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+            {/* Language Selector — corridor-aware with search and suggestions */}
+            <div className="flex-shrink-0">
+              <LanguageSelector
+                currentLanguage={language}
+                onLanguageChange={setLanguage}
+                isTranslating={false}
+                suggestedLanguage={suggestedLanguage}
+                passports={passports}
+                destination={destination}
+              />
             </div>
 
             <button
@@ -500,54 +457,34 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-6">
           {/* Critical Issues */}
           {critical.length > 0 && (
             <section>
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-foreground/70" />
-                <h3 className="text-lg font-bold text-foreground">
-                  <FadeText text={t("Must Fix These First")} />
-                </h3>
-                <span className="ml-auto text-xs font-medium text-foreground/50 px-2 py-1 rounded-full bg-foreground/5">
-                  CRITICAL
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-red-500/10">
+                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wide">
+                    <FadeText text={t("Must Fix")} />
+                  </h3>
+                </div>
+                <span className="text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full">
+                  {critical.length} {critical.length === 1 ? "issue" : "issues"}
                 </span>
               </div>
               <div className="space-y-3">
-                {critical.map((fix, index) => {
-                  const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
-                  const matchingImage = findImageForFix(fix, documentImages);
-                  const matchingExtraction = findExtractionForFix(fix, extractions);
-                  return (
-                    <div
-                      key={index}
-                      className="p-4 rounded-lg border-l-4 border-l-red-500 border border-border bg-background/50"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-foreground/10 text-foreground/70 text-xs font-medium">
-                          {fix.priority}
-                        </span>
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="font-semibold text-foreground text-sm leading-relaxed">
-                            {renderWithLinks(translatedFix.issue)}
-                          </div>
-                          <div className="text-sm text-foreground/70 leading-relaxed pl-3 border-l-2 border-border">
-                            {renderWithLinks(translatedFix.fix)}
-                          </div>
-                          {matchingImage && (
-                            <DocumentThumbnail
-                              imageData={matchingImage}
-                              extraction={matchingExtraction}
-                              documentRef={fix.documentRef}
-                              issueText={fix.issue}
-                              severity={fix.severity}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {critical.map((fix, index) => (
+                  <AdvisoryFixCard
+                    key={index}
+                    fix={fix}
+                    translatedFix={content.fixes[advisory.fixes.indexOf(fix)]}
+                    documentImages={documentImages}
+                    extractions={extractions}
+                    accentColor="red"
+                  />
+                ))}
               </div>
             </section>
           )}
@@ -555,50 +492,30 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
           {/* Warnings */}
           {warnings.length > 0 && (
             <section>
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-foreground/70" />
-                <h3 className="text-lg font-bold text-foreground">
-                  <FadeText text={t("Recommended Improvements")} />
-                </h3>
-                <span className="ml-auto text-xs font-medium text-foreground/50 px-2 py-1 rounded-full bg-foreground/5">
-                  WARNING
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/10">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wide">
+                    <FadeText text={t("Recommended Improvements")} />
+                  </h3>
+                </div>
+                <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
+                  {warnings.length} {warnings.length === 1 ? "item" : "items"}
                 </span>
               </div>
               <div className="space-y-3">
-                {warnings.map((fix, index) => {
-                  const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
-                  const matchingImage = findImageForFix(fix, documentImages);
-                  const matchingExtraction = findExtractionForFix(fix, extractions);
-                  return (
-                    <div
-                      key={index}
-                      className="p-4 rounded-lg border-l-4 border-l-amber-500 border border-border bg-background/50"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-foreground/10 text-foreground/70 text-xs font-medium">
-                          {fix.priority}
-                        </span>
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="font-semibold text-foreground text-sm leading-relaxed">
-                            {renderWithLinks(translatedFix.issue)}
-                          </div>
-                          <div className="text-sm text-foreground/70 leading-relaxed pl-3 border-l-2 border-border">
-                            {renderWithLinks(translatedFix.fix)}
-                          </div>
-                          {matchingImage && (
-                            <DocumentThumbnail
-                              imageData={matchingImage}
-                              extraction={matchingExtraction}
-                              documentRef={fix.documentRef}
-                              issueText={fix.issue}
-                              severity={fix.severity}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {warnings.map((fix, index) => (
+                  <AdvisoryFixCard
+                    key={index}
+                    fix={fix}
+                    translatedFix={content.fixes[advisory.fixes.indexOf(fix)]}
+                    documentImages={documentImages}
+                    extractions={extractions}
+                    accentColor="amber"
+                  />
+                ))}
               </div>
             </section>
           )}
@@ -606,78 +523,35 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
           {/* Info Items */}
           {info.length > 0 && (
             <section>
-              <div className="flex items-center gap-2 mb-4">
-                <Info className="w-5 h-5 text-foreground/70" />
-                <h3 className="text-lg font-bold text-foreground">
-                  <FadeText text={t("Extra Tips to Strengthen Your Application")} />
-                </h3>
-                <span className="ml-auto text-xs font-medium text-foreground/50 px-2 py-1 rounded-full bg-foreground/5">
-                  INFO
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/10">
+                  <Info className="w-4 h-4 text-blue-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wide">
+                    <FadeText text={t("Additional Tips")} />
+                  </h3>
+                </div>
+                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full">
+                  {info.length} {info.length === 1 ? "tip" : "tips"}
                 </span>
               </div>
               <div className="space-y-3">
-                {info.map((fix, index) => {
-                  const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
-                  const matchingImage = findImageForFix(fix, documentImages);
-                  const matchingExtraction = findExtractionForFix(fix, extractions);
-                  return (
-                    <div
-                      key={index}
-                      className="p-4 rounded-lg border-l-4 border-l-blue-500 border border-border bg-background/50"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-foreground/10 text-foreground/70 text-xs font-medium">
-                          {fix.priority}
-                        </span>
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="font-semibold text-foreground text-sm leading-relaxed">
-                            {renderWithLinks(translatedFix.issue)}
-                          </div>
-                          <div className="text-sm text-foreground/70 leading-relaxed pl-3 border-l-2 border-border">
-                            {renderWithLinks(translatedFix.fix)}
-                          </div>
-                          {matchingImage && (
-                            <DocumentThumbnail
-                              imageData={matchingImage}
-                              extraction={matchingExtraction}
-                              documentRef={fix.documentRef}
-                              issueText={fix.issue}
-                              severity={fix.severity}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          {/* Interview Tips */}
-          {content.interviewTips.length > 0 && (
-            <section className="pt-6 border-t border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="text-lg font-bold text-foreground">
-                  <FadeText text={t("Interview Preparation Tips")} />
-                </h3>
-              </div>
-              <div className="space-y-3">
-                {content.interviewTips.map((tip, index) => (
-                  <div
+                {info.map((fix, index) => (
+                  <AdvisoryFixCard
                     key={index}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-200 dark:border-emerald-900"
-                  >
-                    <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
-                    <p className="text-sm text-foreground/80">{renderWithLinks(tip)}</p>
-                  </div>
+                    fix={fix}
+                    translatedFix={content.fixes[advisory.fixes.indexOf(fix)]}
+                    documentImages={documentImages}
+                    extractions={extractions}
+                    accentColor="blue"
+                  />
                 ))}
               </div>
             </section>
           )}
 
-          {/* Corridor Warnings */}
+          {/* Corridor-specific notes */}
           {content.corridorWarnings.length > 0 && (
             <section className="pt-6 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 mb-4">
@@ -686,14 +560,14 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
                   <FadeText text={t("Important to Know")} />
                 </h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {content.corridorWarnings.map((warning, index) => (
                   <div
                     key={index}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/10 border border-blue-200 dark:border-blue-900"
+                    className="flex items-start gap-3 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/10 border border-blue-200/60 dark:border-blue-900/40"
                   >
-                    <Info className="w-5 h-5 flex-shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
-                    <p className="text-sm text-foreground/80">{renderWithLinks(warning)}</p>
+                    <Info className="w-4 h-4 flex-shrink-0 text-blue-500 dark:text-blue-400 mt-0.5" />
+                    <p className="text-sm text-foreground/80 leading-relaxed">{renderWithLinks(warning)}</p>
                   </div>
                 ))}
               </div>
@@ -765,7 +639,7 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+        <div className="sticky bottom-0 p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-2xl">
           {remediation && onApplyFixes ? (
             /* Fix Wizard CTA footer — adapts to re-audit state */
             reauditProgress?.overallComplete ? (
@@ -942,6 +816,115 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
               />
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// Advisory Fix Card — polished card for issue + fix in the main advisory
+// ============================================================
+
+const ACCENT_STYLES = {
+  red: {
+    border: "border-red-200/80 dark:border-red-500/20",
+    iconBg: "bg-red-500/10",
+    iconText: "text-red-500",
+    labelBg: "bg-red-50 dark:bg-red-500/5",
+    labelText: "text-red-600 dark:text-red-400",
+    fixBg: "bg-emerald-50/80 dark:bg-emerald-500/5",
+    fixBorder: "border-emerald-200/60 dark:border-emerald-500/15",
+  },
+  amber: {
+    border: "border-amber-200/80 dark:border-amber-500/20",
+    iconBg: "bg-amber-500/10",
+    iconText: "text-amber-500",
+    labelBg: "bg-amber-50 dark:bg-amber-500/5",
+    labelText: "text-amber-600 dark:text-amber-400",
+    fixBg: "bg-emerald-50/80 dark:bg-emerald-500/5",
+    fixBorder: "border-emerald-200/60 dark:border-emerald-500/15",
+  },
+  blue: {
+    border: "border-blue-200/80 dark:border-blue-500/20",
+    iconBg: "bg-blue-500/10",
+    iconText: "text-blue-500",
+    labelBg: "bg-blue-50 dark:bg-blue-500/5",
+    labelText: "text-blue-600 dark:text-blue-400",
+    fixBg: "bg-emerald-50/80 dark:bg-emerald-500/5",
+    fixBorder: "border-emerald-200/60 dark:border-emerald-500/15",
+  },
+} as const;
+
+function AdvisoryFixCard({
+  fix,
+  translatedFix,
+  documentImages,
+  extractions,
+  accentColor,
+}: {
+  fix: RemediationItem;
+  translatedFix: { issue: string; fix: string };
+  documentImages?: Map<string, { base64: string; mimeType: string }>;
+  extractions?: DocumentExtraction[];
+  accentColor: keyof typeof ACCENT_STYLES;
+}) {
+  const style = ACCENT_STYLES[accentColor];
+  const matchingImage = findImageForFix(fix, documentImages);
+  const matchingExtraction = findExtractionForFix(fix, extractions);
+
+  return (
+    <div className={`rounded-xl border ${style.border} overflow-hidden bg-card/50`}>
+      {/* Issue section */}
+      <div className="px-4 pt-4 pb-3">
+        <div className="flex items-start gap-3">
+          <div className={`flex-shrink-0 w-6 h-6 rounded-full ${style.iconBg} flex items-center justify-center mt-0.5`}>
+            {accentColor === "blue" ? (
+              <Info className={`w-3.5 h-3.5 ${style.iconText}`} />
+            ) : (
+              <AlertTriangle className={`w-3.5 h-3.5 ${style.iconText}`} />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            {fix.documentRef && (
+              <span className={`inline-block text-[10px] font-semibold uppercase tracking-wider ${style.labelText} mb-1`}>
+                {fix.documentRef.replace(/_/g, " ")}
+              </span>
+            )}
+            <p className="text-sm font-medium text-foreground leading-relaxed">
+              {renderWithLinks(translatedFix.issue)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Fix / recommendation section */}
+      <div className={`mx-3 mb-3 px-3.5 py-3 rounded-lg border ${style.fixBorder} ${style.fixBg}`}>
+        <div className="flex items-start gap-2.5">
+          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500/15 flex items-center justify-center mt-0.5">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              What to do
+            </span>
+            <p className="text-sm text-foreground/80 leading-relaxed mt-0.5">
+              {renderWithLinks(translatedFix.fix)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Document thumbnail if available */}
+      {matchingImage && (
+        <div className="px-3 pb-3">
+          <DocumentThumbnail
+            imageData={matchingImage}
+            extraction={matchingExtraction}
+            documentRef={fix.documentRef}
+            issueText={fix.issue}
+            severity={fix.severity}
+          />
         </div>
       )}
     </div>

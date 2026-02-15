@@ -130,7 +130,7 @@ export default function Home() {
           </div>
           <div className="w-px h-10 bg-border" />
           <div className="px-8 py-1">
-            <p className="stat-number text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">100+</p>
+            <p className="stat-number text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">40+</p>
             <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider font-mono">Languages understood</p>
           </div>
           <div className="w-px h-10 bg-border" />
@@ -160,6 +160,15 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* ── Disclaimer ── */}
+      <div className="max-w-2xl mx-auto mb-6 px-4">
+        <p className="text-[11px] text-muted-foreground/70 text-center leading-relaxed">
+          Traverse provides informational guidance only and does not constitute legal advice.
+          Visa requirements change frequently — always verify with the official embassy or consulate.
+          Not affiliated with any government agency. All demo profiles are entirely fictional.
+        </p>
+      </div>
 
       {/* ── Form ── */}
       <div className="relative rounded-lg p-px mb-8 border border-border bg-card">
