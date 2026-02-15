@@ -113,16 +113,16 @@ const amaraRemediation: PersonaRemediation = {
       requirementName: "Bank Statement",
       originalDocImage: "/demo-docs/amara-03-bank-statement.png",
       correctedDocImage: "/demo-docs/amara-03-bank-statement-corrected.png",
-      issueTitle: "28-Day Funds Holding Requirement Not Met",
+      issueTitle: "Forensic Flag — Insufficient Funds Holding Period",
       issueDetail:
-        "UKVI requires funds to be held for 28 consecutive days. Statement shows a ₦2,000,000 transfer from parents on Dec 10 — only 21 days before statement end. The higher balance was not maintained for the required period.",
+        "UKVI requires funds to be held for 28 consecutive days before application submission. Forensic review reveals ₦2,000,000 transfer from parents deposited on Dec 10 — only 21 days before statement end date. Timing pattern suggests funds were specifically arranged for visa application rather than demonstrating genuine financial capacity. The elevated balance was not maintained for the mandatory holding period.",
       fixDetail:
-        "Extended statement to 3 months (Nov 2025 – Jan 2026) showing stable balance of ₦44M+ held continuously for 92 days. No sudden large deposits from third parties.",
+        "Extended statement period to 3 months (Nov 2025 – Jan 2026) showing stable balance of ₦44M+ held continuously for 92 days. Removed third-party transfers — all deposits now from legitimate salary credits with consistent monthly patterns exceeding UKVI financial threshold.",
       severity: "critical",
       changes: [
         { field: "Statement Period", original: "1 month (Dec 2025)", corrected: "3 months (Nov 2025 – Jan 2026)" },
         { field: "Funds Holding Period", original: "21 days (insufficient)", corrected: "92 consecutive days" },
-        { field: "Large Third-Party Deposits", original: "₦2M from parents (Dec 10)", corrected: "None — only salary credits" },
+        { field: "Forensic Red Flag", original: "₦2M from parents (Dec 10)", corrected: "None — only salary credits" },
         { field: "Closing Balance (GBP equiv.)", original: "≈ £9,181", corrected: "≈ £27,760" },
       ],
       correctedDocName: "Bank Statement (3-Month)",
@@ -133,11 +133,11 @@ const amaraRemediation: PersonaRemediation = {
       requirementName: "IELTS Score Report",
       originalDocImage: "/demo-docs/amara-06-ielts-score.png",
       correctedDocImage: "/demo-docs/amara-06-ielts-score-corrected.png",
-      issueTitle: "Speaking Sub-Score Below UKVI Minimum",
+      issueTitle: "Documentation Gap — Test Requirement Not Met",
       issueDetail:
-        "IELTS Speaking score of 5.5 is below the UKVI minimum of 6.0 for Tier 4 student visas. All individual component scores must meet the minimum threshold — overall band score alone is not sufficient.",
+        "IELTS Speaking component score of 5.5 falls below UKVI mandatory minimum of 6.0 for Tier 4 student visa eligibility. Cross-referencing with Home Office policy guidance confirms all individual component scores (Reading, Writing, Listening, Speaking) must independently meet the 6.0 threshold — overall band score alone does not satisfy requirements. This represents a hard requirement failure resulting in automatic application rejection.",
       fixDetail:
-        "Retake IELTS on January 18, 2026. New Speaking score: 6.5 (above 6.0 minimum). Overall band improved to 7.0.",
+        "Candidate retook IELTS examination on January 18, 2026. Updated Speaking score: 6.5 (exceeds 6.0 minimum by 0.5 points). Overall band score improved from 6.5 to 7.0. New TRF number issued: 26NG005104OKAA002A.",
       severity: "critical",
       changes: [
         { field: "Speaking Score", original: "5.5 (below 6.0 min)", corrected: "6.5 (meets requirement)" },
@@ -153,11 +153,11 @@ const amaraRemediation: PersonaRemediation = {
       requirementName: "Personal Statement",
       originalDocImage: "/demo-docs/amara-05-personal-statement.png",
       correctedDocImage: "/demo-docs/amara-05-personal-statement-corrected.png",
-      issueTitle: "Vague Career Plans — No Return Intent",
+      issueTitle: "Narrative Inconsistency — Weak Return Justification",
       issueDetail:
-        "Personal statement lacks specific post-graduation plans and does not mention intent to return to Nigeria. UKVI officers assess whether applicants are genuine students who plan to leave the UK after studies. Vague language like \"explore various career paths\" raises concerns.",
+        "Personal statement lacks substantive post-graduation plans and contains no explicit mention of return intent to Nigeria. UKVI credibility assessment framework requires applicants to demonstrate genuine student status with clear intention to depart UK after course completion. Vague phrasing like \"explore various career paths\" creates narrative gaps that immigration officers interpret as potential settlement risk. Absence of specific return plans, employer commitments, or family ties weakens the overall application narrative.",
       fixDetail:
-        "Strengthened statement with specific return-to-Nigeria plan (establish tech research lab), employer commitment (position held at Tech Solutions Ltd), and family ties in Lagos.",
+        "Reconstructed personal statement with concrete return-to-Nigeria plan: establish tech research laboratory specializing in AI for agricultural optimization. Added employer commitment letter (position held by Tech Solutions Ltd, Lagos) confirming post-study role leading Machine Learning team. Documented strong family ties (parents and three siblings in Lagos) and professional network requiring physical presence in Nigeria.",
       severity: "warning",
       changes: [
         { field: "Return Intent", original: "Not mentioned", corrected: "Explicit: return to Nigeria to establish tech research lab" },
@@ -184,15 +184,15 @@ const carlosRemediation: PersonaRemediation = {
       requirementName: "Bank Statement",
       originalDocImage: "/demo-docs/carlos-02-bank-statement.png",
       correctedDocImage: "/demo-docs/carlos-02-bank-statement-corrected.png",
-      issueTitle: "Suspicious Deposit & Insufficient History",
+      issueTitle: "Forensic Flag — Borrowed Funds Detected",
       issueDetail:
-        "Bank statement shows R$15,000 \"Empréstimo Pessoal\" (personal loan) deposited on Jan 22 — just days before the visa application. Base balance was only ~R$9,400 before this injection. Japanese consulates flag borrowed funds as they do not demonstrate genuine financial capacity.",
+        "Bank statement shows R$15,000 \"Empréstimo Pessoal\" (personal loan) deposited on Jan 22 — timing aligns suspiciously with visa application date. Forensic analysis reveals base balance of only ~R$9,400 before this capital injection. Japanese consulates flag borrowed funds as they do not demonstrate genuine financial capacity for independent travel.",
       fixDetail:
-        "Extended statement to 3 months (Nov 2025 – Jan 2026) showing consistent balance of R$42,800+ from photography income. No loans or third-party transfers.",
+        "Extended statement period to 3 months (Nov 2025 – Jan 2026) showing consistent balance of R$42,800+ sourced from legitimate photography income. Removed loan deposits — all transactions now traceable to client payments and commercial photography work.",
       severity: "critical",
       changes: [
         { field: "Statement Period", original: "2 months (Dec–Jan)", corrected: "3 months (Nov 2025 – Jan 2026)" },
-        { field: "Suspicious Deposits", original: "R$15,000 personal loan (Jan 22)", corrected: "None — all deposits from photography work" },
+        { field: "Forensic Red Flag", original: "R$15,000 personal loan (Jan 22)", corrected: "None — all deposits from photography work" },
         { field: "Minimum Sustained Balance", original: "~R$9,400", corrected: "R$42,800+ (consistent)" },
         { field: "Closing Balance", original: "R$ 24,050", corrected: "R$ 73,500" },
       ],
@@ -204,14 +204,14 @@ const carlosRemediation: PersonaRemediation = {
       requirementName: "Freelance Income Proof",
       originalDocImage: "/demo-docs/carlos-03-freelance-income.png",
       correctedDocImage: "/demo-docs/carlos-03-freelance-income-corrected.png",
-      issueTitle: "Missing Business Registration (CNPJ/MEI)",
+      issueTitle: "Documentation Gap — Unverified Income Source",
       issueDetail:
-        "Freelance income declaration has no CNPJ registration number — listed as \"Não registrado\" (not registered). Without MEI/CNPJ, the income declaration is a self-signed document with no official validation. Japanese consulates require verifiable income proof.",
+        "Freelance income declaration listed as \"Não registrado\" (not registered) with no CNPJ/MEI registration number. Cross-referencing with Receita Federal database would reveal no official business record. Without MEI/CNPJ validation, the income declaration becomes a self-signed document with no governmental backing — Japanese consulates require verifiable income proof with official registration.",
       fixDetail:
-        "Added proper MEI registration (CNPJ: 12.345.678/0001-90), municipal inscription (CCM), CNAE activity code, and Prefeitura de São Paulo official stamp.",
+        "Added complete MEI registration framework: CNPJ 12.345.678/0001-90, municipal inscription (CCM: SP-8.765.432-1), CNAE activity code 7420-0/01 (Professional Photography), and Prefeitura de São Paulo official stamp with current DAS-MEI payment proof.",
       severity: "critical",
       changes: [
-        { field: "CNPJ/MEI Number", original: "Não registrado", corrected: "12.345.678/0001-90" },
+        { field: "CNPJ/MEI Registration", original: "Não registrado", corrected: "12.345.678/0001-90" },
         { field: "Municipal Inscription", original: "None", corrected: "CCM: SP-8.765.432-1" },
         { field: "CNAE Activity Code", original: "Not listed", corrected: "7420-0/01 (Fotografia)" },
         { field: "Official Validation", original: "Self-signed only", corrected: "Prefeitura stamp + DAS-MEI current" },
@@ -224,11 +224,11 @@ const carlosRemediation: PersonaRemediation = {
       requirementName: "Travel Itinerary",
       originalDocImage: "/demo-docs/carlos-04-itinerary.png",
       correctedDocImage: "/demo-docs/carlos-04-itinerary-corrected.png",
-      issueTitle: "Vague Itinerary — No Specific Plans",
+      issueTitle: "Narrative Inconsistency — Incomplete Travel Plan",
       issueDetail:
-        "21-day itinerary only lists general city names (\"Tokyo, Kyoto, Osaka\") with no daily activities, specific accommodation details, or transportation arrangements. States accommodations \"to be determined on arrival\" — a red flag for Japanese consulates.",
+        "21-day itinerary contains only generic city names (\"Tokyo, Kyoto, Osaka\") with no substantive daily activities or booking confirmations. States accommodations \"to be determined on arrival\" — a significant red flag for Japanese consulates who require comprehensive pre-planned itineraries. The narrative gap between stated tourist purpose and vague planning suggests incomplete trip preparation or alternative undisclosed intentions.",
       fixDetail:
-        "Created detailed day-by-day itinerary with specific activities, all hotel confirmations with booking references, JR Rail Pass order, and return flight details.",
+        "Reconstructed complete day-by-day itinerary with specific photography locations, museum visits with admission times, all hotel confirmations with booking references (4 properties), JR Rail Pass order number (JP-2026-88412), and confirmed return flight details (LATAM LA8083, Apr 21, 18:45).",
       severity: "warning",
       changes: [
         { field: "Daily Activities", original: "\"Visit various districts\"", corrected: "Specific locations per day with times" },

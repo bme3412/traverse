@@ -6,7 +6,6 @@ import { ChevronRight, ChevronLeft, Plane, GripVertical, X, CheckCircle2, FileTe
 import { TravelDetails } from "@/lib/types";
 import { countryFlag } from "@/lib/country-flags";
 import { useDemoContext } from "@/lib/demo-context";
-import { STREAMING_CONFIG } from "@/lib/config";
 
 // ============================================================
 // Persona definitions
@@ -27,6 +26,10 @@ interface DemoPersona {
   preferredLanguage: string; // The language this user would likely prefer
   travelDetails: TravelDetails;
   documents: DemoDocument[];
+  // Rich contextual data
+  occupation: string;
+  previousTravel: string;
+  visaHistory: string;
 }
 
 const PERSONAS: DemoPersona[] = [
@@ -37,6 +40,9 @@ const PERSONAS: DemoPersona[] = [
     destination: "Germany",
     need: "Attending a tech conference in Munich. First time applying for a Schengen visa — needs to make sure her documents are in order before submitting.",
     preferredLanguage: "Hindi",
+    occupation: "Senior Software Engineer at TechInnovate Solutions, Bangalore",
+    previousTravel: "First time to Schengen area. Has visited Dubai (2024) and Singapore (2023) for work.",
+    visaHistory: "US B1 visa (approved 2023), valid until 2033. No Schengen history.",
     travelDetails: {
       passports: ["India"],
       destination: "Germany",
@@ -64,6 +70,9 @@ const PERSONAS: DemoPersona[] = [
     destination: "United Kingdom",
     need: "Accepted to a London university for a Master's programme. Preparing her Tier 4 student visa application and wants to check everything before her appointment.",
     preferredLanguage: "Yoruba",
+    occupation: "Recent Computer Science graduate from University of Lagos. Starting MSc program.",
+    previousTravel: "Never traveled to Europe. Has visited Ghana and South Africa for family visits.",
+    visaHistory: "No previous visa applications. First major international travel.",
     travelDetails: {
       passports: ["Nigeria"],
       destination: "United Kingdom",
@@ -90,6 +99,9 @@ const PERSONAS: DemoPersona[] = [
     destination: "Japan",
     need: "Freelance photographer planning a 3-week trip through Japan. Needs a tourist visa and wants to make sure his Portuguese financial documents meet the requirements.",
     preferredLanguage: "Portuguese",
+    occupation: "Freelance Travel Photographer based in São Paulo. Portfolio includes work for major travel magazines.",
+    previousTravel: "Extensive travel: Argentina, Chile, Peru, Mexico (2023-2025). First time to Asia.",
+    visaHistory: "Schengen visa (approved 2024, used for Spain/Portugal assignment). No Asian visa history.",
     travelDetails: {
       passports: ["Brazil"],
       destination: "Japan",
@@ -175,11 +187,7 @@ export function PersonaSidebar() {
   }, [contextSidebarOpen, isOpen]);
 
   const handleLoad = async () => {
-    // Brief green flash, then load
-    setLoadSuccess(true);
-    await new Promise((resolve) => setTimeout(resolve, STREAMING_CONFIG.SHORT_DELAY_MS));
-
-    // Type-safe demo loading with proper interface
+    // Load the demo data
     loadDemo({
       travelDetails: persona.travelDetails,
       documents: persona.documents,
@@ -187,6 +195,11 @@ export function PersonaSidebar() {
       personaName: persona.name,
     });
 
+    // Show success checkmark briefly
+    setLoadSuccess(true);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    // Close sidebar smoothly
     setLoadSuccess(false);
     setIsOpen(false);
   };
@@ -259,9 +272,43 @@ export function PersonaSidebar() {
             </div>
 
             {/* Need */}
-            <p className="text-sm leading-relaxed text-foreground">
+            <p className="text-sm leading-relaxed text-foreground mb-3">
               {persona.need}
             </p>
+
+            {/* Rich contextual information */}
+            <div className="space-y-2 pt-3 border-t border-border/50">
+              {/* Occupation */}
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium mb-0.5">
+                  Occupation
+                </p>
+                <p className="text-xs text-foreground/90 leading-relaxed">
+                  {persona.occupation}
+                </p>
+              </div>
+
+              {/* Previous Travel */}
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium mb-0.5">
+                  Travel History
+                </p>
+                <p className="text-xs text-foreground/90 leading-relaxed">
+                  {persona.previousTravel}
+                </p>
+              </div>
+
+              {/* Visa History */}
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium mb-0.5">
+                  Visa History
+                </p>
+                <p className="text-xs text-foreground/90 leading-relaxed">
+                  {persona.visaHistory}
+                </p>
+              </div>
+
+            </div>
           </div>
 
           {/* Documents — collapsible (home page only) */}
@@ -431,14 +478,17 @@ export function PersonaSidebar() {
               type="button"
               onClick={handleLoad}
               disabled={loadSuccess}
-              className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2 ${
+              className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all duration-300 text-sm flex items-center justify-center gap-2 ${
                 loadSuccess
                   ? "bg-green-600 text-white"
                   : "bg-blue-600 hover:bg-blue-500 text-white"
               }`}
             >
               {loadSuccess ? (
-                <CheckCircle2 className="w-4 h-4" />
+                <>
+                  <CheckCircle2 className="w-4 h-4 animate-checkmark" />
+                  <span>Profile Loaded!</span>
+                </>
               ) : (
                 <>Load {persona.name.split(" ")[0]}&apos;s Profile</>
               )}

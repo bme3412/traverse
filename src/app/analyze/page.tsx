@@ -4,20 +4,21 @@ import { Suspense, useState, useEffect, useCallback, useMemo, useRef } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSSE } from "@/hooks/use-sse";
 import { LiveFeed } from "@/components/live-feed";
+import { FloatingAgentStatus } from "@/components/floating-agent-status";
 import { PhaseStepper } from "@/components/phase-stepper";
 import { ProgressiveRequirements } from "@/components/progressive-requirements";
 import { AnalysisResults } from "@/components/analysis-results";
 import { AdvisoryCard } from "@/components/advisory-card";
 import { AdvisoryModal } from "@/components/advisory-modal";
 import { AdvisoryLoading } from "@/components/advisory-loading";
-import { TravelDetails, UploadedDocument, DocumentExtraction, ComplianceItem, RequirementsChecklist, SSEEvent, AdvisoryReport, RemediationItem, ApplicationAssessment } from "@/lib/types";
+import { TravelDetails, UploadedDocument, DocumentExtraction, ComplianceItem, RequirementsChecklist, SSEEvent, AdvisoryReport, RemediationItem, ApplicationAssessment, ReauditProgress, ReauditFixStatus } from "@/lib/types";
 import { buildPreliminaryAdvisory, updateAdvisoryWithCompliance } from "@/lib/advisory-builder";
 import { useDemoContext, fetchDemoDocument } from "@/lib/demo-context";
 import { TranslationProvider, useTranslation, collectCorridorDynamicTexts } from "@/lib/i18n-context";
 import { LanguageSelector } from "@/components/language-selector";
 import { TranslationBanner } from "@/components/translation-banner";
 import { getRemediationByName, type PersonaRemediation } from "@/lib/remediation-data";
-import { ArrowLeft, CheckCircle2, PartyPopper } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { countryFlag } from "@/lib/country-flags";
 import { isDevelopment } from "@/lib/env";
 
@@ -84,6 +85,120 @@ function getLocaleGreeting(passportCountry: string): string {
     "Sri Lanka": "ආයුබෝවන්",
   };
   return greetings[passportCountry] || "Welcome";
+}
+
+/**
+ * Generate multi-language intro texts for demo personas.
+ * Returns intro in native language, English, and destination language.
+ * Colors match the header pattern: blue → purple → emerald
+ */
+function getMultiLanguageIntroTexts(
+  origin: string,
+  destination: string,
+  purpose: string,
+  personaName: string
+): Array<{ language: string; color: "blue" | "purple" | "emerald"; text: string }> | null {
+  // Helper to generate the explanation text based on purpose
+  const getExplanation = (dest: string, greet: string) => {
+    switch (purpose) {
+      case "tourism":
+        return `${greet} — we're checking your documents against ${dest}'s requirements so nothing holds up your trip.`;
+      case "business":
+        return `${greet} — we're verifying your documents meet ${dest}'s business visa requirements before you apply.`;
+      case "work":
+        return `${greet} — we're reviewing your documents for ${dest} work authorization compliance.`;
+      case "study":
+        return `${greet} — we're checking your documents against ${dest}'s student visa requirements.`;
+      case "medical":
+        return `${greet} — we're verifying your documents for ${dest}'s medical visa requirements.`;
+      case "family":
+        return `${greet} — we're checking your documents for ${dest}'s family visa requirements.`;
+      case "transit":
+        return `${greet} — we're confirming your documents meet ${dest}'s transit requirements.`;
+      default:
+        return `${greet} — we're reviewing your documents against ${dest}'s visa requirements.`;
+    }
+  };
+
+  // Priya Sharma: India → Germany (Business)
+  // Order: English (blue) → Hindi (purple) → German (emerald)
+  if (personaName === "Priya Sharma") {
+    return [
+      {
+        language: "English",
+        color: "blue",
+        text: getExplanation(destination, "Welcome")
+      },
+      {
+        language: "Hindi (हिंदी)",
+        color: "purple",
+        text: purpose === "business"
+          ? `नमस्ते — हम आपके दस्तावेज़ों को ${destination} की व्यावसायिक वीज़ा आवश्यकताओं के विरुद्ध सत्यापित कर रहे हैं।`
+          : `नमस्ते — हम आपके दस्तावेज़ों की जाँच कर रहे हैं ताकि आपकी यात्रा में कोई बाधा न आए।`
+      },
+      {
+        language: "German (Deutsch)",
+        color: "emerald",
+        text: purpose === "business"
+          ? `Willkommen — wir überprüfen Ihre Dokumente auf die Geschäftsvisumanforderungen von ${destination}.`
+          : `Willkommen — wir prüfen Ihre Dokumente gegen die Anforderungen von ${destination}.`
+      }
+    ];
+  }
+
+  // Amara Okafor: Nigeria → United Kingdom (Student)
+  // Order: English (blue) → Yoruba (purple) → British English (emerald)
+  if (personaName === "Amara Okafor") {
+    return [
+      {
+        language: "English",
+        color: "blue",
+        text: getExplanation(destination, "Welcome")
+      },
+      {
+        language: "Yoruba",
+        color: "purple",
+        text: purpose === "study"
+          ? `Káàbọ̀ — a ń ṣàyẹ̀wò àwọn ìwé rẹ lọ́wọ́ àwọn ìbéèrè fáàsì ọmọ ilé-ìwé ${destination}.`
+          : `Káàbọ̀ — a ń wo àwọn ìwé rẹ lati rii pe ko si ohun ti yoo da irin-ajo re duro.`
+      },
+      {
+        language: "British English",
+        color: "emerald",
+        text: purpose === "study"
+          ? `Welcome — we're checking your documents against ${destination}'s student visa requirements.`
+          : getExplanation(destination, "Welcome")
+      }
+    ];
+  }
+
+  // Carlos Mendes: Brazil → Japan (Tourism)
+  // Order: Portuguese (blue) → English (purple) → Japanese (emerald)
+  if (personaName === "Carlos Mendes") {
+    return [
+      {
+        language: "Portuguese (Português)",
+        color: "blue",
+        text: purpose === "tourism"
+          ? `Bem-vindo — estamos verificando seus documentos contra os requisitos do ${destination} para que nada atrapalhe sua viagem.`
+          : `Bem-vindo — estamos revisando seus documentos contra os requisitos de visto do ${destination}.`
+      },
+      {
+        language: "English",
+        color: "purple",
+        text: getExplanation(destination, "Welcome")
+      },
+      {
+        language: "Japanese (日本語)",
+        color: "emerald",
+        text: purpose === "tourism"
+          ? `ようこそ — 旅行に支障がないよう、${destination}の要件に照らして書類を確認しています。`
+          : `ようこそ — ${destination}のビザ要件に対して書類を確認しています。`
+      }
+    ];
+  }
+
+  return null;
 }
 
 /** Format "2026-03-07" + "2026-03-17" → "Mar 7 – 17, 2026" or "Feb 25 – Mar 7, 2026" */
@@ -225,8 +340,8 @@ function AnalyzeContent() {
   const [showAdvisoryModal, setShowAdvisoryModal] = useState(false);
   const [isAdvisoryRunning, setIsAdvisoryRunning] = useState(false);
   const [documentImages, setDocumentImages] = useState<Map<string, { base64: string; mimeType: string }>>(new Map());
-  const [isReauditing, setIsReauditing] = useState(false);
-  const [reauditComplete, setReauditComplete] = useState(false);
+  const [reauditProgress, setReauditProgress] = useState<ReauditProgress | null>(null);
+  const [reauditThinking, setReauditThinking] = useState<Map<string, string>>(new Map());
 
   // Remediation data for the current demo persona
   const remediationData = useMemo(() => {
@@ -395,88 +510,181 @@ function AnalyzeContent() {
     []
   );
 
-  // Handle "Apply Fixes & Re-check" from the remediation panel
+  // Handle "Apply Fixes & Re-check" — in-modal sequential per-doc re-verification
   const handleApplyFixes = useCallback(async () => {
-    if (!remediationData || !travelDetails || !demoDocMetadata.length) return;
+    if (!remediationData || !result?.requirements) return;
 
-    setIsReauditing(true);
-    setReauditComplete(false);
+    // Initialize re-audit progress
+    const initialStatuses = new Map<string, ReauditFixStatus>();
+    for (const fix of remediationData.fixes) {
+      initialStatuses.set(fix.id, "pending");
+    }
+    const progress: ReauditProgress = {
+      fixStatuses: new Map(initialStatuses),
+      fixResults: new Map(),
+      overallComplete: false,
+      allPassed: false,
+    };
+    setReauditProgress({ ...progress });
+    setReauditThinking(new Map());
 
-    try {
-      // Build corrected document set: start with originals, swap in corrected docs
-      const correctedDocMeta = demoDocMetadata.map((doc) => {
-        // Check if any fix replaces this document (match by original image path)
-        const fix = remediationData.fixes.find((f) => f.originalDocImage === doc.image);
-        if (fix) {
-          return {
-            name: fix.correctedDocName,
-            language: fix.correctedDocLanguage,
-            image: fix.correctedDocImage,
-          };
+    // Accumulate extractions across fixes for cross-doc validation
+    const accumulatedExtractions = [...perDocExtractions];
+
+    // Process each fix sequentially
+    for (const fix of remediationData.fixes) {
+      try {
+        // 1. Update status to "fetching"
+        progress.fixStatuses.set(fix.id, "fetching");
+        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses) });
+
+        // 2. Fetch the corrected doc image
+        const correctedDoc = await fetchDemoDocument(
+          { name: fix.correctedDocName, language: fix.correctedDocLanguage, image: fix.correctedDocImage },
+          remediationData.fixes.indexOf(fix)
+        );
+
+        // 3. Find the matching RequirementItem
+        const requirement = result.requirements.items.find(
+          (r) => r.name === fix.requirementName
+        );
+        if (!requirement) {
+          if (isDevelopment()) {
+            console.warn(`[Re-audit] No matching requirement for "${fix.requirementName}"`);
+          }
+          progress.fixStatuses.set(fix.id, "failed");
+          progress.fixResults.set(fix.id, {
+            requirement: fix.requirementName,
+            status: "not_checked",
+            detail: "Could not find matching requirement",
+          });
+          setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses), fixResults: new Map(progress.fixResults) });
+          continue;
         }
-        return doc;
-      });
 
-      // Add any new documents (isNewDocument=true) that don't replace existing ones
-      for (const fix of remediationData.fixes) {
-        if (fix.isNewDocument) {
-          const alreadyReplaced = correctedDocMeta.some((d) => d.image === fix.correctedDocImage);
-          if (!alreadyReplaced) {
-            correctedDocMeta.push({
-              name: fix.correctedDocName,
-              language: fix.correctedDocLanguage,
-              image: fix.correctedDocImage,
-            });
+        // 4. Update status to "analyzing"
+        progress.fixStatuses.set(fix.id, "analyzing");
+        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses) });
+
+        // 5. Call POST /api/analyze/document
+        const response = await fetch("/api/analyze/document", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            document: correctedDoc,
+            requirement,
+            previousExtractions: accumulatedExtractions,
+          }),
+        });
+
+        if (!response.ok || !response.body) {
+          progress.fixStatuses.set(fix.id, "failed");
+          progress.fixResults.set(fix.id, {
+            requirement: fix.requirementName,
+            status: "not_checked",
+            detail: "Analysis request failed",
+          });
+          setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses), fixResults: new Map(progress.fixResults) });
+          continue;
+        }
+
+        // 6. Process SSE stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let finalCompliance: ComplianceItem | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith(":")) continue;
+
+            if (trimmed.startsWith("data: ")) {
+              const data = trimmed.slice(6);
+              if (data === "[DONE]") continue;
+
+              try {
+                const event = JSON.parse(data) as SSEEvent;
+
+                // Capture thinking updates
+                if (event.type === "doc_analysis_thinking") {
+                  setReauditThinking((prev) => {
+                    const next = new Map(prev);
+                    next.set(fix.id, event.excerpt);
+                    return next;
+                  });
+                }
+
+                // Capture final result
+                if (event.type === "doc_analysis_result") {
+                  finalCompliance = event.compliance;
+                  // Add extraction to accumulator for cross-doc validation
+                  if (event.extraction) {
+                    accumulatedExtractions.push(event.extraction);
+                  }
+                }
+              } catch {
+                if (isDevelopment()) {
+                  console.warn("[Re-audit] Failed to parse SSE event:", data);
+                }
+              }
+            }
           }
         }
+
+        // 7. Update status based on compliance result
+        if (finalCompliance) {
+          const passed = finalCompliance.status === "met";
+          progress.fixStatuses.set(fix.id, passed ? "passed" : "failed");
+          progress.fixResults.set(fix.id, finalCompliance);
+        } else {
+          progress.fixStatuses.set(fix.id, "failed");
+          progress.fixResults.set(fix.id, {
+            requirement: fix.requirementName,
+            status: "not_checked",
+            detail: "No compliance result received",
+          });
+        }
+        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses), fixResults: new Map(progress.fixResults) });
+
+      } catch (err) {
+        if (isDevelopment()) {
+          console.error(`[Re-audit] Error processing fix ${fix.id}:`, err);
+        }
+        progress.fixStatuses.set(fix.id, "failed");
+        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses) });
       }
-
-      // Fetch all corrected documents as base64
-      const correctedDocs = await Promise.all(
-        correctedDocMeta.map((doc, i) => fetchDemoDocument(doc, i))
-      );
-
-      if (isDevelopment()) {
-        console.log(`[Re-audit] Fetched ${correctedDocs.length} corrected documents`);
-      }
-
-      // Update document state
-      setDocuments(correctedDocs);
-      setDemoDocuments(correctedDocs);
-
-      // Reset advisory pipeline
-      advisoryTriggeredRef.current = false;
-      preliminaryAdvisoryRef.current = null;
-      lastComplianceCountRef.current = 0;
-      setAdvisoryReport(null);
-      setShowAdvisoryModal(false);
-      setPerDocExtractions([]);
-      setPerDocCompliances([]);
-
-      // Re-start the full analysis pipeline with corrected documents
-      start({ travelDetails, documents: correctedDocs });
-    } catch (err) {
-      if (isDevelopment()) {
-        console.error("[Re-audit] Error:", err);
-      }
-      setIsReauditing(false);
     }
-  }, [remediationData, travelDetails, demoDocMetadata, setDemoDocuments, start]);
 
-  // Track re-audit completion
-  useEffect(() => {
-    if (!isReauditing) return;
+    // 8. All fixes processed — finalize
+    const allPassed = Array.from(progress.fixResults.values()).every((c) => c.status === "met");
+    progress.overallComplete = true;
+    progress.allPassed = allPassed;
+    setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses), fixResults: new Map(progress.fixResults) });
 
-    // Check if advisory agent has completed during re-audit
-    const advisoryComplete = events.some(
-      (e) => e.type === "orchestrator" && e.agent?.toLowerCase().includes("advisory") && e.action === "agent_complete"
-    );
-
-    if (advisoryComplete && advisoryReport) {
-      setIsReauditing(false);
-      setReauditComplete(true);
+    // Update advisory report if all passed
+    if (allPassed && advisoryReport) {
+      setAdvisoryReport({
+        ...advisoryReport,
+        overall: "APPLICATION_PROCEEDS",
+      });
     }
-  }, [isReauditing, events, advisoryReport]);
+
+    if (isDevelopment()) {
+      console.log(`[Re-audit] Complete. All passed: ${allPassed}`);
+    }
+  }, [remediationData, result?.requirements, perDocExtractions, advisoryReport]);
+
+  // Derived: is re-audit in progress?
+  const isReauditing = !!reauditProgress && !reauditProgress.overallComplete;
+  const reauditComplete = !!reauditProgress?.overallComplete && reauditProgress.allPassed;
 
   // Stream Phase 2 advisory agent events into the main event feed
   const runAdvisoryStream = useCallback(
@@ -747,6 +955,8 @@ function AnalyzeContent() {
         isReauditing={isReauditing}
         reauditComplete={reauditComplete}
         onApplyFixes={handleApplyFixes}
+        reauditProgress={reauditProgress}
+        reauditThinking={reauditThinking}
       />
     </TranslationProvider>
   );
@@ -786,6 +996,8 @@ function AnalyzePageInner({
   isReauditing,
   reauditComplete,
   onApplyFixes,
+  reauditProgress,
+  reauditThinking,
 }: {
   travelDetails: TravelDetails;
   events: ReturnType<typeof useSSE>["events"];
@@ -817,6 +1029,8 @@ function AnalyzePageInner({
   isReauditing: boolean;
   reauditComplete: boolean;
   onApplyFixes: () => void;
+  reauditProgress: ReauditProgress | null;
+  reauditThinking: Map<string, string>;
 }) {
   const router = useRouter();
   const { t, language, isTranslating, translationPhase, setLanguage, translatedCorridorInfo, translateFeedContent } = useTranslation();
@@ -871,6 +1085,12 @@ function AnalyzePageInner({
   // Build the intro sentence that explains what the system does
   const dest = travelDetails.destination;
   const purpose = travelDetails.purpose;
+
+  // For demo profiles, get multi-language intro texts
+  const multiLanguageIntros = isDemoProfile && loadedPersonaName
+    ? getMultiLanguageIntroTexts(travelDetails.passports[0], dest, purpose, loadedPersonaName)
+    : null;
+
   const introText = (() => {
     const name = showPersonaName ? firstName : null;
     const greeting = name ? `${name}, ${localeGreeting.toLowerCase()}` : localeGreeting;
@@ -917,25 +1137,6 @@ function AnalyzePageInner({
       setShowAdvisoryModal(true);
     }
   }, [advisoryAgentComplete, advisoryReport, setShowAdvisoryModal]);
-
-  // Progress narration text — contextual for demo personas
-  const progressNarration = (() => {
-    if (!researchDone) return null;
-    if (totalUploadableReqs === 0) return null;
-    const name = firstName || null;
-    if (advisoryAgentComplete && advisoryReport) {
-      return name ? `${name}'s assessment is ready` : t("Your assessment is ready");
-    }
-    if (docsVerified >= totalUploadableReqs) {
-      return name
-        ? `All of ${name}'s documents verified. Preparing assessment\u2026`
-        : t("All documents verified") + ". " + t("Preparing your assessment\u2026");
-    }
-    if (docsVerified === 0) return t("Upload your first document");
-    if (docsVerified === 1) return `Great start! 1 of ${totalUploadableReqs} verified`;
-    if (docsVerified >= totalUploadableReqs * 0.5) return `Almost there \u2014 ${docsVerified} of ${totalUploadableReqs} verified`;
-    return `${docsVerified} of ${totalUploadableReqs} verified. Keep going\u2026`;
-  })();
 
   return (
     <>
@@ -1082,9 +1283,32 @@ function AnalyzePageInner({
           </div>
 
           {/* Row 3: Contextual intro */}
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            {introText}
-          </p>
+          {multiLanguageIntros ? (
+            <div className="mt-3 space-y-3">
+              {multiLanguageIntros.map((intro, idx) => {
+                const colorClass = intro.color === "blue"
+                  ? "text-blue-600 dark:text-blue-400"
+                  : intro.color === "purple"
+                  ? "text-purple-600 dark:text-purple-400"
+                  : "text-emerald-600 dark:text-emerald-400";
+
+                return (
+                  <div key={idx} className={idx > 0 ? "pt-3 border-t border-border/50" : ""}>
+                    <p className={`text-[10px] uppercase tracking-wider mb-1 font-semibold ${colorClass}`}>
+                      {intro.language}
+                    </p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {intro.text}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {introText}
+            </p>
+          )}
         </div>
       </section>
 
@@ -1116,12 +1340,7 @@ function AnalyzePageInner({
         </section>
       )}
 
-      {/* Progress narration — gentle guide text */}
-      {progressNarration && docsVerified > 0 && !advisoryAgentComplete && (
-        <p className="mb-3 text-xs text-muted-foreground animate-in fade-in duration-300">
-          {progressNarration}
-        </p>
-      )}
+      {/* Progress narration and live activity replaced by FloatingAgentStatus (rendered below, outside scroll flow) */}
 
       {/* ══════════════════════════════════════════════════════════════
           REQUIREMENTS LIST — The core interactive checklist
@@ -1164,39 +1383,7 @@ function AnalyzePageInner({
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════
-          RE-AUDIT SUCCESS BANNER — shown after corrected docs pass
-          ══════════════════════════════════════════════════════════════ */}
-      {reauditComplete && advisoryReport?.overall === "APPLICATION_PROCEEDS" && (
-        <div className="mt-8 rounded-xl border-2 border-emerald-300 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 px-6 py-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-              <PartyPopper className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
-                All Issues Resolved — Application Proceeds
-              </h3>
-              <p className="mt-1 text-sm text-emerald-600/80 dark:text-emerald-400/70 leading-relaxed">
-                The corrected documents have passed all checks. {remediationData?.personaName.split(" ")[0]}&apos;s application
-                now meets all visa requirements for this corridor. The fixes addressed {remediationData?.fixes.length} issues:
-                cross-document consistency, official documentation standards, and completeness requirements.
-              </p>
-              <div className="flex items-center gap-4 mt-3">
-                {remediationData?.fixes.map((fix) => (
-                  <span
-                    key={fix.id}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full"
-                  >
-                    <CheckCircle2 className="w-3 h-3" />
-                    {fix.issueTitle.split(" — ")[0]}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Re-audit success is now shown inside the AdvisoryModal */}
 
       {/* Fix Wizard is now embedded inside the AdvisoryModal — no standalone panel needed */}
 
@@ -1211,10 +1398,23 @@ function AnalyzePageInner({
           remediation={remediationData}
           onApplyFixes={onApplyFixes}
           isReauditing={isReauditing}
+          reauditProgress={reauditProgress}
+          reauditThinking={reauditThinking}
         />
       )}
     </div>
     </div>
+
+    {/* ══════════════════════════════════════════════════════════════
+        FLOATING AGENT STATUS — contextual status bar during doc verification
+        ══════════════════════════════════════════════════════════════ */}
+    <FloatingAgentStatus
+      events={events}
+      totalDocs={totalUploadableReqs}
+      advisoryComplete={advisoryAgentComplete}
+      advisoryRunning={isAdvisoryRunning}
+      isModalOpen={showAdvisoryModal}
+    />
     </>
   );
 }

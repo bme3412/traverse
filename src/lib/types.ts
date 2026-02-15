@@ -288,6 +288,19 @@ export interface AppState {
   error: string | null;
 }
 
+// ============================================================
+// Re-audit Types (in-modal re-verification)
+// ============================================================
+
+export type ReauditFixStatus = "pending" | "fetching" | "analyzing" | "passed" | "failed";
+
+export interface ReauditProgress {
+  fixStatuses: Map<string, ReauditFixStatus>;  // keyed by fix.id
+  fixResults: Map<string, ComplianceItem>;      // keyed by fix.id
+  overallComplete: boolean;
+  allPassed: boolean;
+}
+
 export type AppPhase =
   | "input"
   | "researching"

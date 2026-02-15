@@ -73,6 +73,262 @@ interface ProgressiveRequirementsProps {
   demoDocuments?: Array<{ name: string; language: string; image: string }>;
 }
 
+/**
+ * Get multi-language greetings for demo personas.
+ * Returns greetings in order with color coding to match header pattern:
+ * blue (Every document) → purple (Every detail) → emerald (Every language)
+ */
+function getPersonaGreetings(
+  personaName: string,
+  firstName: string,
+  messageType: "passport" | "verifying" | "complete",
+  analyzedCount: number,
+  totalRequirements: number
+): Array<{ language: string; color: "blue" | "purple" | "emerald"; text: string }> | null {
+  const greetings: Array<{ language: string; color: "blue" | "purple" | "emerald"; text: string }> = [];
+
+  // Priya Sharma - India → Germany
+  // Order: English (blue) → Hindi (purple) → German (emerald)
+  if (personaName === "Priya Sharma") {
+    if (messageType === "passport") {
+      greetings.push(
+        { language: "English", color: "blue", text: `Hello ${firstName}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.` },
+        { language: "Hindi (हिंदी)", color: "purple", text: `नमस्ते ${firstName}, आपका पासपोर्ट अपलोड करने के लिए धन्यवाद। कृपया धैर्य रखें जबकि हम आपके बाकी यात्रा दस्तावेज़ों को पढ़ते और विश्लेषण करते हैं। हम मदद के लिए यहां हैं।` },
+        { language: "German (Deutsch)", color: "emerald", text: `Hallo ${firstName}, vielen Dank für das Hochladen Ihres Reisepasses. Bitte haben Sie Geduld, während wir Ihre restlichen Reisedokumente durchsehen und analysieren. Wir sind hier, um zu helfen.` }
+      );
+    } else if (messageType === "verifying") {
+      greetings.push(
+        { language: "English", color: "blue", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.` },
+        { language: "Hindi (हिंदी)", color: "purple", text: `${firstName}, हम आपके दस्तावेज़ों को सत्यापित कर रहे हैं — अब तक ${analyzedCount} में से ${totalRequirements} जाँचे गए।` },
+        { language: "German (Deutsch)", color: "emerald", text: `${firstName}, wir überprüfen Ihre Dokumente — bisher ${analyzedCount} von ${totalRequirements} geprüft.` }
+      );
+    } else {
+      greetings.push(
+        { language: "English", color: "blue", text: `${firstName}, all ${totalRequirements} documents have been verified. Review your results below.` },
+        { language: "Hindi (हिंदी)", color: "purple", text: `${firstName}, सभी ${totalRequirements} दस्तावेज़ सत्यापित हो गए हैं। नीचे अपने परिणाम देखें।` },
+        { language: "German (Deutsch)", color: "emerald", text: `${firstName}, alle ${totalRequirements} Dokumente wurden überprüft. Überprüfen Sie Ihre Ergebnisse unten.` }
+      );
+    }
+  }
+  // Carlos Mendes - Brazil → Japan
+  // Order: Portuguese (blue) → English (purple) → Japanese (emerald)
+  else if (personaName === "Carlos Mendes") {
+    if (messageType === "passport") {
+      greetings.push(
+        { language: "Portuguese (Português)", color: "blue", text: `Olá ${firstName}, obrigado por enviar seu passaporte. Por favor, tenha paciência enquanto lemos e analisamos o restante de seus documentos de viagem. Estamos aqui para ajudar.` },
+        { language: "English", color: "purple", text: `Hello ${firstName}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.` },
+        { language: "Japanese (日本語)", color: "emerald", text: `こんにちは${firstName}さん、パスポートをアップロードしていただきありがとうございます。残りの旅行書類を読んで分析しますので、しばらくお待ちください。お手伝いします。` }
+      );
+    } else if (messageType === "verifying") {
+      greetings.push(
+        { language: "Portuguese (Português)", color: "blue", text: `${firstName}, estamos verificando seus documentos — ${analyzedCount} de ${totalRequirements} verificados até agora.` },
+        { language: "English", color: "purple", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.` },
+        { language: "Japanese (日本語)", color: "emerald", text: `${firstName}さん、書類を確認しています — これまでに${totalRequirements}件中${analyzedCount}件を確認しました。` }
+      );
+    } else {
+      greetings.push(
+        { language: "Portuguese (Português)", color: "blue", text: `${firstName}, todos os ${totalRequirements} documentos foram verificados. Revise seus resultados abaixo.` },
+        { language: "English", color: "purple", text: `${firstName}, all ${totalRequirements} documents have been verified. Review your results below.` },
+        { language: "Japanese (日本語)", color: "emerald", text: `${firstName}さん、すべての${totalRequirements}件の書類が確認されました。以下で結果を確認してください。` }
+      );
+    }
+  }
+  // Amara Okafor - Nigeria → UK
+  // Order: English (blue) → Yoruba (purple) → British English (emerald)
+  else if (personaName === "Amara Okafor") {
+    if (messageType === "passport") {
+      greetings.push(
+        { language: "English", color: "blue", text: `Hello ${firstName}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.` },
+        { language: "Yoruba", color: "purple", text: `Pẹlẹ o ${firstName}, o ṣeun fun gbigbe pasipọọti rẹ soke. Jọwọ ni suuru lakoko ti a ba ka ati ṣe itupalẹ awọn iwe irin-ajo rẹ to ku. A wa nibi lati ran ọ lọwọ.` },
+        { language: "British English", color: "emerald", text: `Hello ${firstName}, thank you for uploading your passport. Please be patient whilst we read through and analyse the rest of your travel documents. We're here to help.` }
+      );
+    } else if (messageType === "verifying") {
+      greetings.push(
+        { language: "English", color: "blue", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.` },
+        { language: "Yoruba", color: "purple", text: `${firstName}, a n ṣe ijẹrisi awọn iwe rẹ — ${analyzedCount} ninu ${totalRequirements} ti a ṣayẹwo titi di isisiyi.` },
+        { language: "British English", color: "emerald", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked thus far.` }
+      );
+    } else {
+      greetings.push(
+        { language: "English", color: "blue", text: `${firstName}, all ${totalRequirements} documents have been verified. Review your results below.` },
+        { language: "Yoruba", color: "purple", text: `${firstName}, gbogbo awọn iwe ${totalRequirements} ti jẹrisi. Wo awọn abajade rẹ ni isalẹ.` },
+        { language: "British English", color: "emerald", text: `${firstName}, all ${totalRequirements} documents have been verified. Review your results below.` }
+      );
+    }
+  }
+
+  return greetings.length > 0 ? greetings : null;
+}
+
+/**
+ * Strict document matching with explicit type detection.
+ * Prioritizes exact keyword matches and prevents common mismatches.
+ */
+function findBestDocumentMatch(
+  requirementName: string,
+  documents: Array<{ name: string; language: string; image: string }>
+): { name: string; language: string; image: string } | null {
+  const reqLower = requirementName.toLowerCase();
+  const reqWords = reqLower.split(/\s+/);
+
+  // Define explicit document types with keywords and exclusions
+  const documentTypes = {
+    passport: {
+      keywords: ["passport"],
+      excludeIf: []
+    },
+    accommodation: {
+      keywords: ["accommodation", "hotel", "lodging", "booking"],
+      excludeIf: ["flight", "ticket", "airline"]
+    },
+    bankStatement: {
+      keywords: ["bank", "statement", "financial"],
+      excludeIf: ["employment", "income", "tax", "return"]
+    },
+    incomeTaxReturns: {
+      keywords: ["tax", "return", "itr"],
+      excludeIf: []
+    },
+    employmentProof: {
+      keywords: ["employment", "work", "employer", "letter"],
+      excludeIf: ["tax", "return", "bank", "statement"]
+    },
+    flight: {
+      keywords: ["flight", "ticket", "airline", "itinerary"],
+      excludeIf: ["hotel", "accommodation"]
+    },
+    insurance: {
+      keywords: ["insurance", "coverage", "policy"],
+      excludeIf: []
+    },
+    coverLetter: {
+      keywords: ["cover", "letter"],
+      excludeIf: ["employment", "invitation", "bank"]
+    },
+    invitation: {
+      keywords: ["invitation", "invite"],
+      excludeIf: []
+    }
+  };
+
+  // Detect requirement type
+  let reqType: string | null = null;
+  for (const [type, config] of Object.entries(documentTypes)) {
+    const hasKeyword = config.keywords.some(kw => reqWords.includes(kw) || reqLower.includes(kw));
+    const hasExclusion = config.excludeIf.some(ex => reqWords.includes(ex) || reqLower.includes(ex));
+    if (hasKeyword && !hasExclusion) {
+      reqType = type;
+      break;
+    }
+  }
+
+  if (!reqType) {
+    console.log(`[Auto-upload Match] Could not detect type for "${requirementName}"`);
+    return null;
+  }
+
+  // Find document matching the detected type
+  for (const doc of documents) {
+    const docLower = doc.name.toLowerCase();
+    const docWords = docLower.split(/\s+/);
+    const config = documentTypes[reqType as keyof typeof documentTypes];
+
+    const hasKeyword = config.keywords.some(kw => docWords.includes(kw) || docLower.includes(kw));
+    const hasExclusion = config.excludeIf.some(ex => docWords.includes(ex) || docLower.includes(ex));
+
+    if (hasKeyword && !hasExclusion) {
+      console.log(`[Auto-upload Match] Matched "${doc.name}" to "${requirementName}" (type: ${reqType})`);
+      return doc;
+    }
+  }
+
+  console.log(`[Auto-upload Match] No match found for "${requirementName}" (type: ${reqType})`);
+  return null;
+}
+
+/**
+ * Stacked multi-language greeting component with color-coded labels
+ */
+function CompactGreeting({
+  multiLanguageGreetings,
+  greetingText,
+  language,
+  setLanguage,
+  t,
+}: {
+  multiLanguageGreetings: Array<{ language: string; color: "blue" | "purple" | "emerald"; text: string }> | null;
+  greetingText: string | null;
+  language: string;
+  setLanguage: (lang: string) => void;
+  t: (key: string) => string;
+}) {
+  const greetingRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to keep next requirement visible when greeting appears
+  useEffect(() => {
+    if (greetingRef.current) {
+      // Small delay to let the animation settle
+      setTimeout(() => {
+        // Find the second requirement (index 1)
+        const secondReq = document.getElementById("requirement-1");
+        if (secondReq) {
+          const rect = secondReq.getBoundingClientRect();
+          // If the second requirement is below the fold, scroll to keep it visible
+          if (rect.top > window.innerHeight - 100) {
+            secondReq.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      }, 600);
+    }
+  }, []);
+
+  if (multiLanguageGreetings) {
+    return (
+      <div
+        ref={greetingRef}
+        className="rounded-lg border border-border bg-card/60 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-700"
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex-1 space-y-3">
+            {multiLanguageGreetings.map((greeting, idx) => {
+              const colorClass = greeting.color === "blue"
+                ? "text-blue-600 dark:text-blue-400"
+                : greeting.color === "purple"
+                ? "text-purple-600 dark:text-purple-400"
+                : "text-emerald-600 dark:text-emerald-400";
+
+              return (
+                <div key={idx} className={idx > 0 ? "pt-3 border-t border-border/50" : ""}>
+                  <p className={`text-[10px] uppercase tracking-wider mb-1 font-semibold ${colorClass}`}>
+                    {greeting.language}
+                  </p>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {greeting.text}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          <InlineLanguageSwitch language={language} setLanguage={setLanguage} t={t} />
+        </div>
+      </div>
+    );
+  }
+
+  // Single language greeting (non-demo)
+  return (
+    <div
+      ref={greetingRef}
+      className="flex items-start gap-3 rounded-lg border border-border bg-card/60 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-700"
+    >
+      <p className="text-sm text-foreground leading-relaxed flex-1">
+        {greetingText}
+      </p>
+      <InlineLanguageSwitch language={language} setLanguage={setLanguage} t={t} />
+    </div>
+  );
+}
+
 export function ProgressiveRequirements({
   events,
   isStreaming,
@@ -112,6 +368,13 @@ export function ProgressiveRequirements({
   const [expandedThinking, setExpandedThinking] = useState<Set<number>>(new Set());
   // Traveler name extracted from passport — shown in greeting
   const [travelerFirstName, setTravelerFirstName] = useState<string | null>(null);
+  // Client-side mount flag to prevent hydration errors
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Set mounted flag on client-side
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Track all extractions for cross-document checking
   const extractionsRef = useRef<DocumentExtraction[]>([]);
@@ -519,11 +782,8 @@ export function ProgressiveRequirements({
 
       console.log(`[Auto-upload] Looking for match for requirement ${index}: "${requirement.name}"`);
 
-      // Find matching demo document by name
-      const demoDoc = demoDocuments.find(doc =>
-        requirement.name.toLowerCase().includes(doc.name.toLowerCase()) ||
-        doc.name.toLowerCase().includes(requirement.name.toLowerCase())
-      );
+      // Find matching demo document by name using improved fuzzy matching
+      const demoDoc = findBestDocumentMatch(requirement.name, demoDocuments);
 
       if (demoDoc) {
         console.log(`[Auto-upload] Found match: "${demoDoc.name}" for "${requirement.name}"`);
@@ -605,22 +865,42 @@ export function ProgressiveRequirements({
     return null;
   }
 
-  // Build contextual greeting text based on verification state
+  // Build contextual greeting text based on verification state (multi-language for demo profiles)
   const greetingText = useMemo(() => {
     if (!travelerFirstName) return null;
     const name = travelerFirstName;
+
+    let englishMessage = "";
     if (analyzedCount === 0) {
-      // Just passport uploaded, nothing verified yet
-      return t(`Hello ${name}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.`);
+      englishMessage = `Hello ${name}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.`;
+    } else if (analyzedCount > 0 && analyzedCount < totalRequirements) {
+      englishMessage = `${name}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.`;
+    } else if (analyzedCount >= totalRequirements && totalRequirements > 0) {
+      englishMessage = `${name}, all ${totalRequirements} documents have been verified. Review your results below.`;
     }
+
+    return englishMessage || null;
+  }, [travelerFirstName, analyzedCount, totalRequirements]);
+
+  // Generate multi-language greetings for demo profiles
+  const multiLanguageGreetings = useMemo(() => {
+    if (!travelerFirstName || !isDemoProfile || !loadedPersonaName) return null;
+
+    const name = travelerFirstName;
+
+    // Determine message type
+    let messageType: "passport" | "verifying" | "complete" = "passport";
     if (analyzedCount > 0 && analyzedCount < totalRequirements) {
-      return t(`${name}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.`);
+      messageType = "verifying";
+    } else if (analyzedCount >= totalRequirements && totalRequirements > 0) {
+      messageType = "complete";
     }
-    if (analyzedCount >= totalRequirements && totalRequirements > 0) {
-      return t(`${name}, all ${totalRequirements} documents have been verified. Review your results below.`);
-    }
-    return null;
-  }, [travelerFirstName, analyzedCount, totalRequirements, t]);
+
+    // Get translations based on persona
+    const personaGreetings = getPersonaGreetings(loadedPersonaName, name, messageType, analyzedCount, totalRequirements);
+
+    return personaGreetings;
+  }, [travelerFirstName, analyzedCount, totalRequirements, isDemoProfile, loadedPersonaName]);
 
   return (
     <div className="space-y-6" ref={containerRef}>
@@ -662,17 +942,15 @@ export function ProgressiveRequirements({
         )}
       </div>
 
-      {/* Contextual greeting — appears after passport name is extracted */}
-      {greetingText && (
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-card/60 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-500">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-foreground leading-relaxed">
-              {greetingText}
-            </p>
-          </div>
-          {/* Inline language selector */}
-          <InlineLanguageSwitch language={language} setLanguage={setLanguage} t={t} />
-        </div>
+      {/* Contextual greeting — appears after passport name is extracted (client-side only) */}
+      {hasMounted && (multiLanguageGreetings || greetingText) && (
+        <CompactGreeting
+          multiLanguageGreetings={multiLanguageGreetings}
+          greetingText={greetingText}
+          language={language}
+          setLanguage={setLanguage}
+          t={t}
+        />
       )}
 
       {/* Requirements List */}
@@ -868,7 +1146,10 @@ export function ProgressiveRequirements({
                         </span>
                       </div>
                       <div className="text-[13px] text-muted-foreground leading-relaxed space-y-1">
-                        <FormatThinkingInline text={reqState.thinking.slice(-1200)} />
+                        <DynamicAnalysisFeedback
+                          thinking={reqState.thinking}
+                          requirementName={item.name}
+                        />
                       </div>
                     </div>
                   )}
@@ -1226,6 +1507,55 @@ function buildSourceUrlWithFragment(baseUrl: string, requirementName: string): s
     return `${baseUrl}:~:text=${textFragment}`;
   }
   return `${baseUrl}#:~:text=${textFragment}`;
+}
+
+/**
+ * Dynamic analysis feedback that shows progressive stages even before thinking excerpts arrive.
+ * Eliminates perceived "dead space" by showing simulated progress.
+ */
+function DynamicAnalysisFeedback({ thinking, requirementName }: { thinking: string; requirementName: string }) {
+  const [elapsed, setElapsed] = React.useState(0);
+
+  // Track elapsed time since component mount
+  React.useEffect(() => {
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      setElapsed(Date.now() - startTime);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // If we have real thinking excerpts (not just "Reading document..."), show them
+  const hasRealThinking = thinking && !thinking.startsWith("Reading document");
+
+  if (hasRealThinking) {
+    return <FormatThinkingInline text={thinking.slice(-1200)} />;
+  }
+
+  // Otherwise, show progressive simulated stages based on elapsed time
+  const stages = [
+    { threshold: 0, message: "Reading document and extracting text..." },
+    { threshold: 2000, message: `Identifying key information for ${requirementName}...` },
+    { threshold: 4000, message: "Checking compliance against visa requirements..." },
+    { threshold: 7000, message: "Verifying document authenticity and format..." },
+    { threshold: 10000, message: "Cross-referencing with other submitted documents..." },
+    { threshold: 13000, message: "Performing final validation checks..." },
+  ];
+
+  // Find current stage based on elapsed time
+  const currentStage = stages
+    .slice()
+    .reverse()
+    .find(stage => elapsed >= stage.threshold) || stages[0];
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 animate-pulse">
+        <div className="w-1 h-1 rounded-full bg-blue-400" />
+        <span className="text-muted-foreground">{currentStage.message}</span>
+      </div>
+    </div>
+  );
 }
 
 /** Lightweight formatter for inline thinking text — renders **bold**, lists, and line breaks */

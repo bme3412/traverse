@@ -205,11 +205,6 @@ export function LanguageSelector({
 
   const currentLang = LANGUAGES.find((l) => l.name === currentLanguage) || LANGUAGES[0];
 
-  // Compute corridor-relevant language codes
-  const corridorCodes = passports && destination
-    ? getCorridorLanguageCodes(passports, destination)
-    : [];
-
   // Filter and sort languages
   const filtered = LANGUAGES.filter((l) => {
     if (!query) return true;
@@ -221,20 +216,54 @@ export function LanguageSelector({
     );
   });
 
-  // Build suggested list: demo persona suggestion + corridor-relevant languages
-  const suggestedSet = new Set<string>();
-  if (suggestedLanguage && suggestedLanguage !== "English") {
-    suggestedSet.add(suggestedLanguage);
-  }
-  for (const code of corridorCodes) {
-    const lang = LANGUAGES.find((l) => l.code === code);
-    if (lang && lang.name !== "English") {
-      suggestedSet.add(lang.name);
+  // Build suggested list with specific order:
+  // 1. Origin languages (from passports)
+  // 2. Destination languages
+  // 3. Demo persona preferred language (if different)
+  const suggestedInOrder: Language[] = [];
+  const addedCodes = new Set<string>();
+
+  // Add origin languages first (from passports)
+  if (passports) {
+    for (const passport of passports) {
+      const langs = COUNTRY_LANGUAGES[passport] || [];
+      for (const code of langs) {
+        if (code !== "en" && !addedCodes.has(code)) {
+          const lang = LANGUAGES.find((l) => l.code === code);
+          if (lang && filtered.includes(lang)) {
+            suggestedInOrder.push(lang);
+            addedCodes.add(code);
+          }
+        }
+      }
     }
   }
 
-  const suggested = filtered.filter((l) => suggestedSet.has(l.name));
-  const rest = filtered.filter((l) => !suggestedSet.has(l.name));
+  // Add destination languages second
+  if (destination) {
+    const langs = COUNTRY_LANGUAGES[destination] || [];
+    for (const code of langs) {
+      if (code !== "en" && !addedCodes.has(code)) {
+        const lang = LANGUAGES.find((l) => l.code === code);
+        if (lang && filtered.includes(lang)) {
+          suggestedInOrder.push(lang);
+          addedCodes.add(code);
+        }
+      }
+    }
+  }
+
+  // Add demo persona preferred language if not already added
+  if (suggestedLanguage && suggestedLanguage !== "English") {
+    const lang = LANGUAGES.find((l) => l.name === suggestedLanguage);
+    if (lang && filtered.includes(lang) && !addedCodes.has(lang.code)) {
+      suggestedInOrder.push(lang);
+      addedCodes.add(lang.code);
+    }
+  }
+
+  const suggested = suggestedInOrder;
+  const rest = filtered.filter((l) => !addedCodes.has(l.code));
 
   const handleSelect = (lang: Language) => {
     onLanguageChange(lang.name);

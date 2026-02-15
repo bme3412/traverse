@@ -222,6 +222,8 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [animatedFields, setAnimatedFields] = useState<Set<string>>(new Set());
+  const [pulseButton, setPulseButton] = useState(false);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
 
   // Compute today's date string client-side only to avoid hydration mismatch
   const [todayStr, setTodayStr] = useState("");
@@ -255,6 +257,25 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
       setTimeout(() => {
         setShowSpotlight(false);
       }, 1500);
+
+      // Guide user to next step
+      setTimeout(() => {
+        // Scroll to Check Requirements button
+        if (submitButtonRef.current) {
+          submitButtonRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }
+
+        // Pulse the button to draw attention
+        setPulseButton(true);
+
+        // Stop pulsing after 6 seconds
+        setTimeout(() => {
+          setPulseButton(false);
+        }, 6000);
+      }, 600);
     }
   }, [prefilledData]);
 
@@ -557,6 +578,7 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
 
         {/* Check Requirements Button — transforms when form is ready */}
         <button
+          ref={submitButtonRef}
           type="submit"
           disabled={isLoading}
           className={`inline-flex items-center justify-center gap-1.5 font-medium rounded-lg transition-all duration-300 text-sm ${
@@ -565,7 +587,7 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
               : isFormReady
                 ? "px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-lg shadow-blue-500/25"
                 : "px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white"
-          }`}
+          } ${pulseButton && isFormReady ? "animate-pulse-glow" : ""}`}
         >
           {isLoading ? (
             <>

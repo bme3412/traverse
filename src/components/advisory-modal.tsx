@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, CheckCircle2, AlertTriangle, Info, ExternalLink, Globe, ChevronDown, ChevronUp, Sparkles, XCircle, ArrowRight, FileCheck2, RefreshCw, ZoomIn, FilePlus2 } from "lucide-react";
-import { AdvisoryReport, ApplicationAssessment, DocumentExtraction, RemediationItem, FieldRegion, Severity } from "@/lib/types";
+import { AdvisoryReport, ApplicationAssessment, ComplianceItem, DocumentExtraction, RemediationItem, FieldRegion, Severity, ReauditProgress, ReauditFixStatus } from "@/lib/types";
 import { useTranslation } from "@/lib/i18n-context";
 import { FadeText } from "./fade-text";
 import { LANGUAGES } from "./language-selector";
@@ -19,6 +19,8 @@ interface AdvisoryModalProps {
   remediation?: PersonaRemediation | null;
   onApplyFixes?: () => void;
   isReauditing?: boolean;
+  reauditProgress?: ReauditProgress | null;
+  reauditThinking?: Map<string, string>;
 }
 
 /**
@@ -56,27 +58,27 @@ function getAssessmentInfo(overall: ApplicationAssessment) {
     case "APPLICATION_PROCEEDS":
       return {
         icon: CheckCircle2,
-        color: "text-emerald-600 dark:text-emerald-400",
-        bg: "bg-emerald-50 dark:bg-emerald-950/20",
-        border: "border-emerald-200 dark:border-emerald-900",
+        color: "text-foreground",
+        bg: "bg-background/95",
+        border: "border-border",
         title: "Looking Good!",
         message: "Your application is on the right track. A few small improvements will make it even stronger.",
       };
     case "ADDITIONAL_DOCUMENTS_NEEDED":
       return {
         icon: AlertTriangle,
-        color: "text-amber-600 dark:text-amber-400",
-        bg: "bg-amber-50 dark:bg-amber-950/20",
-        border: "border-amber-200 dark:border-amber-900",
+        color: "text-foreground",
+        bg: "bg-background/95",
+        border: "border-border",
         title: "A Few Things to Fix",
         message: "We've found some items that need your attention before you submit.",
       };
     case "SIGNIFICANT_ISSUES":
       return {
         icon: AlertTriangle,
-        color: "text-red-600 dark:text-red-400",
-        bg: "bg-red-50 dark:bg-red-950/20",
-        border: "border-red-200 dark:border-red-900",
+        color: "text-foreground",
+        bg: "bg-background/95",
+        border: "border-border",
         title: "Let's Strengthen Your Application",
         message: "We've identified several important areas to address. Don't worry — we'll help you fix them.",
       };
@@ -307,7 +309,7 @@ function DocumentThumbnail({
   );
 }
 
-export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extractions, remediation, onApplyFixes, isReauditing = false }: AdvisoryModalProps) {
+export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extractions, remediation, onApplyFixes, isReauditing = false, reauditProgress, reauditThinking }: AdvisoryModalProps) {
   // Debug: log document image matching info
   useEffect(() => {
     if (isOpen) {
@@ -331,7 +333,9 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
   const [expandedFixCards, setExpandedFixCards] = useState<Set<string>>(new Set());
   const [zoomedImage, setZoomedImage] = useState<{ src: string; label: string } | null>(null);
 
-  const assessmentInfo = getAssessmentInfo(advisory.overall);
+  // Override assessment display when re-audit completes with all passed
+  const effectiveAssessment = reauditProgress?.allPassed ? "APPLICATION_PROCEEDS" as ApplicationAssessment : advisory.overall;
+  const assessmentInfo = getAssessmentInfo(effectiveAssessment);
   const Icon = assessmentInfo.icon;
 
   // Get current language display name
@@ -501,12 +505,15 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
           {critical.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <AlertTriangle className="w-5 h-5 text-foreground/70" />
                 <h3 className="text-lg font-bold text-foreground">
                   <FadeText text={t("Must Fix These First")} />
                 </h3>
+                <span className="ml-auto text-xs font-medium text-foreground/50 px-2 py-1 rounded-full bg-foreground/5">
+                  CRITICAL
+                </span>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {critical.map((fix, index) => {
                   const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
                   const matchingImage = findImageForFix(fix, documentImages);
@@ -514,18 +521,17 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
                   return (
                     <div
                       key={index}
-                      className="p-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/10"
+                      className="p-4 rounded-lg border-l-4 border-l-red-500 border border-border bg-background/50"
                     >
                       <div className="flex items-start gap-3">
-                        <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-red-600 dark:bg-red-500 text-white text-sm font-bold">
+                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-foreground/10 text-foreground/70 text-xs font-medium">
                           {fix.priority}
                         </span>
                         <div className="flex-1 min-w-0 space-y-2">
-                          <div className="font-semibold text-foreground">
+                          <div className="font-semibold text-foreground text-sm leading-relaxed">
                             {renderWithLinks(translatedFix.issue)}
                           </div>
-                          <div className="text-sm text-foreground/80 bg-white/60 dark:bg-slate-900/60 p-3 rounded border border-red-200/50 dark:border-red-900/50">
-                            <span className="font-medium text-foreground/90">How to fix: </span>
+                          <div className="text-sm text-foreground/70 leading-relaxed pl-3 border-l-2 border-border">
                             {renderWithLinks(translatedFix.fix)}
                           </div>
                           {matchingImage && (
@@ -550,12 +556,15 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
           {warnings.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <AlertTriangle className="w-5 h-5 text-foreground/70" />
                 <h3 className="text-lg font-bold text-foreground">
                   <FadeText text={t("Recommended Improvements")} />
                 </h3>
+                <span className="ml-auto text-xs font-medium text-foreground/50 px-2 py-1 rounded-full bg-foreground/5">
+                  WARNING
+                </span>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {warnings.map((fix, index) => {
                   const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
                   const matchingImage = findImageForFix(fix, documentImages);
@@ -563,18 +572,17 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
                   return (
                     <div
                       key={index}
-                      className="p-4 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/10"
+                      className="p-4 rounded-lg border-l-4 border-l-amber-500 border border-border bg-background/50"
                     >
                       <div className="flex items-start gap-3">
-                        <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-amber-600 dark:bg-amber-500 text-white text-sm font-bold">
+                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-foreground/10 text-foreground/70 text-xs font-medium">
                           {fix.priority}
                         </span>
                         <div className="flex-1 min-w-0 space-y-2">
-                          <div className="font-semibold text-foreground">
+                          <div className="font-semibold text-foreground text-sm leading-relaxed">
                             {renderWithLinks(translatedFix.issue)}
                           </div>
-                          <div className="text-sm text-foreground/80 bg-white/60 dark:bg-slate-900/60 p-3 rounded border border-amber-200/50 dark:border-amber-900/50">
-                            <span className="font-medium text-foreground/90">How to fix: </span>
+                          <div className="text-sm text-foreground/70 leading-relaxed pl-3 border-l-2 border-border">
                             {renderWithLinks(translatedFix.fix)}
                           </div>
                           {matchingImage && (
@@ -599,12 +607,15 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
           {info.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <Info className="w-5 h-5 text-foreground/70" />
                 <h3 className="text-lg font-bold text-foreground">
                   <FadeText text={t("Extra Tips to Strengthen Your Application")} />
                 </h3>
+                <span className="ml-auto text-xs font-medium text-foreground/50 px-2 py-1 rounded-full bg-foreground/5">
+                  INFO
+                </span>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {info.map((fix, index) => {
                   const translatedFix = content.fixes[advisory.fixes.indexOf(fix)];
                   const matchingImage = findImageForFix(fix, documentImages);
@@ -612,18 +623,17 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
                   return (
                     <div
                       key={index}
-                      className="p-4 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/10"
+                      className="p-4 rounded-lg border-l-4 border-l-blue-500 border border-border bg-background/50"
                     >
                       <div className="flex items-start gap-3">
-                        <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 dark:bg-blue-500 text-white text-sm font-bold">
+                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-foreground/10 text-foreground/70 text-xs font-medium">
                           {fix.priority}
                         </span>
                         <div className="flex-1 min-w-0 space-y-2">
-                          <div className="font-semibold text-foreground">
+                          <div className="font-semibold text-foreground text-sm leading-relaxed">
                             {renderWithLinks(translatedFix.issue)}
                           </div>
-                          <div className="text-sm text-foreground/80 bg-white/60 dark:bg-slate-900/60 p-3 rounded border border-blue-200/50 dark:border-blue-900/50">
-                            <span className="font-medium text-foreground/90">How to do it: </span>
+                          <div className="text-sm text-foreground/70 leading-relaxed pl-3 border-l-2 border-border">
                             {renderWithLinks(translatedFix.fix)}
                           </div>
                           {matchingImage && (
@@ -744,6 +754,9 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
                       });
                     }}
                     onZoom={(src, label) => setZoomedImage({ src, label })}
+                    reauditStatus={reauditProgress?.fixStatuses.get(fix.id)}
+                    reauditThinking={reauditThinking?.get(fix.id)}
+                    reauditCompliance={reauditProgress?.fixResults.get(fix.id)}
                   />
                 ))}
               </div>
@@ -754,39 +767,99 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
         {/* Footer */}
         <div className="sticky bottom-0 p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
           {remediation && onApplyFixes ? (
-            /* Fix Wizard CTA footer */
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <FileCheck2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Ready to apply corrections</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Corrected documents will replace the originals and go through a fresh audit.
-                  </p>
+            /* Fix Wizard CTA footer — adapts to re-audit state */
+            reauditProgress?.overallComplete ? (
+              /* Re-audit complete */
+              reauditProgress.allPassed ? (
+                /* All passed — success */
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">All issues resolved</p>
+                      <p className="text-xs text-emerald-600/70 dark:text-emerald-400/60 mt-0.5">
+                        All {remediation.fixes.length} corrected documents passed verification.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="shrink-0 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors shadow-sm"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                /* Some failed */
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">
+                        {Array.from(reauditProgress.fixResults.values()).filter(c => c.status === "met").length} of {remediation.fixes.length} issues resolved
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Some fixes still need attention. Review the results above.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="shrink-0 px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              )
+            ) : isReauditing ? (
+              /* Re-audit in progress */
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <RefreshCw className="w-5 h-5 text-blue-500 animate-spin shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      Re-verifying… {Array.from(reauditProgress?.fixStatuses.values() || []).filter(s => s === "passed" || s === "failed").length}/{remediation.fixes.length}
+                    </p>
+                    {/* Progress bar */}
+                    <div className="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-blue-500 transition-all duration-500 ease-out"
+                        style={{
+                          width: `${(Array.from(reauditProgress?.fixStatuses.values() || []).filter(s => s === "passed" || s === "failed").length / remediation.fixes.length) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  onApplyFixes();
-                  onClose();
-                }}
-                disabled={isReauditing}
-                className="shrink-0 flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm"
-              >
-                {isReauditing ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Re-auditing…
-                  </>
-                ) : (
-                  <>
-                    Apply Fixes &amp; Re-check
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </div>
+            ) : (
+              /* Default: ready to apply */
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <FileCheck2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Ready to apply corrections</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Corrected documents will be re-verified against requirements.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { onApplyFixes(); }}
+                  className="shrink-0 flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors shadow-sm"
+                >
+                  Apply Fixes &amp; Re-check
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )
           ) : (
             /* Standard "Got it" footer */
             <div className="flex items-center justify-between">
@@ -842,6 +915,124 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
 }
 
 // ============================================================
+// Re-audit Step Pipeline — shows labeled stages during re-verification
+// ============================================================
+
+const REAUDIT_STEPS = [
+  { key: "fetch", label: "Fetching" },
+  { key: "read", label: "Reading" },
+  { key: "crosscheck", label: "Cross-checking" },
+  { key: "verify", label: "Verifying" },
+] as const;
+
+/**
+ * Infers which pipeline step is active based on reaudit status + thinking excerpt.
+ * Returns the 0-based index of the active step.
+ */
+function inferActiveStep(
+  status: ReauditFixStatus,
+  thinking?: string
+): number {
+  if (status === "fetching") return 0;
+  if (status === "passed" || status === "failed") return 4; // all done
+  // status === "analyzing" — infer from thinking content
+  if (!thinking) return 1; // default to "Reading"
+  const lower = thinking.toLowerCase();
+  if (lower.includes("compliance") || lower.includes("verdict") || lower.includes("meets") || lower.includes("does not meet")) return 3;
+  if (lower.includes("cross-check") || lower.includes("cross check") || lower.includes("requirement") || lower.includes("against")) return 2;
+  if (lower.includes("read complete") || lower.includes("extracted") || lower.includes("analyzing")) return 2;
+  return 1; // still reading
+}
+
+function ReauditStepPipeline({
+  status,
+  thinking,
+  compliance,
+}: {
+  status: ReauditFixStatus;
+  thinking?: string;
+  compliance?: ComplianceItem;
+}) {
+  const activeIdx = inferActiveStep(status, thinking);
+  const isDone = status === "passed" || status === "failed";
+
+  return (
+    <div className="space-y-2.5">
+      {/* Step dots + labels */}
+      <div className="flex items-center gap-0">
+        {REAUDIT_STEPS.map((step, i) => {
+          const isComplete = isDone || i < activeIdx;
+          const isActive = !isDone && i === activeIdx;
+          const isPending = !isDone && i > activeIdx;
+
+          return (
+            <div key={step.key} className="flex items-center flex-1 last:flex-none">
+              {/* Step dot + label */}
+              <div className="flex flex-col items-center gap-1">
+                {isComplete ? (
+                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                ) : isActive ? (
+                  <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center ring-2 ring-blue-500/30">
+                    <RefreshCw className="w-3 h-3 text-blue-500 animate-spin" />
+                  </div>
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-muted/60 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/25" />
+                  </div>
+                )}
+                <span
+                  className={`text-[10px] font-medium leading-none ${
+                    isComplete
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : isActive
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-muted-foreground/50"
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </div>
+              {/* Connector line (not after last) */}
+              {i < REAUDIT_STEPS.length - 1 && (
+                <div
+                  className={`flex-1 h-0.5 mx-1 rounded-full transition-colors duration-300 ${
+                    isComplete ? "bg-emerald-500/40" : "bg-muted/60"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Live thinking excerpt — shown during active analysis */}
+      {!isDone && thinking && (
+        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-blue-50/50 dark:bg-blue-500/5 border border-blue-200/60 dark:border-blue-500/15">
+          <RefreshCw className="w-3.5 h-3.5 text-blue-500 animate-spin shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed line-clamp-2">{thinking}</p>
+        </div>
+      )}
+
+      {/* Result badge — shown when complete */}
+      {status === "passed" && compliance && (
+        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-200/60 dark:border-emerald-500/15">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">{compliance.detail || "Requirement met"}</p>
+        </div>
+      )}
+      {status === "failed" && compliance && (
+        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-50/50 dark:bg-red-500/5 border border-red-200/60 dark:border-red-500/15">
+          <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">{compliance.detail || "Verification failed"}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
 // Inline Fix Card — embedded in the advisory modal
 // ============================================================
 
@@ -851,47 +1042,86 @@ function InlineFixCard({
   isExpanded,
   onToggle,
   onZoom,
+  reauditStatus,
+  reauditThinking,
+  reauditCompliance,
 }: {
   fix: RemediationFix;
   index: number;
   isExpanded: boolean;
   onToggle: () => void;
   onZoom: (src: string, label: string) => void;
+  reauditStatus?: ReauditFixStatus;
+  reauditThinking?: string;
+  reauditCompliance?: ComplianceItem;
 }) {
   const isCritical = fix.severity === "critical";
 
+  // Determine visual overrides based on re-audit status
+  const isVerified = reauditStatus === "passed";
+  const isFailed = reauditStatus === "failed";
+  const isInProgress = reauditStatus === "fetching" || reauditStatus === "analyzing";
+
   return (
-    <div className="bg-card/50">
+    <div className={`bg-card/50 transition-all duration-300 ${
+      isVerified ? "border-l-4 border-l-emerald-500" :
+      isFailed ? "border-l-4 border-l-red-500" :
+      isInProgress ? "opacity-90" : ""
+    }`}>
       {/* Collapsed summary */}
       <button
         type="button"
         onClick={onToggle}
         className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
       >
-        {/* Severity badge */}
-        <span
-          className={`flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-            isCritical
-              ? "bg-red-500/15 text-red-600 dark:text-red-400"
-              : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-          }`}
-        >
-          {index + 1}
-        </span>
+        {/* Severity badge — overridden by re-audit status */}
+        {isVerified ? (
+          <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="w-4 h-4" />
+          </span>
+        ) : isFailed ? (
+          <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-red-500/15 text-red-600 dark:text-red-400">
+            <XCircle className="w-4 h-4" />
+          </span>
+        ) : isInProgress ? (
+          <span className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+          </span>
+        ) : (
+          <span
+            className={`flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
+              isCritical
+                ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+            }`}
+          >
+            {index + 1}
+          </span>
+        )}
 
         {/* Title + brief */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <span
-              className={`text-[10px] font-semibold uppercase tracking-wider ${
-                isCritical
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-amber-600 dark:text-amber-400"
-              }`}
-            >
-              {fix.severity}
-            </span>
-            {fix.isNewDocument && (
+            {isVerified ? (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                Verified
+              </span>
+            ) : isFailed ? (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
+                Still Failing
+              </span>
+            ) : (
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-wider ${
+                  isCritical
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-amber-600 dark:text-amber-400"
+                }`}
+              >
+                {fix.severity}
+              </span>
+            )}
+            {fix.isNewDocument && !isVerified && !isFailed && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-600 dark:text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
                 <FilePlus2 className="w-3 h-3" />
                 New Document
@@ -909,6 +1139,17 @@ function InlineFixCard({
           <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
         )}
       </button>
+
+      {/* Re-audit step pipeline + thinking — shown during any re-audit activity */}
+      {(reauditStatus === "fetching" || reauditStatus === "analyzing" || isVerified || isFailed) && (
+        <div className="px-5 pb-3 animate-in fade-in duration-300">
+          <ReauditStepPipeline
+            status={reauditStatus!}
+            thinking={reauditThinking}
+            compliance={reauditCompliance}
+          />
+        </div>
+      )}
 
       {/* Expanded detail */}
       {isExpanded && (

@@ -278,6 +278,33 @@
   animation: button-pulse-dark 1s ease-in-out 3;
 }
 
+/* ── Continuous pulse glow for Check Requirements button ─── */
+@keyframes pulse-glow-light {
+  0%, 100% {
+    box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.25);
+  }
+  50% {
+    box-shadow: 0 4px 24px 0 rgba(59, 130, 246, 0.4);
+  }
+}
+
+@keyframes pulse-glow-dark {
+  0%, 100% {
+    box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.25);
+  }
+  50% {
+    box-shadow: 0 4px 24px 0 rgba(59, 130, 246, 0.4);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow-light 2s ease-in-out infinite;
+}
+
+[data-theme="dark"] .animate-pulse-glow {
+  animation: pulse-glow-dark 2s ease-in-out infinite;
+}
+
 /* ── Gradient border animation ─────────────────────────────── */
 @keyframes gradient-border {
   0% {
@@ -481,6 +508,7 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-border-glow,
   .animate-button-pulse,
+  .animate-pulse-glow,
   .animate-gradient-border,
   .animate-field-slide,
   .animate-spotlight,
