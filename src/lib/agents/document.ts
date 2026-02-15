@@ -4,7 +4,7 @@
  * Pass 1: Parallel vision reads - extract text from each document
  * Pass 2: Cross-document analysis - compliance, cross-lingual, narrative, forensics
  *
- * Uses Claude Opus 4.5 with vision and extended thinking.
+ * Uses Claude Opus 4.6 with vision and extended thinking.
  */
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -25,9 +25,10 @@ import {
 } from "../types";
 import type { ThinkingDelta, TextDelta } from "../../types/anthropic";
 import { AI_CONFIG, STREAMING_CONFIG } from "../config";
+import { getEnv, isDevelopment } from "../env";
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
+  apiKey: getEnv().ANTHROPIC_API_KEY,
 });
 
 /**
@@ -112,8 +113,11 @@ Return a JSON object with this structure:
       if (jsonMatch) {
         try {
           parsed = JSON.parse(jsonMatch[0]) as ParsedExtraction;
-        } catch {
+        } catch (err) {
           // Parsing failed, use defaults
+          if (isDevelopment()) {
+            console.warn("[Document] Failed to parse extraction JSON:", err);
+          }
         }
       }
 
@@ -591,8 +595,11 @@ Return JSON:
     if (jsonMatch) {
       try {
         parsed = JSON.parse(jsonMatch[0]) as ParsedExtraction;
-      } catch {
+      } catch (err) {
         // Parsing failed
+        if (isDevelopment()) {
+          console.warn("[Document] Failed to parse extraction JSON in Pass 2:", err);
+        }
       }
     }
 

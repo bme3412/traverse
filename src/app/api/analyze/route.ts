@@ -3,12 +3,21 @@ import { SSEEvent, TravelDetails, UploadedDocument, AnalysisResult } from "@/lib
 import { runResearchAgent } from "@/lib/agents/research";
 import { runDocumentReaderPass1, runDocumentAnalyzerPass2 } from "@/lib/agents/document";
 import { AnalyzeRequestSchema } from "@/lib/validation";
+import { isDevelopment } from "@/lib/env";
+import { checkRateLimit, createRateLimitResponse, RATE_LIMIT_PRESETS } from "@/lib/rate-limit";
+import { STREAMING_CONFIG } from "@/lib/config";
 import { z } from "zod";
 
 export const runtime = "nodejs";
 export const maxDuration = 120; // Allow up to 2 minutes for full pipeline
 
 export async function POST(request: Request) {
+  // Apply rate limiting (10 requests per minute for this expensive operation)
+  const rateLimit = checkRateLimit(request, RATE_LIMIT_PRESETS.STRICT);
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(rateLimit);
+  }
+
   // Parse the request body
   let body: Record<string, unknown>;
   try {
@@ -93,7 +102,9 @@ async function* simpleOrchestrator(
   if (!hasDocuments) {
     // --- No documents: just run Research Agent sequentially ---
     const orchStart = Date.now();
-    console.log(`[Orchestrator] Starting research-only flow`);
+    if (isDevelopment()) {
+      console.log(`[Orchestrator] Starting research-only flow`);
+    }
     const researchGenerator = runResearchAgent(travelDetails);
     let requirements;
     let eventCount = 0;
@@ -105,20 +116,24 @@ async function* simpleOrchestrator(
         break;
       }
       eventCount++;
-      if (eventCount <= 5 || eventCount % 10 === 0) {
+      if (isDevelopment() && (eventCount <= 5 || eventCount % 10 === 0)) {
         console.log(`[Orchestrator] Event #${eventCount}: ${result.value.type} @ +${((Date.now() - orchStart) / 1000).toFixed(1)}s`);
       }
       yield result.value;
     }
 
-    console.log(`[Orchestrator] Research done, ${eventCount} events total @ +${((Date.now() - orchStart) / 1000).toFixed(1)}s`);
-    console.log(`[Orchestrator] Yielding complete event`);
+    if (isDevelopment()) {
+      console.log(`[Orchestrator] Research done, ${eventCount} events total @ +${((Date.now() - orchStart) / 1000).toFixed(1)}s`);
+      console.log(`[Orchestrator] Yielding complete event`);
+    }
 
     yield {
       type: "complete",
       data: { requirements } as AnalysisResult,
     };
-    console.log(`[Orchestrator] Complete @ +${((Date.now() - orchStart) / 1000).toFixed(1)}s`);
+    if (isDevelopment()) {
+      console.log(`[Orchestrator] Complete @ +${((Date.now() - orchStart) / 1000).toFixed(1)}s`);
+    }
     return;
   }
 
@@ -144,7 +159,7 @@ async function* simpleOrchestrator(
   // Poll the event queue until both generators finish
   while (!settled) {
     // Wait a small tick to let events accumulate
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.MINIMAL_DELAY_MS));
 
     // Flush queued events
     while (eventQueue.length > 0) {

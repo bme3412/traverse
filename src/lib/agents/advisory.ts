@@ -1,13 +1,12 @@
 /**
- * Advisory Agent — Agent 3 of 3 (Phase 2: Lightweight LLM Synthesis)
+ * Advisory Agent — Agent 3 of 3 (Phase 2: Advisory Synthesis)
  *
  * Refines a programmatically-built preliminary advisory with personalized
  * interview tips, warmer fix descriptions, and corridor-specific warnings
  * based on actual compliance results.
  *
- * Uses Claude Sonnet (fast) with no extended thinking — the heavy reasoning
- * was already done by the per-document compliance checks. This call only
- * synthesizes and humanizes the structured data.
+ * Uses Claude Opus 4.6 with extended thinking to synthesize complex compliance
+ * data into warm, actionable guidance with corridor-specific insights.
  */
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -21,15 +20,18 @@ import {
   ApplicationAssessment,
 } from "../types";
 import { AI_CONFIG } from "../config";
+import { getEnv, isDevelopment } from "../env";
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
+  apiKey: getEnv().ANTHROPIC_API_KEY,
 });
 
 function elapsed(start: number, msg: string) {
-  const ms = Date.now() - start;
-  const s = (ms / 1000).toFixed(1);
-  console.log(`[Advisory Agent] ${msg} @ +${s}s`);
+  if (isDevelopment()) {
+    const ms = Date.now() - start;
+    const s = (ms / 1000).toFixed(1);
+    console.log(`[Advisory Agent] ${msg} @ +${s}s`);
+  }
 }
 
 /**
@@ -134,15 +136,19 @@ export async function* runAdvisoryAgent(
     agent: "Advisory Agent",
   };
 
-  elapsed(startTime, `Creating Sonnet stream (${compliances.length} compliances, ${preliminaryFixes?.length || 0} preliminary fixes)...`);
+  elapsed(startTime, `Creating Opus 4.6 stream with extended thinking (${compliances.length} compliances, ${preliminaryFixes?.length || 0} preliminary fixes)...`);
 
   const systemPrompt = buildSystemPrompt(requirements);
   const userPrompt = buildUserPrompt(requirements, compliances, preliminaryFixes);
 
   try {
     const stream = await anthropic.messages.create({
-      model: AI_CONFIG.ADVISORY_MODEL,
+      model: AI_CONFIG.MODEL,
       max_tokens: AI_CONFIG.ADVISORY_MAX_TOKENS,
+      thinking: {
+        type: "enabled",
+        budget_tokens: AI_CONFIG.THINKING_BUDGET,
+      },
       system: systemPrompt,
       messages: [
         {
@@ -153,7 +159,7 @@ export async function* runAdvisoryAgent(
       stream: true,
     });
 
-    elapsed(startTime, "Sonnet stream created");
+    elapsed(startTime, "Opus 4.6 stream created");
 
     let textContent = "";
     let firstDelta = true;
@@ -167,11 +173,13 @@ export async function* runAdvisoryAgent(
       if (event.type === "content_block_delta") {
         const delta = event.delta;
 
-        // Text accumulation only — no thinking blocks with Sonnet (no thinking enabled)
+        // Opus 4.6 with extended thinking - accumulate text output only
+        // (thinking happens internally but we only need the final structured JSON)
         if (delta.type === "text_delta") {
           const text = (delta as { type: "text_delta"; text: string }).text || "";
           textContent += text;
         }
+        // Thinking deltas are processed internally by Opus but not streamed to UI
       }
     }
 

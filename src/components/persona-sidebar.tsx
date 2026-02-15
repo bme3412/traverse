@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronRight, ChevronDown, Plane, GripVertical, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
+import { ChevronRight, ChevronLeft, Plane, GripVertical, X, CheckCircle2, FileText, ZoomIn } from "lucide-react";
 import { TravelDetails } from "@/lib/types";
 import { countryFlag } from "@/lib/country-flags";
 import { useDemoContext } from "@/lib/demo-context";
+import { STREAMING_CONFIG } from "@/lib/config";
 
 // ============================================================
 // Persona definitions
@@ -111,20 +113,71 @@ const PERSONAS: DemoPersona[] = [
 // ============================================================
 
 export function PersonaSidebar() {
-  const { loadDemo } = useDemoContext();
-  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const { loadDemo, isDemoProfile, loadedPersonaName, sidebarExpandRequested, clearSidebarExpandRequest, setSidebarOpen } = useDemoContext();
+  const [isOpen, setIsOpenLocal] = useState(false);
+
+  // Wrap setIsOpen to sync with context so other components can respond
+  const setIsOpen = useCallback((open: boolean) => {
+    setIsOpenLocal(open);
+    setSidebarOpen(open);
+  }, [setSidebarOpen]);
   const [selectedId, setSelectedId] = useState<string>(PERSONAS[0].id);
   const [previewImage, setPreviewImage] = useState<{ name: string; src: string } | null>(null);
   const [docsExpanded, setDocsExpanded] = useState(false);
+  const [loadSuccess, setLoadSuccess] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [zoomedGalleryImage, setZoomedGalleryImage] = useState<{ name: string; src: string } | null>(null);
 
-  const persona = PERSONAS.find((p) => p.id === selectedId) || PERSONAS[0];
+  const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
 
-  const handleLoad = () => {
+  const isAnalyzePage = pathname?.startsWith("/analyze");
+
+  // Find the loaded persona by name (for analyze page mode)
+  const loadedPersona = loadedPersonaName
+    ? PERSONAS.find((p) => p.name === loadedPersonaName) || null
+    : null;
+
+  // On analyze page, use the loaded persona; on home page, use selected tab
+  const persona = isAnalyzePage && loadedPersona
+    ? loadedPersona
+    : PERSONAS.find((p) => p.id === selectedId) || PERSONAS[0];
+
+  // Auto-expand sidebar after 4 seconds on initial home page load
+  useEffect(() => {
+    if (hasAutoExpanded || isAnalyzePage) return;
+
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+      setHasAutoExpanded(true);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [hasAutoExpanded, isAnalyzePage, setIsOpen]);
+
+  // Scroll-triggered expand: open sidebar when the analyze page signals via context
+  // Only expands for demo profiles (the requestSidebarExpand call is already gated on isDemoProfile)
+  useEffect(() => {
+    if (sidebarExpandRequested && !isOpen) {
+      setIsOpen(true);
+      clearSidebarExpandRequest();
+    }
+  }, [sidebarExpandRequested, isOpen, clearSidebarExpandRequest, setIsOpen]);
+
+  const handleLoad = async () => {
+    // Brief green flash, then load
+    setLoadSuccess(true);
+    await new Promise((resolve) => setTimeout(resolve, STREAMING_CONFIG.SHORT_DELAY_MS));
+
+    // Type-safe demo loading with proper interface
     loadDemo({
       travelDetails: persona.travelDetails,
       documents: persona.documents,
       preferredLanguage: persona.preferredLanguage,
+      personaName: persona.name,
     });
+
+    setLoadSuccess(false);
     setIsOpen(false);
   };
 
@@ -134,7 +187,7 @@ export function PersonaSidebar() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed left-0 top-1/2 -translate-y-1/2 z-50 flex items-center gap-1.5 px-2.5 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-r-lg shadow-lg transition-all duration-200 ${
+        className={`fixed left-0 top-1/2 -translate-y-1/2 z-50 flex items-center gap-1.5 px-2.5 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-r-lg shadow-lg transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isOpen ? "translate-x-[22rem]" : "translate-x-0"
         }`}
         aria-label="Toggle demo personas"
@@ -147,29 +200,31 @@ export function PersonaSidebar() {
 
       {/* Sidebar panel */}
       <div
-        className={`fixed left-0 top-0 h-full w-[22rem] bg-popover backdrop-blur-sm border-r border-border z-40 transition-transform duration-200 ${
+        className={`fixed left-0 top-0 h-full w-[22rem] bg-popover backdrop-blur-sm border-r border-border z-40 transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } overflow-y-auto`}
       >
         <div className="p-5 pt-[4.5rem]">
-          {/* Persona tabs — pt accounts for sticky header (h-14 + spacing) */}
-          <div className="flex gap-1.5 mb-5 bg-background rounded-lg p-1 border border-border">
-            {PERSONAS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => { setSelectedId(p.id); setDocsExpanded(false); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-sm transition-colors ${
-                  selectedId === p.id
-                    ? "bg-secondary text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <span className="text-base">{countryFlag(p.origin)}</span>
-                <span>{p.name.split(" ")[0]}</span>
-              </button>
-            ))}
-          </div>
+          {/* Persona tabs — only on home page (not analyze page) */}
+          {!(isAnalyzePage && isDemoProfile) && (
+            <div className="flex gap-1.5 mb-5 bg-background rounded-lg p-1 border border-border">
+              {PERSONAS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { setSelectedId(p.id); setDocsExpanded(false); }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-sm transition-colors ${
+                    selectedId === p.id
+                      ? "bg-secondary text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span className="text-base">{countryFlag(p.origin)}</span>
+                  <span>{p.name.split(" ")[0]}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Persona header — large & readable */}
           <div className="mb-5 rounded-xl border border-border bg-background/60 p-4">
@@ -199,98 +254,185 @@ export function PersonaSidebar() {
             </p>
           </div>
 
-          {/* Documents — collapsible */}
-          <div className="mb-5">
+          {/* Documents — collapsible (home page only) */}
+          {!(isAnalyzePage && isDemoProfile) && (
+            <div className="mb-5">
+              <button
+                type="button"
+                onClick={() => setDocsExpanded(!docsExpanded)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border border-border bg-secondary/60 hover:bg-secondary transition-colors"
+              >
+                <span className="text-sm font-medium text-foreground">
+                  Documents
+                  <span className="ml-1.5 text-muted-foreground">({persona.documents.length})</span>
+                </span>
+                <span className="flex items-center justify-center w-5 h-5 rounded bg-muted-foreground/20 text-foreground text-xs font-bold">
+                  {docsExpanded ? "−" : "+"}
+                </span>
+              </button>
+
+              {docsExpanded && (
+                <div className="mt-2 -mx-3 px-3 overflow-x-auto">
+                  <div className="flex gap-2 pb-2">
+                    {persona.documents.map((doc, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        draggable={!!doc.image}
+                        onDragStart={(e) => {
+                          if (!doc.image) {
+                            e.preventDefault();
+                            return;
+                          }
+                          e.dataTransfer.setData(
+                            "application/x-demo-doc",
+                            JSON.stringify({ name: doc.name, language: doc.language, image: doc.image })
+                          );
+                          e.dataTransfer.effectAllowed = "copy";
+                          // Close sidebar after a frame so drop targets become accessible
+                          requestAnimationFrame(() => setIsOpen(false));
+                        }}
+                        onClick={() => {
+                          if (doc.image) setPreviewImage({ name: doc.name, src: doc.image });
+                        }}
+                        disabled={!doc.image}
+                        className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-colors flex-shrink-0 w-20 ${
+                          doc.image
+                            ? "border-border bg-background hover:border-border hover:bg-card cursor-grab active:cursor-grabbing"
+                            : "border-border/50 bg-background/50 cursor-default opacity-50"
+                        }`}
+                        title={doc.image ? "Drag to a requirement or click to preview" : undefined}
+                      >
+                        {/* Thumbnail */}
+                        {doc.image ? (
+                          <div className="w-14 h-16 rounded bg-secondary overflow-hidden border border-border flex-shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={doc.image}
+                              alt={doc.name}
+                              className="w-full h-full object-cover object-top pointer-events-none"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-14 h-16 rounded bg-secondary flex-shrink-0 border border-border flex items-center justify-center">
+                            <span className="text-[10px] text-muted-foreground">N/A</span>
+                          </div>
+                        )}
+
+                        <div className="w-full text-center">
+                          <p className="text-[10px] text-foreground leading-tight line-clamp-2">{doc.name}</p>
+                          <p className="text-[9px] mt-0.5">
+                            {doc.language !== "English" && (
+                              <span className="text-amber-500/70">{doc.language}</span>
+                            )}
+                            {doc.language === "English" && <span className="text-muted-foreground">{doc.language}</span>}
+                          </p>
+                        </div>
+
+                        {doc.image && (
+                          <GripVertical className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Documents — always-expanded draggable list (analyze page) */}
+          {isAnalyzePage && isDemoProfile && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                Documents
+                <span className="ml-1 normal-case tracking-normal font-normal">({persona.documents.length})</span>
+              </p>
+              <div className="space-y-1.5">
+                {persona.documents.map((doc, i) => (
+                  <div
+                    key={i}
+                    draggable={!!doc.image}
+                    onDragStart={(e) => {
+                      if (!doc.image) {
+                        e.preventDefault();
+                        return;
+                      }
+                      e.dataTransfer.setData(
+                        "application/x-demo-doc",
+                        JSON.stringify({ name: doc.name, language: doc.language, image: doc.image })
+                      );
+                      e.dataTransfer.effectAllowed = "copy";
+                      requestAnimationFrame(() => setIsOpen(false));
+                    }}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg border transition-colors ${
+                      doc.image
+                        ? "border-border bg-background hover:bg-card cursor-grab active:cursor-grabbing"
+                        : "border-border/50 bg-background/50 opacity-50"
+                    }`}
+                  >
+                    {/* Thumbnail */}
+                    {doc.image ? (
+                      <div className="w-10 h-12 rounded bg-secondary overflow-hidden border border-border flex-shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={doc.image}
+                          alt={doc.name}
+                          className="w-full h-full object-cover object-top pointer-events-none"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-12 rounded bg-secondary flex-shrink-0 border border-border flex items-center justify-center">
+                        <span className="text-[9px] text-muted-foreground">N/A</span>
+                      </div>
+                    )}
+
+                    {/* Name + language flag */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground truncate">{doc.name}</p>
+                      <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                        <span className="text-xs">{languageFlag(doc.language)}</span>
+                        {doc.language}
+                      </span>
+                    </div>
+
+                    {/* Drag grip */}
+                    {doc.image && (
+                      <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action button — switches between Load Profile (home) and View Documents (analyze) */}
+          {isAnalyzePage && isDemoProfile ? (
             <button
               type="button"
-              onClick={() => setDocsExpanded(!docsExpanded)}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border border-border bg-secondary/60 hover:bg-secondary transition-colors"
+              onClick={() => { setShowGallery(true); setIsOpen(false); }}
+              className="w-full px-4 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white"
             >
-              <span className="text-sm font-medium text-foreground">
-                Documents
-                <span className="ml-1.5 text-muted-foreground">({persona.documents.length})</span>
-              </span>
-              <span className="flex items-center justify-center w-5 h-5 rounded bg-muted-foreground/20 text-foreground text-xs font-bold">
-                {docsExpanded ? "−" : "+"}
-              </span>
+              <FileText className="w-4 h-4" />
+              View Documents
             </button>
-
-            {docsExpanded && (
-              <div className="mt-2 -mx-3 px-3 overflow-x-auto">
-                <div className="flex gap-2 pb-2">
-                  {persona.documents.map((doc, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      draggable={!!doc.image}
-                      onDragStart={(e) => {
-                        if (!doc.image) {
-                          e.preventDefault();
-                          return;
-                        }
-                        e.dataTransfer.setData(
-                          "application/x-demo-doc",
-                          JSON.stringify({ name: doc.name, language: doc.language, image: doc.image })
-                        );
-                        e.dataTransfer.effectAllowed = "copy";
-                        // Close sidebar after a frame so drop targets become accessible
-                        requestAnimationFrame(() => setIsOpen(false));
-                      }}
-                      onClick={() => {
-                        if (doc.image) setPreviewImage({ name: doc.name, src: doc.image });
-                      }}
-                      disabled={!doc.image}
-                      className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-colors flex-shrink-0 w-20 ${
-                        doc.image
-                          ? "border-border bg-background hover:border-border hover:bg-card cursor-grab active:cursor-grabbing"
-                          : "border-border/50 bg-background/50 cursor-default opacity-50"
-                      }`}
-                      title={doc.image ? "Drag to a requirement or click to preview" : undefined}
-                    >
-                      {/* Thumbnail */}
-                      {doc.image ? (
-                        <div className="w-14 h-16 rounded bg-secondary overflow-hidden border border-border flex-shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={doc.image}
-                            alt={doc.name}
-                            className="w-full h-full object-cover object-top pointer-events-none"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-14 h-16 rounded bg-secondary flex-shrink-0 border border-border flex items-center justify-center">
-                          <span className="text-[10px] text-muted-foreground">N/A</span>
-                        </div>
-                      )}
-
-                      <div className="w-full text-center">
-                        <p className="text-[10px] text-foreground leading-tight line-clamp-2">{doc.name}</p>
-                        <p className="text-[9px] mt-0.5">
-                          {doc.language !== "English" && (
-                            <span className="text-amber-500/70">{doc.language}</span>
-                          )}
-                          {doc.language === "English" && <span className="text-muted-foreground">{doc.language}</span>}
-                        </p>
-                      </div>
-
-                      {doc.image && (
-                        <GripVertical className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Load button */}
-          <button
-            type="button"
-            onClick={handleLoad}
-            className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors text-sm"
-          >
-            Load {persona.name.split(" ")[0]}&apos;s Profile
-          </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleLoad}
+              disabled={loadSuccess}
+              className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2 ${
+                loadSuccess
+                  ? "bg-green-600 text-white"
+                  : "bg-blue-600 hover:bg-blue-500 text-white"
+              }`}
+            >
+              {loadSuccess ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <>Load {persona.name.split(" ")[0]}&apos;s Profile</>
+              )}
+            </button>
+          )}
 
           <p className="mt-3 text-[11px] text-muted-foreground text-center">
             All persona data is fictional.
@@ -301,12 +443,12 @@ export function PersonaSidebar() {
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-30 backdrop-blur-[2px]"
+          className="fixed inset-0 bg-black/25 z-30 backdrop-blur-[1px] animate-in fade-in duration-[1400ms]"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Document preview modal */}
+      {/* Document preview modal (single doc) */}
       {previewImage && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-8"
@@ -342,6 +484,122 @@ export function PersonaSidebar() {
           </div>
         </div>
       )}
+
+      {/* Document gallery modal (all docs, horizontal scroll) */}
+      {showGallery && persona && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 sm:p-8"
+          onClick={() => setShowGallery(false)}
+        >
+          <div
+            className="relative max-w-6xl w-full max-h-[90vh] bg-card rounded-xl border border-border overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-border flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm font-semibold text-foreground">
+                  {persona.name.split(" ")[0]}&apos;s Documents
+                  <span className="ml-1.5 text-muted-foreground font-normal">({persona.documents.length})</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGallery(false)}
+                aria-label="Close gallery"
+                className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Horizontal scroll gallery */}
+            <div className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth">
+              <div className="flex h-full px-6 py-5 gap-6" style={{ minWidth: "max-content" }}>
+                {persona.documents.map((doc, i) => (
+                  <div
+                    key={i}
+                    className="snap-center flex-shrink-0 flex flex-col rounded-xl border border-border bg-background shadow-sm overflow-hidden"
+                    style={{ width: "min(380px, 78vw)" }}
+                  >
+                    {/* Card label header */}
+                    <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-border bg-secondary/40">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="flex items-center justify-center w-5 h-5 rounded bg-muted-foreground/15 text-[10px] font-bold text-muted-foreground flex-shrink-0">
+                          {i + 1}
+                        </span>
+                        <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
+                      </div>
+                      <span className="ml-2 flex-shrink-0 inline-flex items-center gap-1 text-xs text-muted-foreground" title={doc.language}>
+                        <span className="text-sm">{languageFlag(doc.language)}</span>
+                        <span className="text-[10px]">{doc.language}</span>
+                      </span>
+                    </div>
+
+                    {/* Document image with zoom button */}
+                    <div className="relative group">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={doc.image}
+                        alt={doc.name}
+                        className="w-full max-h-[65vh] object-contain bg-secondary/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setZoomedGalleryImage({ name: doc.name, src: doc.image })}
+                        className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
+                      >
+                        <ZoomIn className="w-3.5 h-3.5" />
+                        Zoom
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Scroll hint */}
+            <div className="flex items-center justify-center gap-2 px-5 py-2.5 border-t border-border text-xs text-muted-foreground flex-shrink-0">
+              <ChevronLeft className="w-3 h-3" />
+              <span>Scroll to browse all documents</span>
+              <ChevronRight className="w-3 h-3" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Zoomed document view (from gallery) */}
+      {zoomedGalleryImage && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-zoom-out"
+          onClick={() => setZoomedGalleryImage(null)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[92vh] flex flex-col items-center">
+            {/* Header bar */}
+            <div className="w-full flex items-center justify-between px-4 py-2.5 mb-2">
+              <p className="text-sm font-medium text-white/90">{zoomedGalleryImage.name}</p>
+              <button
+                type="button"
+                onClick={() => setZoomedGalleryImage(null)}
+                aria-label="Close zoom"
+                className="p-1.5 rounded-md hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {/* Full-size scrollable image */}
+            <div className="overflow-auto max-h-[calc(92vh-3rem)] rounded-lg" onClick={(e) => e.stopPropagation()}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={zoomedGalleryImage.src}
+                alt={zoomedGalleryImage.name}
+                className="w-full cursor-default"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -349,6 +607,48 @@ export function PersonaSidebar() {
 // ============================================================
 // Helpers
 // ============================================================
+
+/** Map document language names to a representative country flag. */
+function languageFlag(language: string): string {
+  const LANGUAGE_TO_COUNTRY: Record<string, string> = {
+    English: "United States",
+    Hindi: "India",
+    Portuguese: "Brazil",
+    Yoruba: "Nigeria",
+    Spanish: "Spain",
+    French: "France",
+    German: "Germany",
+    Arabic: "Saudi Arabia",
+    Chinese: "China",
+    Japanese: "Japan",
+    Korean: "South Korea",
+    Russian: "Russia",
+    Turkish: "Turkey",
+    Italian: "Italy",
+    Dutch: "Netherlands",
+    Thai: "Thailand",
+    Vietnamese: "Vietnam",
+    Swahili: "Kenya",
+    Malay: "Malaysia",
+    Indonesian: "Indonesia",
+    Tagalog: "Philippines",
+    Bengali: "Bangladesh",
+    Urdu: "Pakistan",
+    Persian: "Iran",
+    Polish: "Poland",
+    Ukrainian: "Ukraine",
+    Romanian: "Romania",
+    Greek: "Greece",
+    Czech: "Czech Republic",
+    Swedish: "Sweden",
+    Norwegian: "Norway",
+    Danish: "Denmark",
+    Finnish: "Finland",
+    Hungarian: "Hungary",
+  };
+  const country = LANGUAGE_TO_COUNTRY[language];
+  return country ? countryFlag(country) : "🌍";
+}
 
 function formatDateRange(dates: { depart: string; return: string }): string {
   const d = new Date(dates.depart);

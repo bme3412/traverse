@@ -14,7 +14,7 @@ const AGENT_META: Record<string, { labelKey: string; gradient: string; activeCol
 const STATUS_KEYS: Record<AgentStatus, { textKey: string; className: string }> = {
   pending: { textKey: "Pending", className: "text-muted-foreground" },
   active: { textKey: "Running", className: "text-amber-400" },
-  cached: { textKey: "Cached", className: "text-blue-400" },
+  cached: { textKey: "Complete", className: "text-emerald-400" },
   complete: { textKey: "Complete", className: "text-emerald-400" },
   error: { textKey: "Error", className: "text-red-400" },
 };

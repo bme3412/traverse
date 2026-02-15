@@ -21,6 +21,7 @@ import {
   RequirementsChecklist,
 } from "@/lib/types";
 import { useTranslation } from "@/lib/i18n-context";
+import { useDemoContext } from "@/lib/demo-context";
 import { LANGUAGES } from "@/components/language-selector";
 import {
   CheckCircle2,
@@ -81,6 +82,8 @@ export function ProgressiveRequirements({
   demoDocuments = [],
 }: ProgressiveRequirementsProps) {
   const { t, tDynamic, language, isTranslating, translatedRequirements, translatedCorridorInfo } = useTranslation();
+  const { requestSidebarExpand } = useDemoContext();
+  const sidebarExpandTriggeredRef = useRef(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [requirementStates, setRequirementStates] = useState<
     Map<number, RequirementState>
@@ -152,19 +155,6 @@ export function ProgressiveRequirements({
         }
         return undefined;
       },
-    };
-  }, [events]);
-
-  // Extract corridor warnings from the complete event for the key-warnings bar
-  const corridorWarnings = useMemo(() => {
-    const completeEvent = events.find((e) => e.type === "complete");
-    if (!completeEvent || completeEvent.type !== "complete") return null;
-    const reqs = completeEvent.data?.requirements as RequirementsChecklist | undefined;
-    if (!reqs) return null;
-    return {
-      financialThresholds: reqs.financialThresholds,
-      applicationWindow: reqs.applicationWindow,
-      commonRejectionReasons: reqs.commonRejectionReasons,
     };
   }, [events]);
 
@@ -582,99 +572,42 @@ export function ProgressiveRequirements({
   return (
     <div className="space-y-6" ref={containerRef}>
       {/* Header with Progress */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border pb-4">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold">{t("Visa Requirements")}</h2>
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">{t("Documents")}</h2>
+            {totalRequirements > 0 && analyzedCount > 0 && (
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {analyzedCount}/{totalRequirements}
+              </span>
+            )}
+          </div>
           {isTranslating && (
-            <div className="flex items-center gap-2 text-sm text-blue-400">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <div className="flex items-center gap-2 text-xs text-blue-400">
+              <Loader2 className="w-3 h-3 animate-spin" />
               <span>{t("Translating to")} {language}...</span>
             </div>
           )}
           {!isTranslating && isStreaming && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-              <span>{t("Checking requirements...")}</span>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+              <span>{t("Loading requirements…")}</span>
             </div>
-          )}
-          {!isTranslating && !isStreaming && totalRequirements > 0 && (
-            <span className="text-sm text-green-500">
-              {analyzedCount > 0
-                ? `${analyzedCount}/${totalRequirements} ${t("documents checked")}`
-                : language !== "English"
-                  ? `${t("Showing in")} ${LANGUAGES.find(l => l.name === language)?.nativeName || language}`
-                  : t("All requirements loaded")}
-            </span>
           )}
         </div>
 
-        {corridorInfo && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">
-                {translatedCorridorInfo?.corridor || corridorInfo.corridor}
-              </p>
-              <p>{translatedCorridorInfo?.visaType || corridorInfo.visaType}</p>
-            </div>
-
-            {totalRequirements > 0 && (
-              <>
-                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 transition-all duration-500 ease-out"
-                    style={{
-                      width: `${totalRequirements > 0 && analyzedCount > 0
-                        ? (analyzedCount / totalRequirements) * 100
-                        : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{totalRequirements} {t("documents needed")}</span>
-                  {analyzedCount > 0 && (
-                    <span>{analyzedCount} {t("of")} {totalRequirements} {t("checked")}</span>
-                  )}
-                </div>
-              </>
-            )}
+        {/* Progress bar — only shows once verification has started */}
+        {analyzedCount > 0 && totalRequirements > 0 && (
+          <div className="mt-2 w-full bg-secondary rounded-full h-1 overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 transition-all duration-500 ease-out"
+              style={{
+                width: `${(analyzedCount / totalRequirements) * 100}%`,
+              }}
+            />
           </div>
         )}
       </div>
-
-      {/* Key Warnings Bar — actionable corridor intel above requirements */}
-      {corridorWarnings && (
-        <div className="space-y-0 rounded-lg border border-border/60 overflow-hidden">
-          {corridorWarnings.financialThresholds?.totalRecommended && (
-            <div className="flex items-start gap-2.5 px-3 py-2 border-l-[3px] border-l-green-500 bg-green-500/5">
-              <DollarSign className="w-3.5 h-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-foreground">
-                <span className="font-medium">{t("Funds")}:</span>{" "}
-                {tDynamic(corridorWarnings.financialThresholds.totalRecommended)}
-              </p>
-            </div>
-          )}
-          {corridorWarnings.applicationWindow?.latest && (
-            <div className="flex items-start gap-2.5 px-3 py-2 border-l-[3px] border-l-amber-500 bg-amber-500/5">
-              <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-foreground">
-                <span className="font-medium">{t("Apply by")}:</span>{" "}
-                {tDynamic(corridorWarnings.applicationWindow.latest)}
-              </p>
-            </div>
-          )}
-          {corridorWarnings.commonRejectionReasons && corridorWarnings.commonRejectionReasons.length > 0 && (
-            <div className="flex items-start gap-2.5 px-3 py-2 border-l-[3px] border-l-red-500 bg-red-500/5">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-foreground">
-                <span className="font-medium">{t("Risk")}:</span>{" "}
-                {tDynamic(corridorWarnings.commonRejectionReasons[0])}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Requirements List */}
       <div className="space-y-3">
@@ -719,6 +652,13 @@ export function ProgressiveRequirements({
                 animate-in slide-in-from-bottom-4 fade-in
               `}
               style={{ animationDuration: "400ms" }}
+              onMouseEnter={() => {
+                // On first hover of any requirement, expand the demo sidebar
+                if (isDemoProfile && !sidebarExpandTriggeredRef.current) {
+                  sidebarExpandTriggeredRef.current = true;
+                  requestSidebarExpand();
+                }
+              }}
               onDragOver={(e) => {
                 if (item.uploadable && status === "pending") {
                   e.preventDefault();
@@ -737,53 +677,47 @@ export function ProgressiveRequirements({
                 }
               }}
             >
-              {/* Main requirement row */}
-              <div className="flex items-start gap-3 px-4 py-3">
+              {/* Main requirement row — compact checklist style */}
+              <div className="flex items-center gap-3 px-4 py-3">
                 {/* Status Icon */}
                 <button
                   onClick={() => toggleItem(index)}
-                  className="flex-shrink-0 mt-0.5 hover:opacity-80 transition-opacity"
+                  className="flex-shrink-0 hover:opacity-80 transition-opacity"
                   title={`Toggle details for ${item.name}`}
                   aria-label={`Toggle details for ${item.name}`}
                 >
                   <StatusIcon status={status} complianceStatus={statusFromCompliance} />
                 </button>
 
-                {/* Requirement Info */}
+                {/* Requirement Info — compact: number + name + one-line desc */}
                 <button
                   onClick={() => toggleItem(index)}
                   className="flex-1 min-w-0 text-left"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="text-xs text-muted-foreground mb-0.5">
-                        {t("Requirement")} {index + 1}
-                        {item.universal && (
-                          <span className="ml-2 text-blue-400">({t("universal")})</span>
-                        )}
-                      </div>
-                      <p className={`font-medium text-foreground ${isTranslating ? "opacity-50" : ""} transition-opacity`}>
-                        {displayName}
-                        {item.required && (
-                          <span className="ml-1.5 text-red-400 text-sm">*</span>
-                        )}
-                      </p>
-                      <p className={`text-sm text-muted-foreground mt-0.5 line-clamp-2 ${isTranslating ? "opacity-50" : ""} transition-opacity`}>
-                        {displayDesc
-                          ?.split(/\n|;/)
-                          .map(s => s.trim())
-                          .filter(s => !/^(Funds?:|Apply by:|Risk:|Duration:|Cost:|Processing|Fee:)/i.test(s))
-                          .join(". ")
-                          .replace(/\.\s*\./g, ".")
-                          .trim() || displayDesc}
-                      </p>
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-muted-foreground flex-shrink-0 mt-1 transition-transform ${
-                        isExpanded ? "rotate-180" : ""
-                      }`}
-                    />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground/60 tabular-nums shrink-0">{index + 1}.</span>
+                    <p className={`font-medium text-foreground text-sm truncate ${isTranslating ? "opacity-50" : ""} transition-opacity`}>
+                      {displayName}
+                      {item.required && (
+                        <span className="ml-1 text-red-400 text-xs">*</span>
+                      )}
+                      {item.universal && (
+                        <span className="ml-1.5 text-blue-400 text-xs">({t("universal")})</span>
+                      )}
+                    </p>
                   </div>
+                  {/* Description — single line, only shown when not expanded and not verified */}
+                  {!isExpanded && status !== "passed" && (
+                    <p className={`text-xs text-muted-foreground mt-0.5 ml-5 line-clamp-1 ${isTranslating ? "opacity-50" : ""} transition-opacity`}>
+                      {displayDesc
+                        ?.split(/\n|;/)
+                        .map(s => s.trim())
+                        .filter(s => !/^(Funds?:|Apply by:|Risk:|Duration:|Cost:|Processing|Fee:)/i.test(s))
+                        .join(". ")
+                        .replace(/\.\s*\./g, ".")
+                        .trim() || displayDesc}
+                    </p>
+                  )}
                 </button>
 
                 {/* Upload zone (right side) */}
@@ -1144,21 +1078,16 @@ export function ProgressiveRequirements({
         )}
       </div>
 
-      {/* Bottom summary bar */}
-      {totalRequirements > 0 && !isStreaming && (
-        <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border pt-4 pb-2">
+      {/* Bottom summary — only when verification is in progress */}
+      {analyzedCount > 0 && totalRequirements > 0 && !isStreaming && (
+        <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              {totalRequirements} {t("documents needed")}
+              {analyzedCount} {t("of")} {totalRequirements} {t("verified")}
             </span>
-            {analyzedCount > 0 && (
-              <span className="text-foreground">
-                {analyzedCount} {t("of")} {totalRequirements} {t("verified")}
-              </span>
-            )}
-            {analyzedCount === 0 && totalRequirements > 0 && (
-              <span className="text-blue-400 text-xs">
-                {t("Upload documents to each requirement above")}
+            {analyzedCount >= totalRequirements && (
+              <span className="text-emerald-500 font-medium text-xs">
+                {t("All documents verified")}
               </span>
             )}
           </div>

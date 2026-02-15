@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Statement (Corrected) - Amara Okafor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .document {
+            width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e30613;
+        }
+        .bank-logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e30613;
+        }
+        .bank-info {
+            text-align: right;
+            font-size: 11px;
+            color: #666;
+        }
+        .statement-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e30613;
+            margin-bottom: 20px;
+        }
+        .account-info {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #e30613;
+        }
+        .info-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .info-value {
+            color: #000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        thead {
+            background: #e30613;
+            color: white;
+        }
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+        .credit {
+            color: #008000;
+            font-weight: 600;
+        }
+        .debit {
+            color: #c00;
+        }
+        .balance {
+            font-weight: 600;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f8ff;
+            border: 1px solid #e30613;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .summary-label {
+            font-weight: 600;
+        }
+        .summary-value {
+            font-weight: bold;
+            color: #e30613;
+        }
+        .hold-notice {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2e7d32;
+        }
+        .hold-notice strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .disclaimer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div>
+                <div class="bank-logo">UBA</div>
+                <div style="font-size: 14px; color: #666;">United Bank for Africa</div>
+            </div>
+            <div class="bank-info">
+                UBA House, 57 Marina<br>
+                Lagos Island, Lagos<br>
+                Nigeria<br>
+                www.ubagroup.com
+            </div>
+        </div>
+
+        <div class="statement-title">Account Statement</div>
+
+        <div class="account-info">
+            <div class="info-row">
+                <div class="info-label">Account Holder:</div>
+                <div class="info-value">AMARA CHINYERE OKAFOR</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Account Number:</div>
+                <div class="info-value">2087654321</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Account Type:</div>
+                <div class="info-value">Savings Account</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Statement Period:</div>
+                <div class="info-value">01 November 2025 - 31 January 2026</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Currency:</div>
+                <div class="info-value">Nigerian Naira (NGN)</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Debit (NGN)</th>
+                    <th>Credit (NGN)</th>
+                    <th>Balance (NGN)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01 Nov</td>
+                    <td>Opening Balance</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td class="balance">44,250,000.00</td>
+                </tr>
+                <tr>
+                    <td>03 Nov</td>
+                    <td>Salary - Tech Solutions Ltd</td>
+                    <td>-</td>
+                    <td class="credit">850,000.00</td>
+                    <td class="balance">45,100,000.00</td>
+                </tr>
+                <tr>
+                    <td>05 Nov</td>
+                    <td>Rent Payment</td>
+                    <td class="debit">250,000.00</td>
+                    <td>-</td>
+                    <td class="balance">44,850,000.00</td>
+                </tr>
+                <tr>
+                    <td>12 Nov</td>
+                    <td>Utilities / Internet</td>
+                    <td class="debit">55,000.00</td>
+                    <td>-</td>
+                    <td class="balance">44,795,000.00</td>
+                </tr>
+                <tr>
+                    <td>20 Nov</td>
+                    <td>Grocery &amp; Transport</td>
+                    <td class="debit">62,000.00</td>
+                    <td>-</td>
+                    <td class="balance">44,733,000.00</td>
+                </tr>
+                <tr>
+                    <td>03 Dec</td>
+                    <td>Salary - Tech Solutions Ltd</td>
+                    <td>-</td>
+                    <td class="credit">850,000.00</td>
+                    <td class="balance">45,583,000.00</td>
+                </tr>
+                <tr>
+                    <td>05 Dec</td>
+                    <td>Rent Payment</td>
+                    <td class="debit">250,000.00</td>
+                    <td>-</td>
+                    <td class="balance">45,333,000.00</td>
+                </tr>
+                <tr>
+                    <td>10 Dec</td>
+                    <td>Groceries &amp; Household</td>
+                    <td class="debit">48,000.00</td>
+                    <td>-</td>
+                    <td class="balance">45,285,000.00</td>
+                </tr>
+                <tr>
+                    <td>18 Dec</td>
+                    <td>Transport - Uber</td>
+                    <td class="debit">22,000.00</td>
+                    <td>-</td>
+                    <td class="balance">45,263,000.00</td>
+                </tr>
+                <tr>
+                    <td>03 Jan</td>
+                    <td>Salary - Tech Solutions Ltd</td>
+                    <td>-</td>
+                    <td class="credit">850,000.00</td>
+                    <td class="balance">46,113,000.00</td>
+                </tr>
+                <tr>
+                    <td>05 Jan</td>
+                    <td>Rent Payment</td>
+                    <td class="debit">250,000.00</td>
+                    <td>-</td>
+                    <td class="balance">45,863,000.00</td>
+                </tr>
+                <tr>
+                    <td>15 Jan</td>
+                    <td>Utilities &amp; Internet</td>
+                    <td class="debit">58,000.00</td>
+                    <td>-</td>
+                    <td class="balance">45,805,000.00</td>
+                </tr>
+                <tr>
+                    <td>31 Jan</td>
+                    <td>Closing Balance</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td class="balance">45,805,000.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <div class="summary-row">
+                <div class="summary-label">Opening Balance:</div>
+                <div class="summary-value">₦44,250,000.00</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Total Credits:</div>
+                <div class="summary-value">₦2,550,000.00</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Total Debits:</div>
+                <div class="summary-value">₦995,000.00</div>
+            </div>
+            <div class="summary-row" style="border-top: 2px solid #e30613; padding-top: 10px; margin-top: 10px;">
+                <div class="summary-label">Closing Balance:</div>
+                <div class="summary-value" style="font-size: 16px;">₦45,805,000.00</div>
+            </div>
+        </div>
+
+        <div class="hold-notice">
+            <strong>28-Day Funds Confirmation:</strong>
+            Minimum balance maintained continuously from 01 November 2025 to 31 January 2026: ₦44,250,000.00.
+            Funds held above ₦44,000,000 for 92 consecutive days (exceeds 28-day UKVI requirement).
+        </div>
+
+        <div style="margin-top: 15px; font-size: 11px; color: #666; text-align: center;">
+            Exchange Rate (approx): ₦1,650 = £1 GBP | Closing Balance ≈ £27,760 | Min Balance (28-day) ≈ £26,818
+        </div>
+
+        <div class="disclaimer">
+            SAMPLE DOCUMENT — SYNTHETIC DATA FOR DEMONSTRATION PURPOSES ONLY
+        </div>
+    </div>
+</body>
+</html>

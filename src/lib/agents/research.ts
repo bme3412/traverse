@@ -16,17 +16,20 @@ import {
 } from "../types";
 import type { ThinkingDelta, TextDelta } from "../../types/anthropic";
 import { AI_CONFIG, STREAMING_CONFIG, CACHE_CONFIG } from "../config";
+import { getEnv, isDevelopment } from "../env";
 import { promises as fs } from "fs";
 import path from "path";
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: getEnv().ANTHROPIC_API_KEY,
 });
 
 // Timing helper for performance diagnosis
 function elapsed(start: number, label: string): void {
-  const ms = Date.now() - start;
-  console.log(`[Research Agent] ${label} @ +${(ms / 1000).toFixed(1)}s`);
+  if (isDevelopment()) {
+    const ms = Date.now() - start;
+    console.log(`[Research Agent] ${label} @ +${(ms / 1000).toFixed(1)}s`);
+  }
 }
 
 /**
@@ -182,80 +185,143 @@ export async function* runResearchAgent(
       (1000 * 60 * 60 * 24)
     );
 
-    // Build a rich thinking walkthrough from cached data
+    // Build a narrative thinking walkthrough from cached data
     let thinkingText = "";
+    const purpose = travelDetails.purpose.replace("_", " ");
 
-    // --- Phase 1: Source identification ---
-    thinkingText += `Analyzing ${corridor} travel corridor.\n`;
-    thinkingText += `Trip: ${travelDetails.dates.depart} to ${travelDetails.dates.return} (${tripDays} days), purpose: ${travelDetails.purpose.replace("_", " ")}.\n\n`;
+    // ── Phase 1: Opening — set the scene ──
+    thinkingText += `Searching for ${purpose} visa requirements: ${corridor}.\n`;
+    thinkingText += `Trip dates: ${travelDetails.dates.depart} to ${travelDetails.dates.return} (${tripDays} days).\n`;
 
     yield {
       type: "thinking",
       agent: "Research Agent",
-      summary: "Checking sources",
+      summary: "Searching",
       excerpt: thinkingText,
     };
 
-    // Show each real source from cached data (with URLs for frontend links)
+    // ── Phase 1b: Source discovery — staggered for organic pacing ──
     for (const source of sources) {
       yield { type: "search_status", source: source.name, status: "searching", url: source.url };
-      thinkingText += `Checking ${source.name}`;
-      if (source.url) thinkingText += ` (${source.url})`;
-      thinkingText += `\n`;
+      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.EMIT_INTERVAL_MS));
       yield { type: "search_status", source: source.name, status: "found", url: source.url };
+      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.SHORT_DELAY_MS));
     }
-    await new Promise(resolve => setTimeout(resolve, 150));
 
-    // --- Phase 2: Visa type + requirements ---
-    thinkingText += `\nVisa type identified: ${cached.visaType}\n`;
-    thinkingText += `Visa required: ${cached.visaRequired ? "Yes" : "No"}\n`;
-    if (cached.fees?.visa) thinkingText += `Visa fee: ${cached.fees.visa}\n`;
-    if (cached.processingTime) thinkingText += `Processing time: ${cached.processingTime}\n`;
-    if (cached.applyAt) thinkingText += `Apply at: ${cached.applyAt}\n`;
+    thinkingText += `\nFound ${sources.length} official sources. Cross-referencing requirements.\n`;
 
-    const requiredItems = cached.items.filter(i => i.required);
-    const optionalItems = cached.items.filter(i => !i.required);
-    thinkingText += `\nFound ${requiredItems.length} required documents and ${optionalItems.length} recommended items:\n`;
+    yield {
+      type: "thinking",
+      agent: "Research Agent",
+      summary: "Sources found",
+      excerpt: thinkingText,
+    };
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-    for (const item of cached.items) {
-      const tag = item.required ? "REQUIRED" : "RECOMMENDED";
-      thinkingText += `\n[${tag}] ${item.name} — ${item.description}`;
-      if (item.source) thinkingText += ` (${item.source})`;
-      thinkingText += `\n`;
+    // ── Phase 2: Visa type — the key discovery ──
+    thinkingText += `\n§ VISA TYPE\n`;
+    thinkingText += `${cached.visaType}`;
+    if (cached.fees?.visa) thinkingText += ` — fee: ${cached.fees.visa}`;
+    thinkingText += `\n`;
+    if (cached.processingTime) thinkingText += `Processing: ${cached.processingTime}\n`;
+    if (cached.applyAt) thinkingText += `Where to apply: ${cached.applyAt}\n`;
+
+    if (cached.applicationWindow) {
+      thinkingText += `Application window: submit ${cached.applicationWindow.latest} before travel (earliest: ${cached.applicationWindow.earliest})\n`;
     }
 
     yield {
       type: "thinking",
       agent: "Research Agent",
-      summary: "Analyzing requirements",
+      summary: cached.visaType,
       excerpt: thinkingText,
     };
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 400));
 
-    // --- Phase 3: Personalization ---
-    const personalized = personalizeCachedRequirements(
-      cached,
-      travelDetails,
-      requiredValidUntil
-    );
+    // ── Phase 3: Requirements breakdown ──
+    const requiredItems = cached.items.filter(i => i.required);
+    const optionalItems = cached.items.filter(i => !i.required);
 
-    thinkingText += `\nPersonalizing for ${travelDetails.dates.depart} – ${travelDetails.dates.return}:\n`;
-    thinkingText += `  Passport must be valid until: ${requiredValidUntil.toISOString().split("T")[0]}\n`;
-    thinkingText += `  Trip duration: ${tripDays} days\n`;
-
-    if (cached.importantNotes?.length) {
-      thinkingText += `\nImportant notes:\n`;
-      for (const note of cached.importantNotes) {
-        thinkingText += `  - ${note}\n`;
+    thinkingText += `\n§ REQUIRED DOCUMENTS (${requiredItems.length})\n`;
+    for (const item of requiredItems) {
+      thinkingText += `• ${item.name} — ${item.description}\n`;
+    }
+    if (optionalItems.length > 0) {
+      thinkingText += `\n§ RECOMMENDED (${optionalItems.length})\n`;
+      for (const item of optionalItems) {
+        thinkingText += `• ${item.name} — ${item.description}\n`;
       }
     }
 
     yield {
       type: "thinking",
       agent: "Research Agent",
-      summary: "Research complete",
+      summary: `${requiredItems.length} required, ${optionalItems.length} recommended`,
       excerpt: thinkingText,
     };
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    // ── Phase 4: Personalization + corridor intelligence ──
+    const personalized = personalizeCachedRequirements(
+      cached,
+      travelDetails,
+      requiredValidUntil
+    );
+
+    thinkingText += `\n§ PERSONALIZING FOR THIS TRIP\n`;
+    thinkingText += `Passport must be valid until ${requiredValidUntil.toISOString().split("T")[0]}.\n`;
+
+    if (personalized.financialThresholds) {
+      const ft = personalized.financialThresholds;
+      if (ft.dailyMinimum && ft.dailyMinimum !== "N/A (lump-sum requirement)") {
+        thinkingText += `Financial proof: ${ft.dailyMinimum}`;
+        if (ft.totalRecommended) thinkingText += ` (${ft.totalRecommended})`;
+        thinkingText += `.\n`;
+      } else if (ft.totalRecommended) {
+        thinkingText += `Financial proof: ${ft.totalRecommended}.\n`;
+      }
+      if (ft.notes) thinkingText += `${ft.notes}\n`;
+    }
+
+    if (cached.documentLanguage) {
+      const dl = cached.documentLanguage;
+      let langLine = `Documents accepted in: ${dl.accepted.join(", ")}`;
+      if (dl.translationRequired) {
+        langLine += dl.certifiedTranslation ? `. Certified translation required` : `. Translation required`;
+      }
+      thinkingText += `${langLine}.\n`;
+    }
+
+    if (cached.importantNotes?.length) {
+      for (const note of cached.importantNotes) {
+        thinkingText += `${note}\n`;
+      }
+    }
+
+    yield {
+      type: "thinking",
+      agent: "Research Agent",
+      summary: "Personalizing",
+      excerpt: thinkingText,
+    };
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // ── Phase 5: Rejection risks — the cautionary note ──
+    if (cached.commonRejectionReasons?.length) {
+      thinkingText += `\n§ WATCH OUT\n`;
+      thinkingText += `Common reasons applications on this corridor get rejected:\n`;
+      for (const reason of cached.commonRejectionReasons) {
+        thinkingText += `⚠ ${reason}\n`;
+      }
+
+      yield {
+        type: "thinking",
+        agent: "Research Agent",
+        summary: "Rejection risks identified",
+        excerpt: thinkingText,
+      };
+      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.QUARTER_SECOND_MS));
+    }
 
     // Sort: uploadable first, non-uploadable at bottom
     const sortedPersonalized = [...personalized.items].sort((a, b) => {
@@ -264,7 +330,7 @@ export async function* runResearchAgent(
       return aUp - bUp;
     });
 
-    // --- Emit requirement items (no delays) ---
+    // ── Phase 5: Emit requirements one-by-one (~1-1.5s) ──
     for (const item of sortedPersonalized) {
       yield {
         type: "requirement",
@@ -274,10 +340,12 @@ export async function* runResearchAgent(
         source: item.source,
         uploadable: item.uploadable ?? true,
       };
+      await new Promise(resolve => setTimeout(resolve, STREAMING_CONFIG.VERY_SHORT_DELAY_MS));
     }
 
     // Final thinking state
-    thinkingText += `\nResearch complete. ${personalized.items.length} requirements identified from ${sources.length} sources.`;
+    thinkingText += `\n§ DONE\n`;
+    thinkingText += `${personalized.items.length} requirements identified from ${sources.length} sources. Ready for document verification.`;
 
     yield {
       type: "thinking",
@@ -742,8 +810,11 @@ function extractIncrementalItems(
                 uploadable: parsed.uploadable,
               });
             }
-          } catch {
-            // Incomplete or malformed — skip
+          } catch (err) {
+            // Incomplete or malformed — skip (expected during streaming)
+            if (isDevelopment()) {
+              console.warn("[Research] Failed to parse partial item:", err);
+            }
           }
           objStart = -1;
         }
@@ -755,7 +826,11 @@ function extractIncrementalItems(
 
     // Return only items beyond what we've already emitted
     return items.slice(alreadyEmitted);
-  } catch {
+  } catch (err) {
+    // Parsing failed, return empty array (expected during early streaming)
+    if (isDevelopment()) {
+      console.warn("[Research] Failed to parse items array:", err);
+    }
     return [];
   }
 }

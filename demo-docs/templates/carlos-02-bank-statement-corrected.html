@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extrato Bancário - Carlos Mendes</title>
+    <title>Extrato Bancário (Corrigido) - Carlos Mendes</title>
     <style>
         * {
             margin: 0;
@@ -99,6 +99,12 @@
         .balance {
             font-weight: 600;
         }
+        .month-separator {
+            background: #fff5ed;
+            font-weight: bold;
+            font-size: 11px;
+            color: #ff6200;
+        }
         .summary {
             margin-top: 30px;
             padding: 20px;
@@ -117,6 +123,19 @@
         .summary-value {
             font-weight: bold;
             color: #ff6200;
+        }
+        .consistency-notice {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2e7d32;
+        }
+        .consistency-notice strong {
+            display: block;
+            margin-bottom: 5px;
         }
         .disclaimer {
             position: absolute;
@@ -162,7 +181,7 @@
             </div>
             <div class="info-row">
                 <div class="info-label">Período:</div>
-                <div class="info-value">01 Dezembro 2025 - 31 Janeiro 2026</div>
+                <div class="info-value">01 Novembro 2025 - 31 Janeiro 2026</div>
             </div>
             <div class="info-row">
                 <div class="info-label">Moeda:</div>
@@ -182,88 +201,115 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>01 Dez</td>
+                    <td>01 Nov</td>
                     <td>Saldo Anterior</td>
                     <td>-</td>
                     <td>-</td>
-                    <td class="balance">8.200,00</td>
+                    <td class="balance">42.800,00</td>
                 </tr>
                 <tr>
-                    <td>05 Dez</td>
+                    <td>05 Nov</td>
+                    <td>Depósito - Fotografia Casamento Oliveira</td>
+                    <td>-</td>
+                    <td class="credit">8.500,00</td>
+                    <td class="balance">51.300,00</td>
+                </tr>
+                <tr>
+                    <td>08 Nov</td>
+                    <td>Aluguel Apartamento</td>
+                    <td class="debit">2.800,00</td>
+                    <td>-</td>
+                    <td class="balance">48.500,00</td>
+                </tr>
+                <tr>
+                    <td>15 Nov</td>
+                    <td>Depósito - Ensaio Corporativo Natura</td>
+                    <td>-</td>
+                    <td class="credit">5.200,00</td>
+                    <td class="balance">53.700,00</td>
+                </tr>
+                <tr>
+                    <td>22 Nov</td>
+                    <td>Supermercado / Serviços / Transporte</td>
+                    <td class="debit">1.850,00</td>
+                    <td>-</td>
+                    <td class="balance">51.850,00</td>
+                </tr>
+                <tr class="month-separator">
+                    <td colspan="5" style="padding: 6px 8px;">— Dezembro 2025 —</td>
+                </tr>
+                <tr>
+                    <td>03 Dez</td>
                     <td>Depósito - Fotografia Casamento Silva</td>
                     <td>-</td>
-                    <td class="credit">5.500,00</td>
-                    <td class="balance">13.700,00</td>
+                    <td class="credit">9.200,00</td>
+                    <td class="balance">61.050,00</td>
                 </tr>
                 <tr>
                     <td>08 Dez</td>
                     <td>Aluguel Apartamento</td>
                     <td class="debit">2.800,00</td>
                     <td>-</td>
-                    <td class="balance">10.900,00</td>
+                    <td class="balance">58.250,00</td>
                 </tr>
                 <tr>
-                    <td>15 Dez</td>
-                    <td>Supermercado / Serviços</td>
-                    <td class="debit">1.250,00</td>
+                    <td>12 Dez</td>
+                    <td>Depósito - Sessão Editorial Revista</td>
                     <td>-</td>
-                    <td class="balance">9.650,00</td>
+                    <td class="credit">5.800,00</td>
+                    <td class="balance">64.050,00</td>
                 </tr>
                 <tr>
                     <td>20 Dez</td>
-                    <td>Depósito - Ensaio Fotográfico</td>
+                    <td>Equipamento Fotográfico - Loja Canon</td>
+                    <td class="debit">4.200,00</td>
                     <td>-</td>
-                    <td class="credit">3.800,00</td>
-                    <td class="balance">13.450,00</td>
+                    <td class="balance">59.850,00</td>
                 </tr>
                 <tr>
                     <td>28 Dez</td>
-                    <td>Equipamento - Loja Canon</td>
-                    <td class="debit">2.400,00</td>
+                    <td>Depósito - Evento Fim de Ano</td>
                     <td>-</td>
-                    <td class="balance">11.050,00</td>
+                    <td class="credit">7.600,00</td>
+                    <td class="balance">67.450,00</td>
+                </tr>
+                <tr class="month-separator">
+                    <td colspan="5" style="padding: 6px 8px;">— Janeiro 2026 —</td>
                 </tr>
                 <tr>
-                    <td>03 Jan</td>
+                    <td>05 Jan</td>
                     <td>Depósito - Workshop Fotografia</td>
                     <td>-</td>
-                    <td class="credit">2.200,00</td>
-                    <td class="balance">13.250,00</td>
+                    <td class="credit">4.800,00</td>
+                    <td class="balance">72.250,00</td>
                 </tr>
                 <tr>
                     <td>08 Jan</td>
                     <td>Aluguel Apartamento</td>
                     <td class="debit">2.800,00</td>
                     <td>-</td>
-                    <td class="balance">10.450,00</td>
+                    <td class="balance">69.450,00</td>
                 </tr>
                 <tr>
                     <td>15 Jan</td>
-                    <td>Supermercado / Transporte</td>
-                    <td class="debit">980,00</td>
+                    <td>Depósito - Ensaio Fotográfico Corporativo</td>
                     <td>-</td>
-                    <td class="balance">9.470,00</td>
+                    <td class="credit">6.200,00</td>
+                    <td class="balance">75.650,00</td>
                 </tr>
                 <tr>
                     <td>22 Jan</td>
-                    <td style="color: #c00; font-weight: 600;">Transferência Recebida - Empréstimo Pessoal</td>
+                    <td>Supermercado / Transporte / Serviços</td>
+                    <td class="debit">2.150,00</td>
                     <td>-</td>
-                    <td class="credit" style="font-size: 14px;">15.000,00</td>
-                    <td class="balance">24.470,00</td>
-                </tr>
-                <tr>
-                    <td>25 Jan</td>
-                    <td>Seguro Viagem - Allianz</td>
-                    <td class="debit">420,00</td>
-                    <td>-</td>
-                    <td class="balance">24.050,00</td>
+                    <td class="balance">73.500,00</td>
                 </tr>
                 <tr>
                     <td>31 Jan</td>
                     <td>Saldo Final</td>
                     <td>-</td>
                     <td>-</td>
-                    <td class="balance">24.050,00</td>
+                    <td class="balance">73.500,00</td>
                 </tr>
             </tbody>
         </table>
@@ -271,24 +317,31 @@
         <div class="summary">
             <div class="summary-row">
                 <div class="summary-label">Saldo Inicial:</div>
-                <div class="summary-value">R$ 8.200,00</div>
+                <div class="summary-value">R$ 42.800,00</div>
             </div>
             <div class="summary-row">
                 <div class="summary-label">Total de Créditos:</div>
-                <div class="summary-value">R$ 26.500,00</div>
+                <div class="summary-value">R$ 47.300,00</div>
             </div>
             <div class="summary-row">
                 <div class="summary-label">Total de Débitos:</div>
-                <div class="summary-value">R$ 10.650,00</div>
+                <div class="summary-value">R$ 16.600,00</div>
             </div>
             <div class="summary-row" style="border-top: 2px solid #ff6200; padding-top: 10px; margin-top: 10px;">
                 <div class="summary-label">Saldo Final:</div>
-                <div class="summary-value" style="font-size: 16px;">R$ 24.050,00</div>
+                <div class="summary-value" style="font-size: 16px;">R$ 73.500,00</div>
             </div>
         </div>
 
-        <div style="margin-top: 30px; font-size: 11px; color: #666; text-align: center;">
-            Taxa de Câmbio (aprox.): R$ 5,80 = ¥1000 JPY | Saldo Final ≈ ¥4,146,000
+        <div class="consistency-notice">
+            <strong>Demonstração de Estabilidade Financeira:</strong>
+            Saldo mínimo mantido continuamente no período de 3 meses: R$ 42.800,00.
+            Renda mensal média de atividades fotográficas: R$ 11.733,00.
+            Nenhuma transferência de terceiros ou empréstimos pessoais no período.
+        </div>
+
+        <div style="margin-top: 15px; font-size: 11px; color: #666; text-align: center;">
+            Taxa de Câmbio (aprox.): R$ 5,80 = ¥1000 JPY | Saldo Final ≈ ¥12,672,000 | Saldo Mínimo (3 meses) ≈ ¥7,379,000
         </div>
 
         <div class="disclaimer">

@@ -17,6 +17,7 @@ import {
   Calendar,
   Clock,
   Sparkles,
+  Check,
 } from "lucide-react";
 import { countryFlag } from "@/lib/country-flags";
 
@@ -215,16 +216,41 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSpotlight, setShowSpotlight] = useState(false);
+  const [animatedFields, setAnimatedFields] = useState<Set<string>>(new Set());
+
   // Compute today's date string client-side only to avoid hydration mismatch
   const [todayStr, setTodayStr] = useState("");
   useEffect(() => {
     setTodayStr(new Date().toISOString().split("T")[0]);
   }, []);
 
+  // Track if we've already animated this prefill to prevent re-triggering
+  const lastPrefilledRef = useRef<TravelDetails | null>(null);
+
   useEffect(() => {
-    if (prefilledData) {
+    if (prefilledData && prefilledData !== lastPrefilledRef.current) {
+      lastPrefilledRef.current = prefilledData;
+
+      // Update form data
       setFormData(prefilledData);
       setErrors({});
+
+      // Trigger subtle animations
+      setShowSpotlight(true);
+
+      // Staggered field animation
+      const fields = ["passports", "destination", "purpose", "dates", "event"];
+      fields.forEach((field, index) => {
+        setTimeout(() => {
+          setAnimatedFields((prev) => new Set(prev).add(field));
+        }, index * 100);
+      });
+
+      // Remove spotlight after animation
+      setTimeout(() => {
+        setShowSpotlight(false);
+      }, 1500);
     }
   }, [prefilledData]);
 
@@ -315,12 +341,25 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
   const destination = formData.destination || "";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <div className="relative">
+      <form
+        onSubmit={handleSubmit}
+        className={`space-y-8 ${showSpotlight ? "animate-spotlight" : ""}`}
+      >
       {/* ── Step 1: Corridor ── */}
-      <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-          Travel Corridor
-        </h3>
+      <div className={animatedFields.has("passports") || animatedFields.has("destination") ? "animate-field-slide" : ""} style={{ animationDelay: "0ms" }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Travel Corridor
+          </h3>
+          {passport && destination && animatedFields.has("passports") && animatedFields.has("destination") && (
+            <div className="animate-checkmark">
+              <div className="bg-green-500/20 text-green-500 rounded-full p-1">
+                <Check className="w-3 h-3" />
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           {/* From */}
@@ -359,10 +398,19 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
       </div>
 
       {/* ── Step 2: Purpose ── */}
-      <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Purpose of Travel
-        </h3>
+      <div className={animatedFields.has("purpose") ? "animate-field-slide" : ""} style={{ animationDelay: "200ms" }}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Purpose of Travel
+          </h3>
+          {formData.purpose && animatedFields.has("purpose") && (
+            <div className="animate-checkmark">
+              <div className="bg-green-500/20 text-green-500 rounded-full p-1">
+                <Check className="w-3 h-3" />
+              </div>
+            </div>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {PURPOSES.map((p) => (
             <button
@@ -383,17 +431,26 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
       </div>
 
       {/* ── Step 3: Dates ── */}
-      <div>
+      <div className={animatedFields.has("dates") ? "animate-field-slide" : ""} style={{ animationDelay: "300ms" }}>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             Travel Dates
           </h3>
-          {formData.dates?.depart && formData.dates?.return && (
-            <div className="flex items-center gap-1.5 text-xs text-blue-400 font-medium">
-              <Clock className="w-3.5 h-3.5" />
-              {calculateDuration(formData.dates.depart, formData.dates.return)} days
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {formData.dates?.depart && formData.dates?.return && (
+              <div className="flex items-center gap-1.5 text-xs text-blue-400 font-medium">
+                <Clock className="w-3.5 h-3.5" />
+                {calculateDuration(formData.dates.depart, formData.dates.return)} days
+              </div>
+            )}
+            {formData.dates?.depart && animatedFields.has("dates") && (
+              <div className="animate-checkmark">
+                <div className="bg-green-500/20 text-green-500 rounded-full p-1">
+                  <Check className="w-3 h-3" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -439,10 +496,19 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
       </div>
 
       {/* ── Step 4: Event (optional) ── */}
-      <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-          Specific event <span className="text-muted-foreground">(optional)</span>
-        </label>
+      <div className={animatedFields.has("event") ? "animate-field-slide" : ""} style={{ animationDelay: "400ms" }}>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-xs font-medium text-muted-foreground">
+            Specific event <span className="text-muted-foreground">(optional)</span>
+          </label>
+          {formData.event && animatedFields.has("event") && (
+            <div className="animate-checkmark">
+              <div className="bg-green-500/20 text-green-500 rounded-full p-1">
+                <Check className="w-3 h-3" />
+              </div>
+            </div>
+          )}
+        </div>
         <input
           type="text"
           value={formData.event || ""}
@@ -484,6 +550,7 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
         </button>
       </div>
     </form>
+    </div>
   );
 }
 

@@ -7,6 +7,7 @@ interface DemoLoadPayload {
   travelDetails: TravelDetails;
   documents: { name: string; language: string; image: string }[];
   preferredLanguage?: string;
+  personaName?: string;
 }
 
 interface DemoContextValue {
@@ -28,6 +29,22 @@ interface DemoContextValue {
   isDemoProfile: boolean;
   /** Resets demo state (isDemoProfile, demoDocuments, suggestedLanguage) for custom corridors. */
   resetDemo: () => void;
+  /** Callback triggered when profile is loaded (for coordinating animations) */
+  onProfileLoaded: (() => void) | null;
+  /** Register a callback to be notified when profile loads */
+  registerProfileLoadedCallback: (callback: () => void) => void;
+  /** Name of the most recently loaded persona */
+  loadedPersonaName: string | null;
+  /** Whether something has requested the sidebar to expand (e.g. scroll trigger) */
+  sidebarExpandRequested: boolean;
+  /** Request the sidebar to expand */
+  requestSidebarExpand: () => void;
+  /** Clear the expand request after consuming it */
+  clearSidebarExpandRequest: () => void;
+  /** Whether the demo sidebar is currently open */
+  sidebarOpen: boolean;
+  /** Set the sidebar open state (called by PersonaSidebar to sync) */
+  setSidebarOpen: (open: boolean) => void;
 }
 
 const DemoContext = createContext<DemoContextValue | null>(null);
@@ -38,10 +55,25 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [demoDocMetadata, setDemoDocMetadata] = useState<Array<{ name: string; language: string; image: string }>>([]);
   const [suggestedLanguage, setSuggestedLanguage] = useState<string | null>(null);
   const [isDemoProfile, setIsDemoProfile] = useState(false);
+  const [onProfileLoaded, setOnProfileLoaded] = useState<(() => void) | null>(null);
+  const [loadedPersonaName, setLoadedPersonaName] = useState<string | null>(null);
+  const [sidebarExpandRequested, setSidebarExpandRequested] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const requestSidebarExpand = useCallback(() => {
+    setSidebarExpandRequested(true);
+  }, []);
+
+  const clearSidebarExpandRequest = useCallback(() => {
+    setSidebarExpandRequested(false);
+  }, []);
 
   const loadDemo = useCallback((payload: DemoLoadPayload) => {
     setPendingLoad(payload);
     setIsDemoProfile(true);
+    if (payload.personaName) {
+      setLoadedPersonaName(payload.personaName);
+    }
     if (payload.preferredLanguage) {
       setSuggestedLanguage(payload.preferredLanguage);
     }
@@ -49,7 +81,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     if (payload.documents && payload.documents.length > 0) {
       setDemoDocMetadata(payload.documents);
     }
-  }, []);
+    // Trigger callback if registered
+    if (onProfileLoaded) {
+      onProfileLoaded();
+    }
+  }, [onProfileLoaded]);
 
   const clearPending = useCallback(() => {
     setPendingLoad(null);
@@ -60,11 +96,35 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setDemoDocuments([]);
     setDemoDocMetadata([]);
     setSuggestedLanguage(null);
+    setLoadedPersonaName(null);
+  }, []);
+
+  const registerProfileLoadedCallback = useCallback((callback: () => void) => {
+    setOnProfileLoaded(() => callback);
   }, []);
 
   return (
     <DemoContext.Provider
-      value={{ pendingLoad, loadDemo, clearPending, demoDocuments, setDemoDocuments, demoDocMetadata, setDemoDocMetadata, suggestedLanguage, isDemoProfile, resetDemo }}
+      value={{
+        pendingLoad,
+        loadDemo,
+        clearPending,
+        demoDocuments,
+        setDemoDocuments,
+        demoDocMetadata,
+        setDemoDocMetadata,
+        suggestedLanguage,
+        isDemoProfile,
+        resetDemo,
+        onProfileLoaded,
+        registerProfileLoadedCallback,
+        loadedPersonaName,
+        sidebarExpandRequested,
+        requestSidebarExpand,
+        clearSidebarExpandRequest,
+        sidebarOpen,
+        setSidebarOpen
+      }}
     >
       {children}
     </DemoContext.Provider>

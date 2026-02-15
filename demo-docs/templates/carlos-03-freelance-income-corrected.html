@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Declaração de Renda - Carlos Mendes</title>
+    <title>Declaração de Renda (Corrigida) - Carlos Mendes</title>
     <style>
         * {
             margin: 0;
@@ -64,6 +64,19 @@
         .info-value {
             color: #000;
         }
+        .registration-box {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .registration-box .reg-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 12px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -87,8 +100,29 @@
             background: #f0f0f0;
             font-weight: bold;
         }
+        .stamp-area {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .stamp {
+            width: 180px;
+            height: 80px;
+            border: 3px solid #2e7d32;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(-5deg);
+            font-size: 10px;
+            color: #2e7d32;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.3;
+        }
         .signature-section {
-            margin-top: 60px;
             text-align: center;
         }
         .signature-line {
@@ -133,9 +167,29 @@
                 <div class="info-label">Endereço:</div>
                 <div class="info-value">Rua Augusta, 1234 - São Paulo, SP</div>
             </div>
+        </div>
+
+        <div class="registration-box">
+            <div class="reg-title">Registro de Microempreendedor Individual (MEI)</div>
             <div class="info-row">
-                <div class="info-label">Inscrição Municipal:</div>
-                <div class="info-value" style="color: #999; font-style: italic;">Não registrado / Not registered</div>
+                <div class="info-label">CNPJ/MEI:</div>
+                <div class="info-value" style="font-weight: bold; color: #2e7d32;">12.345.678/0001-90</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">CNAE Principal:</div>
+                <div class="info-value">7420-0/01 - Atividades fotográficas e similares</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Data de Abertura:</div>
+                <div class="info-value">15/03/2020</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Situação Cadastral:</div>
+                <div class="info-value" style="color: #2e7d32; font-weight: bold;">ATIVA - Regular</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Inscrição Municipal (CCM):</div>
+                <div class="info-value">SP-8.765.432-1</div>
             </div>
         </div>
 
@@ -146,6 +200,7 @@
                     <tr>
                         <th>Mês</th>
                         <th>Tipo de Serviço</th>
+                        <th>Notas Emitidas</th>
                         <th>Valor Bruto (R$)</th>
                     </tr>
                 </thead>
@@ -153,69 +208,83 @@
                     <tr>
                         <td>Janeiro</td>
                         <td>Fotografia de Casamento e Eventos</td>
+                        <td>4</td>
                         <td>12.500,00</td>
                     </tr>
                     <tr>
                         <td>Fevereiro</td>
                         <td>Ensaios Corporativos</td>
+                        <td>3</td>
                         <td>8.200,00</td>
                     </tr>
                     <tr>
                         <td>Março</td>
                         <td>Fotografia de Produtos</td>
+                        <td>5</td>
                         <td>9.800,00</td>
                     </tr>
                     <tr>
                         <td>Abril</td>
                         <td>Eventos Corporativos</td>
+                        <td>3</td>
                         <td>11.300,00</td>
                     </tr>
                     <tr>
                         <td>Maio</td>
                         <td>Casamentos e Aniversários</td>
+                        <td>4</td>
                         <td>14.200,00</td>
                     </tr>
                     <tr>
                         <td>Junho</td>
                         <td>Fotografia Editorial - Revistas</td>
+                        <td>2</td>
                         <td>10.600,00</td>
                     </tr>
                     <tr>
                         <td>Julho</td>
                         <td>Workshops e Cursos</td>
+                        <td>6</td>
                         <td>7.400,00</td>
                     </tr>
                     <tr>
                         <td>Agosto</td>
                         <td>Fotografia de Casamento</td>
+                        <td>3</td>
                         <td>13.500,00</td>
                     </tr>
                     <tr>
                         <td>Setembro</td>
                         <td>Ensaios Corporativos e Produtos</td>
+                        <td>4</td>
                         <td>9.900,00</td>
                     </tr>
                     <tr>
                         <td>Outubro</td>
                         <td>Eventos e Casamentos</td>
+                        <td>5</td>
                         <td>15.800,00</td>
                     </tr>
                     <tr>
                         <td>Novembro</td>
                         <td>Fotografia Editorial</td>
+                        <td>2</td>
                         <td>11.200,00</td>
                     </tr>
                     <tr>
                         <td>Dezembro</td>
                         <td>Eventos de Fim de Ano</td>
+                        <td>6</td>
                         <td>16.400,00</td>
                     </tr>
                     <tr class="total-row">
                         <td colspan="2">Total Anual Bruto</td>
+                        <td>47</td>
                         <td>R$ 140.800,00</td>
                     </tr>
                     <tr>
                         <td colspan="2">Média Mensal</td>
+                        <td>~4</td>
                         <td>R$ 11.733,33</td>
                     </tr>
                 </tbody>
@@ -226,21 +295,31 @@
             <div class="section-title">Observações</div>
             <p style="font-size: 13px; line-height: 1.6; text-align: justify;">
                 Declaro que os valores acima representam minha renda como fotógrafo autônomo durante o ano de 2025.
-                Atuo como Microempreendedor Individual (MEI) e presto serviços de fotografia profissional para eventos,
-                empresas, e publicações editoriais. Todos os rendimentos estão devidamente registrados e declarados
-                à Receita Federal do Brasil conforme legislação vigente.
+                Atuo como Microempreendedor Individual (MEI) devidamente registrado sob CNPJ 12.345.678/0001-90,
+                com inscrição municipal ativa na Prefeitura de São Paulo. Todas as notas fiscais foram emitidas
+                através do sistema NFSe da Prefeitura de São Paulo, conforme legislação vigente.
             </p>
             <p style="font-size: 13px; line-height: 1.6; text-align: justify; margin-top: 15px;">
-                Esta declaração é emitida para fins de comprovação de renda para solicitação de visto de turismo
-                para o Japão, viagem programada para abril de 2026.
+                Todos os rendimentos estão devidamente declarados à Receita Federal do Brasil (IRPF 2025) e os
+                pagamentos mensais do DAS-MEI encontram-se em dia. Esta declaração é emitida para fins de comprovação
+                de renda para solicitação de visto de turismo para o Japão, viagem programada para abril de 2026.
             </p>
         </div>
 
-        <div class="signature-section">
-            <div class="signature-line"></div>
-            <div style="font-weight: 600; font-size: 14px;">Carlos Roberto Mendes</div>
-            <div style="font-size: 12px; color: #666; margin-top: 5px;">CPF: 123.456.789-00</div>
-            <div style="font-size: 12px; color: #666;">São Paulo, 20 de Janeiro de 2026</div>
+        <div class="stamp-area">
+            <div class="signature-section">
+                <div class="signature-line"></div>
+                <div style="font-weight: 600; font-size: 14px;">Carlos Roberto Mendes</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">CPF: 123.456.789-00</div>
+                <div style="font-size: 12px; color: #666;">CNPJ/MEI: 12.345.678/0001-90</div>
+                <div style="font-size: 12px; color: #666;">São Paulo, 20 de Janeiro de 2026</div>
+            </div>
+            <div class="stamp">
+                PREFEITURA DE SÃO PAULO<br>
+                SECRETARIA DA FAZENDA<br>
+                CCM: SP-8.765.432-1<br>
+                REGULAR
+            </div>
         </div>
 
         <div class="disclaimer">

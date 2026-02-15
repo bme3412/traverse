@@ -202,3 +202,297 @@
 [data-theme="dark"] input[type="datetime-local"] {
   color-scheme: dark;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Profile Loading UX Animations
+   Enhanced visual feedback for demo profile loading flow
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Animated border glow (blue → green) ───────────────────── */
+@keyframes border-glow-light {
+  0% {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    border-color: #10B981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  }
+  100% {
+    border-color: #10B981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes border-glow-dark {
+  0% {
+    border-color: #FF4500;
+    box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.4);
+  }
+  50% {
+    border-color: #10B981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  }
+  100% {
+    border-color: #10B981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-border-glow {
+  animation: border-glow-light 2s ease-out forwards;
+}
+
+[data-theme="dark"] .animate-border-glow {
+  animation: border-glow-dark 2s ease-out forwards;
+}
+
+/* ── Button pulse with scale ───────────────────────────────── */
+@keyframes button-pulse-light {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes button-pulse-dark {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(255, 69, 0, 0);
+  }
+}
+
+.animate-button-pulse {
+  animation: button-pulse-light 1s ease-in-out 3;
+}
+
+[data-theme="dark"] .animate-button-pulse {
+  animation: button-pulse-dark 1s ease-in-out 3;
+}
+
+/* ── Gradient border animation ─────────────────────────────── */
+@keyframes gradient-border {
+  0% {
+    border-color: #3B82F6;
+  }
+  33% {
+    border-color: #10B981;
+  }
+  66% {
+    border-color: #3B82F6;
+  }
+  100% {
+    border-color: #10B981;
+  }
+}
+
+.animate-gradient-border {
+  animation: gradient-border 2s ease-in-out infinite;
+  border-width: 2px;
+}
+
+/* ── Field slide-in (subtle, no flash) ─────────────────────── */
+@keyframes field-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-field-slide {
+  animation: field-slide-in 0.4s ease-out forwards;
+}
+
+/* ── Spotlight effect (subtle) ─────────────────────────────── */
+@keyframes spotlight-light {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  50% {
+    box-shadow: 0 0 30px 10px rgba(59, 130, 246, 0.15);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes spotlight-dark {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 69, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0 30px 10px rgba(255, 69, 0, 0.15);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 69, 0, 0);
+  }
+}
+
+.animate-spotlight {
+  animation: spotlight-light 1s ease-out forwards;
+}
+
+[data-theme="dark"] .animate-spotlight {
+  animation: spotlight-dark 1s ease-out forwards;
+}
+
+/* ── Bouncing arrow hint ───────────────────────────────────── */
+@keyframes bounce-arrow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-bounce-arrow {
+  animation: bounce-arrow 0.8s ease-in-out infinite;
+}
+
+/* ── Badge slide-in from top ───────────────────────────────── */
+@keyframes badge-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-badge-slide {
+  animation: badge-slide-in 0.4s ease-out forwards;
+}
+
+/* ── Success checkmark scale ───────────────────────────────── */
+@keyframes checkmark-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-checkmark {
+  animation: checkmark-pop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* ── Path drawing animation ────────────────────────────────── */
+@keyframes draw-path {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0.3;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.animate-draw-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-path 0.8s ease-out forwards;
+}
+
+/* ── Glow traveling along path ─────────────────────────────── */
+@keyframes glow-travel {
+  0% {
+    offset-distance: 0%;
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+.animate-glow-travel {
+  animation: glow-travel 1s ease-in-out forwards;
+}
+
+/* ── Confetti celebration ──────────────────────────────────── */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti {
+  animation: confetti-fall 3s ease-in forwards;
+}
+
+/* ── Toast slide down ──────────────────────────────────────── */
+@keyframes toast-slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-toast-slide {
+  animation: toast-slide-down 0.4s ease-out forwards;
+}
+
+/* ── Progress bar countdown ────────────────────────────────── */
+@keyframes progress-countdown {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+.animate-progress-countdown {
+  animation: progress-countdown 4s linear forwards;
+}
+
+/* ── Reduce motion preferences ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-border-glow,
+  .animate-button-pulse,
+  .animate-gradient-border,
+  .animate-field-slide,
+  .animate-spotlight,
+  .animate-bounce-arrow,
+  .animate-badge-slide,
+  .animate-checkmark,
+  .animate-draw-path,
+  .animate-glow-travel,
+  .animate-confetti,
+  .animate-toast-slide,
+  .animate-progress-countdown {
+    animation: none !important;
+    transition: none !important;
+  }
+}

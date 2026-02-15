@@ -27,10 +27,9 @@ export const TravelDetailsSchema = z.object({
   purpose: TravelPurposeSchema,
   dates: z.object({
     depart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
-    return: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)").optional(),
+    return: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
   }).refine(
     (data) => {
-      if (!data.return) return true;
       return new Date(data.return) > new Date(data.depart);
     },
     { message: "Return date must be after departure date", path: ["return"] }
@@ -86,6 +85,21 @@ export function validateEnv() {
       throw new Error(`Environment validation failed:\n${issues}`);
     }
     throw error;
+  }
+}
+
+/**
+ * Validates travel details at runtime
+ * Returns validated data or null if invalid
+ */
+export function validateTravelDetails(data: unknown): z.infer<typeof TravelDetailsSchema> | null {
+  try {
+    return TravelDetailsSchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error("Travel details validation failed:", error.issues);
+    }
+    return null;
   }
 }
 

@@ -10,12 +10,14 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
+import { getEnv, isDevelopment } from "@/lib/env";
+import { checkRateLimit, createRateLimitResponse, RATE_LIMIT_PRESETS } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: getEnv().ANTHROPIC_API_KEY,
 });
 
 interface TranslateRequestBody {
@@ -29,6 +31,12 @@ interface TranslateRequestBody {
 }
 
 export async function POST(request: Request) {
+  // Apply rate limiting (30 requests per minute for translation)
+  const rateLimit = checkRateLimit(request, RATE_LIMIT_PRESETS.STANDARD);
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(rateLimit);
+  }
+
   let body: TranslateRequestBody;
   try {
     body = await request.json();
@@ -42,18 +50,22 @@ export async function POST(request: Request) {
   const { language, uiStrings, items, corridorInfo, importantNotes, dynamicTexts } = body;
 
   // Log requests for debugging
-  console.log("[Translate API] Request body:", {
-    language,
-    hasUiStrings: !!uiStrings,
-    hasItems: !!items,
-    hasCorridorInfo: !!corridorInfo,
-    hasImportantNotes: !!importantNotes,
-    hasDynamicTexts: !!dynamicTexts,
-    dynamicTextsCount: dynamicTexts?.length || 0,
-  });
+  if (isDevelopment()) {
+    console.log("[Translate API] Request body:", {
+      language,
+      hasUiStrings: !!uiStrings,
+      hasItems: !!items,
+      hasCorridorInfo: !!corridorInfo,
+      hasImportantNotes: !!importantNotes,
+      hasDynamicTexts: !!dynamicTexts,
+      dynamicTextsCount: dynamicTexts?.length || 0,
+    });
+  }
 
   if (!language || language === "English") {
-    console.error("[Translate API] 400 - Missing or English language. Body:", body);
+    if (isDevelopment()) {
+      console.error("[Translate API] 400 - Missing or English language. Body:", body);
+    }
     return new Response(
       JSON.stringify({ error: "Non-English language is required" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
@@ -134,7 +146,9 @@ Rules:
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("[Translate API] Error:", error);
+    if (isDevelopment()) {
+      console.error("[Translate API] Error:", error);
+    }
     return new Response(
       JSON.stringify({
         error: "Translation failed",

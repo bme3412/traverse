@@ -7,9 +7,10 @@ import {
   RemediationItem,
 } from "@/lib/types";
 import { runAdvisoryAgent } from "@/lib/agents/advisory";
+import { checkRateLimit, createRateLimitResponse, RATE_LIMIT_PRESETS } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
-export const maxDuration = 60; // Reduced from 120 — Sonnet synthesis is much faster
+export const maxDuration = 90; // Opus 4.6 with extended thinking for high-quality synthesis
 
 /**
  * Advisory agent endpoint (Phase 2 — lightweight synthesis).
@@ -17,6 +18,12 @@ export const maxDuration = 60; // Reduced from 120 — Sonnet synthesis is much 
  * Returns SSE stream with recommendations and assessment.
  */
 export async function POST(request: Request) {
+  // Apply rate limiting (30 requests per minute for advisory synthesis)
+  const rateLimit = checkRateLimit(request, RATE_LIMIT_PRESETS.STANDARD);
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(rateLimit);
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();

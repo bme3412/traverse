@@ -23,6 +23,7 @@ function agentKey(name: string): string {
  */
 export function LiveFeed({ events }: { events: SSEEvent[] }) {
   const rendered = useMemo(() => {
+    // Accumulate latest thinking state per agent
     const state: Record<string, {
       summary: string;
       excerpt?: string;
@@ -50,16 +51,32 @@ export function LiveFeed({ events }: { events: SSEEvent[] }) {
       }
     }
 
+    // Deduplicate search_status events (keep latest status per source)
+    const sourceMap = new Map<string, { source: string; status: string; url?: string }>();
+    for (const event of events) {
+      if (event.type === "search_status") {
+        sourceMap.set(event.source, {
+          source: event.source,
+          status: event.status,
+          url: event.url,
+        });
+      }
+    }
+    const dedupedSources = Array.from(sourceMap.values()).filter(
+      s => !isRedundantSearchStatus(s.source, s.url)
+    );
+
     const items: React.ReactNode[] = [];
     const thinkingRendered = new Set<string>();
+    let sourcesRendered = false;
 
     for (let i = 0; i < events.length; i++) {
       const event = events[i];
 
+      // Render thinking panel (once per agent)
       if (event.type === "thinking" || event.type === "thinking_depth") {
         const key = agentKey(event.agent);
-        // Skip advisory thinking — handled by AdvisoryCard
-        if (key === "advisory") continue;
+        if (key === "advisory") continue; // handled by AdvisoryCard
         if (!thinkingRendered.has(key)) {
           thinkingRendered.add(key);
           items.push(
@@ -76,6 +93,20 @@ export function LiveFeed({ events }: { events: SSEEvent[] }) {
         continue;
       }
 
+      // Render source discovery block once (after the first search_status)
+      if (event.type === "search_status") {
+        if (!sourcesRendered && dedupedSources.length > 0) {
+          sourcesRendered = true;
+          items.push(
+            <SourceDiscoveryBlock key="source-discovery" sources={dedupedSources} />
+          );
+        }
+        continue;
+      }
+
+      // Skip sources block (rendered inline above), and skip items handled elsewhere
+      if (event.type === "sources") continue;
+
       items.push(<FeedItem key={i} event={event} />);
     }
 
@@ -85,11 +116,48 @@ export function LiveFeed({ events }: { events: SSEEvent[] }) {
   if (events.length === 0) return null;
 
   return (
-    <div
-      className="rounded-xl border border-foreground/[0.06] bg-background/60 backdrop-blur-sm"
-    >
-      <div className="p-5 space-y-1">
-        {rendered}
+    <div className="space-y-2">
+      {rendered}
+    </div>
+  );
+}
+
+/* ─── Source Discovery Block ──────────────────────────────────────── */
+
+function SourceDiscoveryBlock({
+  sources,
+}: {
+  sources: Array<{ source: string; status: string; url?: string }>;
+}) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/50 px-4 py-3">
+      <div className="space-y-1">
+        {sources.map(({ source, status, url }) => (
+          <div key={source} className="flex items-center gap-2 text-sm">
+            {status === "found" ? (
+              <svg className="h-3.5 w-3.5 text-emerald-500 shrink-0" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <span className="h-3.5 w-3.5 flex items-center justify-center shrink-0">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+              </span>
+            )}
+            {url ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {source}
+              </a>
+            ) : (
+              <span className="text-muted-foreground">{source}</span>
+            )}
+            {url && <ExternalLinkIcon />}
+          </div>
+        ))}
       </div>
     </div>
   );

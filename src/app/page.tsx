@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { TravelForm } from "@/components/travel-form";
 import { TravelDetails } from "@/lib/types";
 import { useDemoContext, fetchDemoDocument } from "@/lib/demo-context";
+import { validateTravelDetails } from "@/lib/validation";
 
 export default function Home() {
   const router = useRouter();
@@ -12,13 +13,32 @@ export default function Home() {
   const [prefilledData, setPrefilledData] = useState<TravelDetails | null>(null);
   const [pendingDocs, setPendingDocs] = useState<{ name: string; language: string; image: string }[]>([]);
 
+  // Use ref to track if we've processed this load to prevent loops
+  const processedLoadRef = useRef(false);
+
   useEffect(() => {
-    if (pendingLoad) {
-      setPrefilledData(pendingLoad.travelDetails);
-      setPendingDocs(pendingLoad.documents);
+    if (pendingLoad && !processedLoadRef.current) {
+      processedLoadRef.current = true;
+
+      // Validate travel details before using them
+      const validatedTravelDetails = validateTravelDetails(pendingLoad.travelDetails);
+      if (validatedTravelDetails) {
+        setPrefilledData(validatedTravelDetails);
+        setPendingDocs(pendingLoad.documents);
+      } else {
+        console.error("[Home] Invalid travel details from demo context:", pendingLoad.travelDetails);
+        // Don't prefill if validation fails - let user enter manually
+        setPrefilledData(null);
+        setPendingDocs([]);
+      }
+
       clearPending();
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        processedLoadRef.current = false;
+      }, 1000);
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
   }, [pendingLoad, clearPending]);
 
   const handleTravelSubmit = async (travelDetails: TravelDetails) => {
@@ -47,7 +67,8 @@ export default function Home() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-6">
+    <>
+      <div className="mx-auto max-w-5xl px-6">
       {/* ── Hero ── */}
       <section className="pt-8 pb-6 text-center">
         {/* 1. Problem statement */}
@@ -92,9 +113,14 @@ export default function Home() {
       {/* ── Form ── */}
       <div className="relative rounded-lg p-px mb-8 border border-border bg-card">
         <div className="rounded-[calc(0.5rem-1px)] bg-card backdrop-blur-sm p-6 sm:p-8">
-          <TravelForm onSubmit={handleTravelSubmit} isLoading={false} prefilledData={prefilledData} />
+          <TravelForm
+            onSubmit={handleTravelSubmit}
+            isLoading={false}
+            prefilledData={prefilledData}
+          />
         </div>
       </div>
     </div>
+    </>
   );
 }
