@@ -25,8 +25,8 @@ export const AI_CONFIG = {
   /** Maximum tokens for document analysis */
   DOCUMENT_ANALYSIS_MAX_TOKENS: 24000,
 
-  /** Maximum tokens for advisory agent */
-  ADVISORY_MAX_TOKENS: 8000,
+  /** Maximum tokens for advisory agent (must be > THINKING_BUDGET of 16K) */
+  ADVISORY_MAX_TOKENS: 24000,
 } as const;
 
 /**
