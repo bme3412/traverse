@@ -3,7 +3,7 @@ import { SSEEvent, UploadedDocument, DocumentExtraction, RequirementItem } from 
 import { runSingleDocumentRead, runIncrementalCrossCheck } from "@/lib/agents/document";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /**
  * Per-document analysis endpoint.

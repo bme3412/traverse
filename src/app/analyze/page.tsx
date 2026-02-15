@@ -11,7 +11,7 @@ import { AnalysisResults } from "@/components/analysis-results";
 import { AdvisoryCard } from "@/components/advisory-card";
 import { AdvisoryModal } from "@/components/advisory-modal";
 import { AdvisoryLoading } from "@/components/advisory-loading";
-import { TravelDetails, UploadedDocument, DocumentExtraction, ComplianceItem, RequirementsChecklist, SSEEvent, AdvisoryReport, RemediationItem, ApplicationAssessment, ReauditProgress, ReauditFixStatus } from "@/lib/types";
+import { TravelDetails, UploadedDocument, DocumentExtraction, ComplianceItem, RequirementsChecklist, RequirementItem, SSEEvent, AdvisoryReport, RemediationItem, ApplicationAssessment, ReauditProgress, ReauditFixStatus } from "@/lib/types";
 import { buildPreliminaryAdvisory, updateAdvisoryWithCompliance } from "@/lib/advisory-builder";
 import { useDemoContext, fetchDemoDocument } from "@/lib/demo-context";
 import { TranslationProvider, useTranslation, collectCorridorDynamicTexts } from "@/lib/i18n-context";
@@ -531,8 +531,108 @@ function AnalyzeContent() {
     // Accumulate extractions across fixes for cross-doc validation
     const accumulatedExtractions = [...perDocExtractions];
 
-    // Process each fix sequentially
-    for (const fix of remediationData.fixes) {
+    // Helper: parse a single SSE data line and update state
+    const processSSELine = (
+      line: string,
+      fixId: string,
+      state: { finalCompliance: ComplianceItem | null; errorMessage: string | null }
+    ) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith(":")) return;
+      if (!trimmed.startsWith("data: ")) return;
+
+      const data = trimmed.slice(6);
+      if (data === "[DONE]") return;
+
+      try {
+        const event = JSON.parse(data) as SSEEvent;
+
+        // Capture thinking updates
+        if (event.type === "doc_analysis_thinking") {
+          setReauditThinking((prev) => {
+            const next = new Map(prev);
+            next.set(fixId, event.excerpt);
+            return next;
+          });
+        }
+
+        // Capture final result
+        if (event.type === "doc_analysis_result") {
+          state.finalCompliance = event.compliance;
+          if (event.extraction) {
+            accumulatedExtractions.push(event.extraction);
+          }
+        }
+
+        // Capture error events (LLM failures, parse errors, etc.)
+        if (event.type === "error") {
+          state.errorMessage = event.message || "Analysis encountered an error";
+          if (isDevelopment()) {
+            console.warn(`[Re-audit] Server error for ${fixId}:`, event.message);
+          }
+        }
+      } catch {
+        if (isDevelopment()) {
+          console.warn("[Re-audit] Failed to parse SSE event:", data);
+        }
+      }
+    };
+
+    // Helper: run a single fix analysis with SSE streaming
+    const analyzeOneFix = async (
+      fixId: string,
+      correctedDoc: UploadedDocument,
+      requirement: RequirementItem
+    ): Promise<{ compliance: ComplianceItem | null; errorMessage: string | null }> => {
+      const response = await fetch("/api/analyze/document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          document: correctedDoc,
+          requirement,
+          previousExtractions: accumulatedExtractions,
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        return { compliance: null, errorMessage: `Server returned ${response.status}` };
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      const state = { finalCompliance: null as ComplianceItem | null, errorMessage: null as string | null };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          processSSELine(line, fixId, state);
+        }
+      }
+
+      // Flush remaining buffer — the final event may not have a trailing newline
+      if (buffer.trim()) {
+        processSSELine(buffer, fixId, state);
+      }
+
+      return { compliance: state.finalCompliance, errorMessage: state.errorMessage };
+    };
+
+    // Process each fix sequentially with retry
+    for (let fixIdx = 0; fixIdx < remediationData.fixes.length; fixIdx++) {
+      const fix = remediationData.fixes[fixIdx];
+
+      // Inter-fix delay to avoid rate limiting (skip before first fix)
+      if (fixIdx > 0) {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+
       try {
         // 1. Update status to "fetching"
         progress.fixStatuses.set(fix.id, "fetching");
@@ -541,7 +641,7 @@ function AnalyzeContent() {
         // 2. Fetch the corrected doc image
         const correctedDoc = await fetchDemoDocument(
           { name: fix.correctedDocName, language: fix.correctedDocLanguage, image: fix.correctedDocImage },
-          remediationData.fixes.indexOf(fix)
+          fixIdx
         );
 
         // 3. Find the matching RequirementItem
@@ -566,90 +666,34 @@ function AnalyzeContent() {
         progress.fixStatuses.set(fix.id, "analyzing");
         setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses) });
 
-        // 5. Call POST /api/analyze/document
-        const response = await fetch("/api/analyze/document", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            document: correctedDoc,
-            requirement,
-            previousExtractions: accumulatedExtractions,
-          }),
-        });
+        // 5. Call the analysis API — with 1 retry on empty result
+        let analysisResult = await analyzeOneFix(fix.id, correctedDoc, requirement);
 
-        if (!response.ok || !response.body) {
-          progress.fixStatuses.set(fix.id, "failed");
-          progress.fixResults.set(fix.id, {
-            requirement: fix.requirementName,
-            status: "not_checked",
-            detail: "Analysis request failed",
-          });
-          setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses), fixResults: new Map(progress.fixResults) });
-          continue;
-        }
-
-        // 6. Process SSE stream
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let finalCompliance: ComplianceItem | null = null;
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith(":")) continue;
-
-            if (trimmed.startsWith("data: ")) {
-              const data = trimmed.slice(6);
-              if (data === "[DONE]") continue;
-
-              try {
-                const event = JSON.parse(data) as SSEEvent;
-
-                // Capture thinking updates
-                if (event.type === "doc_analysis_thinking") {
-                  setReauditThinking((prev) => {
-                    const next = new Map(prev);
-                    next.set(fix.id, event.excerpt);
-                    return next;
-                  });
-                }
-
-                // Capture final result
-                if (event.type === "doc_analysis_result") {
-                  finalCompliance = event.compliance;
-                  // Add extraction to accumulator for cross-doc validation
-                  if (event.extraction) {
-                    accumulatedExtractions.push(event.extraction);
-                  }
-                }
-              } catch {
-                if (isDevelopment()) {
-                  console.warn("[Re-audit] Failed to parse SSE event:", data);
-                }
-              }
-            }
+        // Retry once if no compliance result was received (transient failure)
+        if (!analysisResult.compliance && !analysisResult.errorMessage?.includes("400")) {
+          if (isDevelopment()) {
+            console.log(`[Re-audit] Retrying fix ${fix.id} after empty result...`);
           }
+          setReauditThinking((prev) => {
+            const next = new Map(prev);
+            next.set(fix.id, "Retrying analysis...");
+            return next;
+          });
+          await new Promise((r) => setTimeout(r, 2000));
+          analysisResult = await analyzeOneFix(fix.id, correctedDoc, requirement);
         }
 
-        // 7. Update status based on compliance result
-        if (finalCompliance) {
-          const passed = finalCompliance.status === "met";
+        // 6. Update status based on compliance result
+        if (analysisResult.compliance) {
+          const passed = analysisResult.compliance.status === "met";
           progress.fixStatuses.set(fix.id, passed ? "passed" : "failed");
-          progress.fixResults.set(fix.id, finalCompliance);
+          progress.fixResults.set(fix.id, analysisResult.compliance);
         } else {
           progress.fixStatuses.set(fix.id, "failed");
           progress.fixResults.set(fix.id, {
             requirement: fix.requirementName,
             status: "not_checked",
-            detail: "No compliance result received",
+            detail: analysisResult.errorMessage || "No compliance result received",
           });
         }
         setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses), fixResults: new Map(progress.fixResults) });
@@ -659,11 +703,16 @@ function AnalyzeContent() {
           console.error(`[Re-audit] Error processing fix ${fix.id}:`, err);
         }
         progress.fixStatuses.set(fix.id, "failed");
-        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses) });
+        progress.fixResults.set(fix.id, {
+          requirement: fix.requirementName,
+          status: "not_checked",
+          detail: err instanceof Error ? err.message : "Unexpected error during analysis",
+        });
+        setReauditProgress({ ...progress, fixStatuses: new Map(progress.fixStatuses), fixResults: new Map(progress.fixResults) });
       }
     }
 
-    // 8. All fixes processed — finalize
+    // 7. All fixes processed — finalize
     const allPassed = Array.from(progress.fixResults.values()).every((c) => c.status === "met");
     progress.overallComplete = true;
     progress.allPassed = allPassed;

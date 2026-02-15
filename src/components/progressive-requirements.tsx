@@ -77,19 +77,35 @@ interface ProgressiveRequirementsProps {
  * Get multi-language greetings for demo personas.
  * Returns greetings in order with color coding to match header pattern:
  * blue (Every document) → purple (Every detail) → emerald (Every language)
+ *
+ * When `currentDocName` is provided, the "verifying" message shows
+ * what the agent is currently working on instead of a generic counter.
  */
 function getPersonaGreetings(
   personaName: string,
   firstName: string,
   messageType: "passport" | "verifying" | "complete",
   analyzedCount: number,
-  totalRequirements: number
+  totalRequirements: number,
+  currentDocName?: string | null
 ): Array<{ language: string; color: "blue" | "purple" | "emerald"; text: string }> | null {
   const greetings: Array<{ language: string; color: "blue" | "purple" | "emerald"; text: string }> = [];
+
+  // Build contextual verifying message — shows what agent is doing right now
+  const enVerifying = currentDocName
+    ? `${firstName}, analyzing your ${currentDocName} now — ${analyzedCount} of ${totalRequirements} documents verified so far.`
+    : `${firstName}, verifying your documents — ${analyzedCount} of ${totalRequirements} checked.`;
 
   // Priya Sharma - India → Germany
   // Order: English (blue) → Hindi (purple) → German (emerald)
   if (personaName === "Priya Sharma") {
+    const hiVerifying = currentDocName
+      ? `${firstName}, अभी आपके ${currentDocName} का विश्लेषण कर रहे हैं — ${totalRequirements} में से ${analyzedCount} दस्तावेज़ सत्यापित।`
+      : `${firstName}, आपके दस्तावेज़ सत्यापित कर रहे हैं — ${totalRequirements} में से ${analyzedCount} जाँचे गए।`;
+    const deVerifying = currentDocName
+      ? `${firstName}, wir analysieren jetzt Ihr ${currentDocName} — ${analyzedCount} von ${totalRequirements} Dokumenten geprüft.`
+      : `${firstName}, wir überprüfen Ihre Dokumente — ${analyzedCount} von ${totalRequirements} geprüft.`;
+
     if (messageType === "passport") {
       greetings.push(
         { language: "English", color: "blue", text: `Hello ${firstName}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.` },
@@ -98,9 +114,9 @@ function getPersonaGreetings(
       );
     } else if (messageType === "verifying") {
       greetings.push(
-        { language: "English", color: "blue", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.` },
-        { language: "Hindi (हिंदी)", color: "purple", text: `${firstName}, हम आपके दस्तावेज़ों को सत्यापित कर रहे हैं — अब तक ${analyzedCount} में से ${totalRequirements} जाँचे गए।` },
-        { language: "German (Deutsch)", color: "emerald", text: `${firstName}, wir überprüfen Ihre Dokumente — bisher ${analyzedCount} von ${totalRequirements} geprüft.` }
+        { language: "English", color: "blue", text: enVerifying },
+        { language: "Hindi (हिंदी)", color: "purple", text: hiVerifying },
+        { language: "German (Deutsch)", color: "emerald", text: deVerifying }
       );
     } else {
       greetings.push(
@@ -113,6 +129,13 @@ function getPersonaGreetings(
   // Carlos Mendes - Brazil → Japan
   // Order: Portuguese (blue) → English (purple) → Japanese (emerald)
   else if (personaName === "Carlos Mendes") {
+    const ptVerifying = currentDocName
+      ? `${firstName}, analisando seu ${currentDocName} agora — ${analyzedCount} de ${totalRequirements} documentos verificados.`
+      : `${firstName}, verificando seus documentos — ${analyzedCount} de ${totalRequirements} verificados.`;
+    const jaVerifying = currentDocName
+      ? `${firstName}さん、${currentDocName}を分析中 — ${totalRequirements}件中${analyzedCount}件の書類を確認済み。`
+      : `${firstName}さん、書類を確認中 — ${totalRequirements}件中${analyzedCount}件確認済み。`;
+
     if (messageType === "passport") {
       greetings.push(
         { language: "Portuguese (Português)", color: "blue", text: `Olá ${firstName}, obrigado por enviar seu passaporte. Por favor, tenha paciência enquanto lemos e analisamos o restante de seus documentos de viagem. Estamos aqui para ajudar.` },
@@ -121,9 +144,9 @@ function getPersonaGreetings(
       );
     } else if (messageType === "verifying") {
       greetings.push(
-        { language: "Portuguese (Português)", color: "blue", text: `${firstName}, estamos verificando seus documentos — ${analyzedCount} de ${totalRequirements} verificados até agora.` },
-        { language: "English", color: "purple", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.` },
-        { language: "Japanese (日本語)", color: "emerald", text: `${firstName}さん、書類を確認しています — これまでに${totalRequirements}件中${analyzedCount}件を確認しました。` }
+        { language: "Portuguese (Português)", color: "blue", text: ptVerifying },
+        { language: "English", color: "purple", text: enVerifying },
+        { language: "Japanese (日本語)", color: "emerald", text: jaVerifying }
       );
     } else {
       greetings.push(
@@ -136,6 +159,13 @@ function getPersonaGreetings(
   // Amara Okafor - Nigeria → UK
   // Order: English (blue) → Yoruba (purple) → British English (emerald)
   else if (personaName === "Amara Okafor") {
+    const yoVerifying = currentDocName
+      ? `${firstName}, a n ṣe itupalẹ ${currentDocName} rẹ bayi — ${analyzedCount} ninu ${totalRequirements} ti a ṣayẹwo.`
+      : `${firstName}, a n ṣe ijẹrisi awọn iwe rẹ — ${analyzedCount} ninu ${totalRequirements} ti a ṣayẹwo.`;
+    const brVerifying = currentDocName
+      ? `${firstName}, analysing your ${currentDocName} now — ${analyzedCount} of ${totalRequirements} documents verified.`
+      : `${firstName}, verifying your documents — ${analyzedCount} of ${totalRequirements} checked.`;
+
     if (messageType === "passport") {
       greetings.push(
         { language: "English", color: "blue", text: `Hello ${firstName}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.` },
@@ -144,9 +174,9 @@ function getPersonaGreetings(
       );
     } else if (messageType === "verifying") {
       greetings.push(
-        { language: "English", color: "blue", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.` },
-        { language: "Yoruba", color: "purple", text: `${firstName}, a n ṣe ijẹrisi awọn iwe rẹ — ${analyzedCount} ninu ${totalRequirements} ti a ṣayẹwo titi di isisiyi.` },
-        { language: "British English", color: "emerald", text: `${firstName}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked thus far.` }
+        { language: "English", color: "blue", text: enVerifying },
+        { language: "Yoruba", color: "purple", text: yoVerifying },
+        { language: "British English", color: "emerald", text: brVerifying }
       );
     } else {
       greetings.push(
@@ -865,6 +895,16 @@ export function ProgressiveRequirements({
     return null;
   }
 
+  // Find the currently-analyzing document name for contextual greeting
+  const currentlyAnalyzingDoc = useMemo(() => {
+    for (const [idx, state] of requirementStates) {
+      if (state.status === "analyzing") {
+        return requirements[idx]?.name || null;
+      }
+    }
+    return null;
+  }, [requirementStates, requirements]);
+
   // Build contextual greeting text based on verification state (multi-language for demo profiles)
   const greetingText = useMemo(() => {
     if (!travelerFirstName) return null;
@@ -874,13 +914,15 @@ export function ProgressiveRequirements({
     if (analyzedCount === 0) {
       englishMessage = `Hello ${name}, thank you for uploading your passport. Please be patient while we read through and analyze the rest of your travel documents. We're here to help.`;
     } else if (analyzedCount > 0 && analyzedCount < totalRequirements) {
-      englishMessage = `${name}, we're verifying your documents — ${analyzedCount} of ${totalRequirements} checked so far.`;
+      englishMessage = currentlyAnalyzingDoc
+        ? `${name}, analyzing your ${currentlyAnalyzingDoc} now — ${analyzedCount} of ${totalRequirements} documents verified so far.`
+        : `${name}, verifying your documents — ${analyzedCount} of ${totalRequirements} checked.`;
     } else if (analyzedCount >= totalRequirements && totalRequirements > 0) {
       englishMessage = `${name}, all ${totalRequirements} documents have been verified. Review your results below.`;
     }
 
     return englishMessage || null;
-  }, [travelerFirstName, analyzedCount, totalRequirements]);
+  }, [travelerFirstName, analyzedCount, totalRequirements, currentlyAnalyzingDoc]);
 
   // Generate multi-language greetings for demo profiles
   const multiLanguageGreetings = useMemo(() => {
@@ -896,11 +938,11 @@ export function ProgressiveRequirements({
       messageType = "complete";
     }
 
-    // Get translations based on persona
-    const personaGreetings = getPersonaGreetings(loadedPersonaName, name, messageType, analyzedCount, totalRequirements);
+    // Get translations based on persona — includes current doc name for contextual updates
+    const personaGreetings = getPersonaGreetings(loadedPersonaName, name, messageType, analyzedCount, totalRequirements, currentlyAnalyzingDoc);
 
     return personaGreetings;
-  }, [travelerFirstName, analyzedCount, totalRequirements, isDemoProfile, loadedPersonaName]);
+  }, [travelerFirstName, analyzedCount, totalRequirements, isDemoProfile, loadedPersonaName, currentlyAnalyzingDoc]);
 
   return (
     <div className="space-y-6" ref={containerRef}>

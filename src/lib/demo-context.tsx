@@ -139,13 +139,28 @@ export function useDemoContext() {
 
 /**
  * Fetches a demo document image from /public, converts to base64 UploadedDocument.
+ * Throws a descriptive error if the image cannot be loaded.
  */
 export async function fetchDemoDocument(
   doc: { name: string; language: string; image: string },
   index: number
 ): Promise<UploadedDocument> {
-  const response = await fetch(doc.image);
+  let response: Response;
+  try {
+    response = await fetch(doc.image);
+  } catch (err) {
+    throw new Error(`Failed to fetch document image "${doc.name}": ${err instanceof Error ? err.message : "Network error"}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to load document image "${doc.name}" (${response.status} ${response.statusText})`);
+  }
+
   const blob = await response.blob();
+  if (blob.size === 0) {
+    throw new Error(`Document image "${doc.name}" is empty (0 bytes)`);
+  }
+
   const buffer = await blob.arrayBuffer();
   const base64 = btoa(
     new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")

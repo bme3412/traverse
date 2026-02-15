@@ -59,7 +59,7 @@ function getAssessmentInfo(overall: ApplicationAssessment) {
       return {
         icon: CheckCircle2,
         color: "text-foreground",
-        bg: "bg-background/95",
+        bg: "bg-white dark:bg-slate-900",
         border: "border-border",
         title: "Looking Good!",
         message: "Your application is on the right track. A few small improvements will make it even stronger.",
@@ -68,7 +68,7 @@ function getAssessmentInfo(overall: ApplicationAssessment) {
       return {
         icon: AlertTriangle,
         color: "text-foreground",
-        bg: "bg-background/95",
+        bg: "bg-white dark:bg-slate-900",
         border: "border-border",
         title: "A Few Things to Fix",
         message: "We've found some items that need your attention before you submit.",
@@ -77,7 +77,7 @@ function getAssessmentInfo(overall: ApplicationAssessment) {
       return {
         icon: AlertTriangle,
         color: "text-foreground",
-        bg: "bg-background/95",
+        bg: "bg-white dark:bg-slate-900",
         border: "border-border",
         title: "Let's Strengthen Your Application",
         message: "We've identified several important areas to address. Don't worry — we'll help you fix them.",
@@ -818,26 +818,60 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
                 </div>
               )
             ) : isReauditing ? (
-              /* Re-audit in progress */
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <RefreshCw className="w-5 h-5 text-blue-500 animate-spin shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      Re-verifying… {Array.from(reauditProgress?.fixStatuses.values() || []).filter(s => s === "passed" || s === "failed").length}/{remediation.fixes.length}
-                    </p>
-                    {/* Progress bar */}
-                    <div className="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-blue-500 transition-all duration-500 ease-out"
-                        style={{
-                          width: `${(Array.from(reauditProgress?.fixStatuses.values() || []).filter(s => s === "passed" || s === "failed").length / remediation.fixes.length) * 100}%`,
-                        }}
-                      />
+              /* Re-audit in progress — show which fix is active and what step */
+              (() => {
+                const completedCount = Array.from(reauditProgress?.fixStatuses.values() || []).filter(s => s === "passed" || s === "failed").length;
+                const activeFix = remediation.fixes.find(f => {
+                  const status = reauditProgress?.fixStatuses.get(f.id);
+                  return status === "fetching" || status === "analyzing";
+                });
+                const activeThinking = activeFix && reauditThinking?.get(activeFix.id);
+                // Derive a short step label from the thinking text
+                let stepLabel = "Fetching document...";
+                if (activeFix) {
+                  const status = reauditProgress?.fixStatuses.get(activeFix.id);
+                  if (status === "analyzing") {
+                    if (!activeThinking) {
+                      stepLabel = "Reading document...";
+                    } else {
+                      const lower = activeThinking.toLowerCase();
+                      if (lower.includes("compliance") || lower.includes("verdict") || lower.includes("meets") || lower.includes("does not meet")) {
+                        stepLabel = "Verifying compliance...";
+                      } else if (lower.includes("cross-check") || lower.includes("requirement") || lower.includes("against") || lower.includes("extracted") || lower.includes("read complete")) {
+                        stepLabel = "Cross-checking documents...";
+                      } else {
+                        stepLabel = "Reading document...";
+                      }
+                    }
+                  }
+                }
+                return (
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <RefreshCw className="w-5 h-5 text-blue-500 animate-spin shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">
+                          {activeFix ? (
+                            <>Analyzing <span className="font-semibold">{activeFix.requirementName}</span>… <span className="text-muted-foreground">({completedCount} of {remediation.fixes.length} verified)</span></>
+                          ) : (
+                            <>Re-verifying… {completedCount}/{remediation.fixes.length}</>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{stepLabel}</p>
+                        {/* Progress bar */}
+                        <div className="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-blue-500 transition-all duration-500 ease-out"
+                            style={{
+                              width: `${(completedCount / remediation.fixes.length) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()
             ) : (
               /* Default: ready to apply */
               <div className="flex items-center justify-between gap-4">
