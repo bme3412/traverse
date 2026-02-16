@@ -238,8 +238,10 @@ export function TravelForm({ onSubmit, isLoading = false, prefilledData }: Trave
     if (prefilledData && prefilledData !== lastPrefilledRef.current) {
       lastPrefilledRef.current = prefilledData;
 
-      // Update form data
+      // Update form data - Intentional synchronization of external props with form state
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prefilledData);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setErrors({});
 
       // Trigger subtle animations

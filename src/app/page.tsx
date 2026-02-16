@@ -69,12 +69,17 @@ export default function Home() {
       // Validate travel details before using them
       const validatedTravelDetails = validateTravelDetails(pendingLoad.travelDetails);
       if (validatedTravelDetails) {
+        // Intentional synchronization of external context state with local component state
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPrefilledData(validatedTravelDetails);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPendingDocs(pendingLoad.documents);
       } else {
         console.error("[Home] Invalid travel details from demo context:", pendingLoad.travelDetails);
         // Don't prefill if validation fails - let user enter manually
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPrefilledData(null);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPendingDocs([]);
       }
 

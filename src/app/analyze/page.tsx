@@ -7,8 +7,6 @@ import { LiveFeed } from "@/components/live-feed";
 import { FloatingAgentStatus } from "@/components/floating-agent-status";
 import { PhaseStepper } from "@/components/phase-stepper";
 import { ProgressiveRequirements } from "@/components/progressive-requirements";
-import { AnalysisResults } from "@/components/analysis-results";
-import { AdvisoryCard } from "@/components/advisory-card";
 import { AdvisoryModal } from "@/components/advisory-modal";
 import { AdvisoryLoading } from "@/components/advisory-loading";
 import { TravelDetails, UploadedDocument, DocumentExtraction, ComplianceItem, RequirementsChecklist, RequirementItem, SSEEvent, AdvisoryReport, RemediationItem, ApplicationAssessment, ReauditProgress, ReauditFixStatus } from "@/lib/types";
@@ -335,7 +333,6 @@ function AnalyzeContent() {
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
   const [travelDetails, setTravelDetails] = useState<TravelDetails | null>(null);
   const [perDocExtractions, setPerDocExtractions] = useState<DocumentExtraction[]>([]);
-  const [perDocCompliances, setPerDocCompliances] = useState<ComplianceItem[]>([]);
   const [advisoryReport, setAdvisoryReport] = useState<AdvisoryReport | null>(null);
   const [showAdvisoryModal, setShowAdvisoryModal] = useState(false);
   const [isAdvisoryRunning, setIsAdvisoryRunning] = useState(false);
@@ -469,7 +466,6 @@ function AnalyzeContent() {
   const handlePartialDocumentsAnalyzed = useCallback(
     (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => {
       setPerDocExtractions(extractions);
-      setPerDocCompliances(compliances);
 
       // Trigger Phase 2: lightweight LLM synthesis with preliminary fixes for refinement
       if (result?.requirements && !advisoryTriggeredRef.current) {
@@ -488,7 +484,6 @@ function AnalyzeContent() {
   const handleAllDocumentsAnalyzed = useCallback(
     (extractions: DocumentExtraction[], compliances: ComplianceItem[]) => {
       setPerDocExtractions(extractions);
-      setPerDocCompliances(compliances);
 
       // Only trigger Phase 2 if not already started (fallback for non-demo or small doc sets)
       if (result?.requirements && !advisoryTriggeredRef.current) {
@@ -1197,7 +1192,6 @@ function AnalyzePageInner({
   }, [researchAgentComplete, language, events, result?.requirements, translateFeedContent]);
 
   // --- Derived state for the phase stepper and progress narration ---
-  const researchDone = agentStatuses.research === "complete" || agentStatuses.research === "cached";
   const requirementEvents = events.filter(e => e.type === "requirement");
   const totalUploadableReqs = requirementEvents.filter(e => isRequirementEventWithUploadable(e) && e.uploadable !== false).length;
 

@@ -1,10 +1,14 @@
 # Traverse
 
-**Three AI agents that review your visa application the way an experienced immigration team would.**
+There are 8.3 billion people in the world today. They speak over 7,000 languages, live across 195 countries — and in 2025 alone, 1.5 billion of them crossed an international border.
 
-Upload documents in any language. Traverse's Research, Document Intelligence, and Advisory agents coordinate to catch the errors that cause preventable rejections — across documents, across languages, for any corridor in the world.
+But the world is getting harder to move through. Across the roughly 38,000 travel corridors worldwide, each has its own rules, its own required documents, and its own language. As many as one in four visa applications get refused — and the most common reasons are preventable. Incomplete forms. Missing documents. Contradictions the applicant never noticed.
 
-Built for the [Anthropic Opus 4.6 Hackathon](https://anthropic.com/discord) — showcasing extended thinking, web search, vision, and multi-agent coordination.
+**Traverse was built to fix that.**
+
+Three AI agents review your visa application the way an experienced immigration team would. Traverse researches the travel requirements for any corridor, reads every document — in any language — and tells you exactly what to fix before you submit. The Research, Document Intelligence, and Advisory agents coordinate to catch the errors that cause preventable rejections — across documents, across languages, for any corridor in the world.
+
+Built for an Anthropic hackathon — showcasing extended thinking, web search, vision, and multi-agent coordination.
 
 ## Quick Start
 
@@ -136,7 +140,8 @@ cd clearpath
 npm install
 
 # Set up environment variables
-cp .env.example .env.local
+# Create a new .env.local file
+touch .env.local
 ```
 
 Edit `.env.local` and add your Anthropic API key:
@@ -250,19 +255,8 @@ npm run dev          # Start development server
 npm run build        # Build for production
 npm run start        # Run production build
 npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript compiler
 ```
 
-### Adding a New Corridor Cache
-1. Create `data/corridors/{origin}-{destination}.json`
-2. Structure: `{ corridor, visaType, items: [...], sources: [...] }`
-3. Research Agent will use this as fallback when live search unavailable
-
-### Development Tips
-- Use `isDevelopment()` for dev-only console logs
-- All API keys validated on startup via `getEnv()`
-- Rate limits only apply in production (development bypasses)
-- Extended thinking budget: 16K tokens (configurable in `src/lib/config.ts`)
 
 ## Built With Opus 4.6
 
@@ -273,7 +267,7 @@ This project showcases Claude Opus 4.6 capabilities:
 - **Multi-Agent Coordination** — TypeScript orchestrator manages three specialized agents
 - **Streaming** — Real-time SSE streams show thinking and results as they happen
 
-Built for the [Anthropic Claude Code Hackathon](https://anthropic.com/discord).
+Built for an Anthropic hackathon.
 
 ## Troubleshooting
 
@@ -305,18 +299,6 @@ Built for the [Anthropic Claude Code Hackathon](https://anthropic.com/discord).
 - Thinking text shows in real-time during processing
 - Check that `ANTHROPIC_MODEL=claude-opus-4-6` in `.env.local`
 
-## Contributing
-
-This project was built for the Anthropic Opus 4.6 Hackathon. Contributions welcome after the hackathon period!
-
-Areas for future enhancement:
-- [ ] Re-audit flow (upload corrected documents, see before/after transformation)
-- [ ] Document annotation in advisory modal (highlight specific issues)
-- [ ] More corridor caches (currently 3: India→Germany, Nigeria→UK, Brazil→Japan)
-- [ ] Export advisory report as PDF
-- [ ] Email notification when analysis complete
-- [ ] Video call scheduling for interview prep
-- [ ] Integration with embassy appointment systems
 
 ## Acknowledgments
 

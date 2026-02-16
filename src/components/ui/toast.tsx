@@ -16,6 +16,8 @@ export function Toast({ message, subtitle, duration = 4000, onClose, show }: Toa
 
   useEffect(() => {
     if (show) {
+      // Intentional synchronization: sync animation state with prop for slide-in effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsVisible(true);
 
       const timer = setTimeout(() => {

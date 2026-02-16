@@ -346,6 +346,8 @@ export function AdvisoryModal({ advisory, isOpen, onClose, documentImages, extra
 
     // Skip translation if English
     if (language === "English") {
+      // Intentional synchronization: reset translation state when language is English
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTranslatedContent(null);
       return;
     }
