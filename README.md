@@ -6,7 +6,7 @@ But the world is getting harder to move through. Across the roughly 38,000 trave
 
 **Traverse was built to fix that.**
 
-Three AI agents review your visa application the way an experienced immigration team would. Traverse researches the travel requirements for any corridor, reads every document — in any language — and tells you exactly what to fix before you submit. The Research, Document Intelligence, and Advisory agents coordinate to catch the errors that cause preventable rejections — across documents, across languages, for any corridor in the world.
+Three AI agents review your visa application the way an experienced immigration team would. Traverse researches the travel requirements for any corridor, reads every document — in any of 40 languages — and tells you exactly what to fix before you submit. The Research, Document Intelligence, and Advisory agents coordinate to catch the errors that cause preventable rejections — across documents, across languages, for any corridor in the world.
 
 Built for an Anthropic hackathon — showcasing extended thinking, web search, vision, and multi-agent coordination.
 
