@@ -49,7 +49,7 @@ All three agents use **Claude Opus 4.6** with extended thinking — dynamically 
 - **🌍 Universal Coverage** — Works for any travel corridor (37,830+ combinations), any purpose (tourism, business, study, work, medical, family)
 - **🗣️ 40 Languages** — Upload documents in any language; get results translated to your preferred language
 - **🔍 Three-Phase Analysis** — Research → Document Intelligence → Advisory synthesis
-- **⚡ Zero Dead Time** — Two-phase advisory shows instant preliminary results, updates progressively, then refines with AI
+- **⚡ Minimal Dead Time** — Two-phase advisory shows instant preliminary results, updates progressively, then refines with AI
 - **🔒 Privacy-First** — No database, no accounts, documents processed in-memory and immediately discarded
 - **🎨 Beautiful UX** — Dual themes, progressive translation, real-time AI reasoning display, smooth animations
 
