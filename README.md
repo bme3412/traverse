@@ -21,28 +21,218 @@ Built for an Anthropic hackathon — showcasing extended thinking, web search, v
 
 ## Architecture
 
-```
-User Input (corridor + documents)
-        │
-        ▼
-┌──────────────────────────────────────────────┐
-│          ORCHESTRATOR (TypeScript)            │
-│  Plans analysis, delegates to agents,        │
-│  handles data passing, streams to UI         │
-└────┬───────────────┬───────────────┬─────────┘
-     │               │               │
-     ▼               ▼               ▼
-┌──────────┐  ┌─────────────┐  ┌──────────┐
-│ RESEARCH │  │  DOCUMENT   │  │ ADVISORY │
-│  AGENT   │  │INTELLIGENCE │  │  AGENT   │
-│          │  │   AGENT     │  │          │
-│Web Search│  │Vision       │  │Thinking  │
-│Thinking  │  │Thinking     │  │Structured│
-│          │  │             │  │Output    │
-└──────────┘  └─────────────┘  └──────────┘
+Traverse runs three AI agents on Claude Opus 4.6, coordinated by a TypeScript orchestrator that streams results to the UI in real-time via Server-Sent Events.
+
+```mermaid
+graph LR
+    INPUT["User Input<br/>corridor + documents"]
+
+    subgraph ORCH["Orchestrator"]
+        direction TB
+        PLAN["Plan agents"]
+        PARALLEL["Parallel dispatch"]
+        WAIT["Wait for both"]
+        SEQ["Sequential pass"]
+    end
+
+    subgraph R["Research Agent"]
+        direction TB
+        R1["Web Search<br/><i>live gov sources</i>"]
+        R2["Extended Thinking<br/><i>reason about policies</i>"]
+        R3["RequirementsChecklist<br/><i>5-12 items + metadata</i>"]
+        R1 --> R2 --> R3
+    end
+
+    subgraph D["Document Intelligence Agent"]
+        direction TB
+        D1["Pass 1: Vision Read<br/><i>OCR every document</i>"]
+        D2["Pass 2: Cross-Analysis<br/><i>compliance + contradictions</i>"]
+        D3["DocumentAnalysis<br/><i>compliance, cross-lingual,<br/>narrative, forensics</i>"]
+        D1 --> D2 --> D3
+    end
+
+    subgraph A["Advisory Agent"]
+        direction TB
+        A1["Extended Thinking<br/><i>16K token budget</i>"]
+        A2["Warm Guidance<br/><i>actionable fixes + tips</i>"]
+        A3["AdvisoryReport<br/><i>fixes, tips, warnings</i>"]
+        A1 --> A2 --> A3
+    end
+
+    INPUT --> PLAN
+    PLAN --> PARALLEL
+    PARALLEL -->|"parallel"| R1
+    PARALLEL -->|"parallel"| D1
+    R3 --> WAIT
+    D1 --> WAIT
+    WAIT --> SEQ
+    SEQ -->|"requirements<br/>+ extractions"| D2
+    D3 -->|"compliance data"| A1
+
+    style R fill:#eff6ff,stroke:#3b82f6,stroke-width:2px
+    style D fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px
+    style A fill:#ecfdf5,stroke:#10b981,stroke-width:2px
+    style ORCH fill:#fff7ed,stroke:#f59e0b,stroke-width:2px
 ```
 
 All three agents use **Claude Opus 4.6** with extended thinking — dynamically allocating reasoning depth based on complexity.
+
+| Agent | Opus 4.6 Capabilities | What It Does |
+|-------|----------------------|--------------|
+| **Research** | Web Search, Extended Thinking | Searches live government sources for corridor-specific visa requirements |
+| **Document Intelligence** | Vision, Extended Thinking | Reads documents in any language, cross-references for contradictions |
+| **Advisory** | Extended Thinking, Structured Output | Synthesizes findings into prioritized, actionable fixes |
+
+## Demo Walkthrough — Priya Sharma
+
+The demo follows Priya, a software engineer in Bangalore applying for a business visa to Germany. Her nine documents contain a cross-lingual contradiction she doesn't know about.
+
+```mermaid
+graph TD
+    subgraph SETUP["Setup"]
+        S1["Open Sidebar"]
+        S2["Select Priya Sharma"]
+        S3["Load Profile<br/><i>India → Germany, Business</i>"]
+        S4["Form Auto-fills<br/><i>animated field slide</i>"]
+        S5["Click Check Requirements"]
+        S1 --> S2 --> S3 --> S4 --> S5
+    end
+
+    subgraph RESEARCH["Phase 1: Research"]
+        R1["Research Agent Activates<br/><i>cached india-germany.json</i>"]
+        R2["Sources Found<br/><i>German Embassy, VFS Global</i>"]
+        R3["12 Requirements Loaded<br/><i>9 uploadable, 3 info-only</i>"]
+        R4["Phase 1 Advisory<br/><i>instant — no LLM</i>"]
+        R1 --> R2 --> R3 --> R4
+    end
+
+    subgraph DOCS["Phase 2: Document Verification"]
+        D1["Passport Uploaded"]
+        D2["Auto-Cascade<br/><i>8 remaining docs, 300ms stagger</i>"]
+        D3["9 Parallel Vision Reads<br/><i>Opus 4.6 + Vision</i>"]
+        D4["9 Cross-Checks<br/><i>compliance per requirement</i>"]
+        D1 --> D2 --> D3 --> D4
+    end
+
+    subgraph FINDINGS["Findings"]
+        F1["CRITICAL<br/>Cross-lingual contradiction<br/><i>Hindi: permanent ₹85K<br/>English: contract ₹60K</i>"]
+        F2["CRITICAL<br/>Gmail forensic flag<br/><i>easummit2026@gmail.com</i>"]
+        F3["WARNING<br/>Narrative gap<br/><i>15-day trip, 3-day conference</i>"]
+    end
+
+    subgraph ADVISORY["Phase 3: Advisory"]
+        A1["Phase 1b Updates<br/><i>advisory evolves in real-time</i>"]
+        A2["Phase 2 LLM Synthesis<br/><i>Opus 4.6 + Extended Thinking</i>"]
+        A3["Modal Opens<br/><i>Let's Strengthen Your Application</i>"]
+        A1 --> A2 --> A3
+    end
+
+    subgraph REAUDIT["Phase 4: Re-Audit"]
+        X1["Apply Fixes & Re-check"]
+        X2["Fix 1: Cover Letter<br/><i>Corrected to match Hindi docs</i><br/>PASS"]
+        X3["Fix 2: Invitation<br/><i>Official domain + letterhead</i><br/>PASS"]
+        X4["Fix 3: Itinerary<br/><i>Day-by-day plan added</i><br/>PASS"]
+        X5["Looking Good!<br/><i>APPLICATION PROCEEDS</i>"]
+        X6["Switch to Hindi<br/><i>नमस्ते — modal translates</i>"]
+        X1 --> X2 --> X3 --> X4 --> X5 --> X6
+    end
+
+    S5 --> R1
+    R4 --> D1
+    D4 --> F1
+    D4 --> F2
+    D4 --> F3
+    D4 --> A1
+    F1 & F2 & F3 --> A2
+    A3 --> X1
+
+    style SETUP fill:#f8fafc,stroke:#64748b,stroke-width:1px
+    style RESEARCH fill:#eff6ff,stroke:#3b82f6,stroke-width:2px
+    style DOCS fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px
+    style FINDINGS fill:#fef2f2,stroke:#ef4444,stroke-width:2px
+    style ADVISORY fill:#ecfdf5,stroke:#10b981,stroke-width:2px
+    style REAUDIT fill:#f0fdf4,stroke:#16a34a,stroke-width:2px
+
+    style F1 fill:#fee2e2,stroke:#dc2626
+    style F2 fill:#fee2e2,stroke:#dc2626
+    style F3 fill:#fef3c7,stroke:#d97706
+    style X5 fill:#bbf7d0,stroke:#16a34a,stroke-width:2px
+```
+
+<details>
+<summary><strong>SSE Event Flow (Technical Detail)</strong></summary>
+
+```mermaid
+sequenceDiagram
+    participant C as Client (Browser)
+    participant S as /api/analyze
+    participant R as Research Agent
+    participant D as Document Agent
+    participant A as Advisory Agent
+
+    C->>S: POST /api/analyze {travelDetails, documents}
+    activate S
+
+    S->>R: runResearchAgent()
+    S->>D: runDocumentReaderPass1()
+    Note over R,D: Parallel execution
+
+    R-->>S: orchestrator/agent_start
+    S-->>C: SSE: orchestrator/agent_start [Research]
+
+    R-->>S: search_status (searching)
+    S-->>C: SSE: search_status
+    R-->>S: search_status (found)
+    S-->>C: SSE: search_status
+
+    R-->>S: thinking (excerpt)
+    S-->>C: SSE: thinking [Research]
+
+    loop For each requirement
+        R-->>S: requirement
+        S-->>C: SSE: requirement
+    end
+
+    R-->>S: orchestrator/agent_complete
+    S-->>C: SSE: orchestrator/agent_complete [Research]
+
+    D-->>S: document_read (doc 1)
+    S-->>C: SSE: document_read
+    D-->>S: document_read (doc N)
+    S-->>C: SSE: document_read
+    D-->>S: orchestrator/agent_complete
+    S-->>C: SSE: orchestrator/agent_complete [Document Reader]
+
+    Note over S: Both complete — start Pass 2
+
+    S->>D: runDocumentAnalyzerPass2()
+    D-->>S: thinking (analysis)
+    S-->>C: SSE: thinking [Document Analysis]
+    D-->>S: cross_lingual
+    S-->>C: SSE: cross_lingual
+    D-->>S: forensic
+    S-->>C: SSE: forensic
+    D-->>S: narrative
+    S-->>C: SSE: narrative
+
+    S-->>C: SSE: complete {requirements, extractions, analysis}
+    deactivate S
+
+    Note over C: Phase 2 triggers automatically
+
+    C->>A: POST /api/advisory
+    activate A
+    A-->>C: SSE: recommendation (fix 1)
+    A-->>C: SSE: recommendation (fix 2)
+    A-->>C: SSE: advisory_tips
+    A-->>C: SSE: assessment
+    A-->>C: SSE: orchestrator/agent_complete [Advisory]
+    deactivate A
+
+    Note over C: Advisory modal auto-opens
+```
+
+</details>
 
 ## Key Features
 
