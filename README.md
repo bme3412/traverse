@@ -19,6 +19,54 @@ Built for an Anthropic hackathon — showcasing extended thinking, web search, v
 5. Open http://localhost:3000
 6. Click a demo persona in the sidebar or enter your own travel details
 
+## How It Looks
+
+Here's the full flow — a software engineer in Bangalore applying for a business visa to Germany. She has nine documents, some in Hindi, some in English, and one contains a contradiction she doesn't know about.
+
+![Traverse landing page](screen-shots/00-traverse-landing.jpg)
+
+The landing page frames the problem: millions of preventable rejections, 37,830+ corridors, 40+ languages. Priya picks her profile from the demo sidebar — her corridor, dates, and event auto-fill instantly.
+
+![Demo persona sidebar — Priya Sharma](screen-shots/01-traverse-profiles.png)
+
+![Travel form auto-filled](screen-shots/03-traverse-travel-form.jpg)
+
+Her documents include this bilingual employment certificate. The Hindi section says she's a permanent employee earning ₹85,000/month. The English cover letter will say something different — and she doesn't know.
+
+![Hindi/English employment certificate](screen-shots/02-traverse-travel-docs.jpg)
+
+She clicks **Check Requirements**. The analysis page greets her in English, Hindi, and German — matching her corridor — and the Research Agent starts searching live government sources.
+
+![Analysis page — trilingual corridor header](screen-shots/04-traverse-analyze-page.jpg)
+
+Within seconds, the Research Agent returns visa type, fees, processing time, and 11 structured requirements, sourced from the German Embassy and VFS Global.
+
+![Research Agent results — requirements, fees, and sources](screen-shots/05-traverse-research-agent.jpg)
+
+Each requirement gets an upload slot. Priya drops her passport — the remaining eight documents auto-cascade with a stagger animation. The Document Intelligence Agent reads each one using vision, in any language, and cross-checks them against the requirements in real time.
+
+![Document requirements with upload slots](screen-shots/06-traverse-docs-upload.jpg)
+
+![Live document analysis — passport being read](screen-shots/07-traverse-passport-upload.jpg)
+
+Once 80% of documents are verified, the Advisory Agent activates. Behind the loading overlay, you can see the bank statement analysis reasoning through ₹86,670 withdrawals and low closing balances.
+
+![Advisory Agent loading — "Personalizing your recommendations..."](screen-shots/08-traverse-advisory-load.jpg)
+
+The advisory opens: **"Let's Strengthen Your Application."** It found the cross-lingual contradiction, flagged a Gmail-hosted invitation letter, and identified a narrative gap. Each fix comes with specific, actionable instructions — not just what's wrong, but exactly what to do.
+
+![Advisory report — prioritized fixes with "What to Do" guidance](screen-shots/09-traverse-advistory-report.jpg)
+
+Priya clicks **Apply Fixes & Re-check**. The re-audit pipeline verifies each corrected document through four steps (Fetching → Reading → Cross-checking → Verifying). All three fixes pass. The contradiction is gone.
+
+![Re-audit complete — "All issues resolved"](screen-shots/10-traverse-fix-wizard.jpg)
+
+This works for any corridor. Here's a completely different one — Azerbaijan to Guinea-Bissau — with the Research Agent live-searching government sources it's never seen before.
+
+![Any corridor — Azerbaijan to Guinea-Bissau, live research](screen-shots/11-traverse-random.jpg)
+
+---
+
 ## Architecture
 
 Traverse runs three AI agents on Claude Opus 4.6, coordinated by a TypeScript orchestrator that streams results to the UI in real-time via Server-Sent Events.
