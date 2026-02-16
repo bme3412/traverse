@@ -3,6 +3,7 @@ import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -87,6 +88,7 @@ export default function RootLayout({
             </footer>
           </div>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
