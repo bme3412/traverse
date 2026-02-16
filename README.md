@@ -21,11 +21,14 @@ Built for an Anthropic hackathon — showcasing extended thinking, web search, v
 
 ## How It Looks
 
-Here's the full flow — a software engineer in Bangalore applying for a business visa to Germany. She has nine documents, some in Hindi, some in English, and one contains a contradiction she doesn't know about.
+As many as one in four visa applications get refused — and the most common reasons are preventable. Traverse uses agentic AI to provide a solution to a complex situation: there are over 195 countries in the world, resulting in 37,830 global travel corridors (where a travel corridor refers to 1-way direction from country A to country B, ex: travel from USA to France), and the thousands of languages adds complexity in understanding what travel documents are needed as global tensions mount.
+
 
 ![Traverse landing page](screen-shots/00-traverse-landing.jpg)
 
-The landing page frames the problem: millions of preventable rejections, 37,830+ corridors, 40+ languages. Priya picks her profile from the demo sidebar — her corridor, dates, and event auto-fill instantly.
+For the demo, we use synthetic data across three fictional profiles, including Amara from Nigeria who needs a student visa for her master's program in London; and Carlos, a freelance photographer from Brazil who needs to check travel documents for his 3 week trip to Japan. 
+
+Priya is a software engineer in Bangalore applying for a business visa to Germany. She has nine documents, some in Hindi, some in English, and one contains a contradiction she doesn't know about.
 
 ![Demo persona sidebar — Priya Sharma](screen-shots/01-traverse-profiles.png)
 
@@ -43,21 +46,24 @@ Within seconds, the Research Agent returns visa type, fees, processing time, and
 
 ![Research Agent results — requirements, fees, and sources](screen-shots/05-traverse-research-agent.jpg)
 
-Each requirement gets an upload slot. Priya drops her passport — the remaining eight documents auto-cascade with a stagger animation. The Document Intelligence Agent reads each one using vision, in any language, and cross-checks them against the requirements in real time.
+Each requirement gets an upload slot. Priya drops her passport, and invitation letter (for demo purposes, all other files are auto-loaded after the first 2 files manually loaded).
+
+The Document Intelligence Agent reads each one using vision, in any language, and cross-checks them against the requirements in real time.
 
 ![Document requirements with upload slots](screen-shots/06-traverse-docs-upload.jpg)
 
 ![Live document analysis — passport being read](screen-shots/07-traverse-passport-upload.jpg)
 
-Once 80% of documents are verified, the Advisory Agent activates. Behind the loading overlay, you can see the bank statement analysis reasoning through ₹86,670 withdrawals and low closing balances.
+After the AI reads in and analyzes each travel document, the advisory agent then begins the processing of providing a plan to fix errors in the traveler's initial application submission.
 
 ![Advisory Agent loading — "Personalizing your recommendations..."](screen-shots/08-traverse-advisory-load.jpg)
 
-The advisory opens: **"Let's Strengthen Your Application."** It found the cross-lingual contradiction, flagged a Gmail-hosted invitation letter, and identified a narrative gap. Each fix comes with specific, actionable instructions — not just what's wrong, but exactly what to do.
+The advisory agent presents fixes for complex cross-lingual mistake, ex: Priya was invited to Munich by a European conference committee, but the German consulate need an official business invitation from a named German company on their letterhead. 
+Each fix comes with specific, actionable instructions — not just what's wrong, but exactly what to do.
 
 ![Advisory report — prioritized fixes with "What to Do" guidance](screen-shots/09-traverse-advistory-report.jpg)
 
-Priya clicks **Apply Fixes & Re-check**. The re-audit pipeline verifies each corrected document through four steps (Fetching → Reading → Cross-checking → Verifying). All three fixes pass. The contradiction is gone.
+Each demo profile incorporates suggested edits to be made to existing travel documents. Priya clicks **Apply Fixes & Re-check**. The re-audit pipeline verifies each corrected document through four steps (Fetching → Reading → Cross-checking → Verifying). All three fixes pass.
 
 ![Re-audit complete — "All issues resolved"](screen-shots/10-traverse-fix-wizard.jpg)
 
